@@ -87,4 +87,7 @@ void iiFree(void * handle);
 
 long callInitOutput(struct IncomingConnectionInterface * connection, void * recordMetaInfoXml);
 long callPushRecord(struct IncomingConnectionInterface * connection, void * record);
+long callCloseOutput(struct IncomingConnectionInterface * connection);
 void * callEngineCreateTempFileName(struct EngineInterface *pEngineInterface, void * ext);
+
+struct IncomingConnectionInterface* newIi();

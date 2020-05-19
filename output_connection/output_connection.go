@@ -2,6 +2,7 @@ package output_connection
 
 import "C"
 import (
+	"fmt"
 	"goalteryx/api"
 	"goalteryx/recordinfo"
 	"unsafe"
@@ -10,8 +11,8 @@ import (
 type OutputConnection interface {
 	Add(connection *api.ConnectionInterfaceStruct)
 	Init(info recordinfo.RecordInfo) error
-	PushRecord(record unsafe.Pointer) error
-	Close() error
+	PushRecord(record unsafe.Pointer)
+	Close()
 }
 
 func New(toolId int, name string) OutputConnection {
@@ -21,6 +22,7 @@ func New(toolId int, name string) OutputConnection {
 		toolId:                   toolId,
 		name:                     name,
 		connections:              []*api.ConnectionInterfaceStruct{},
+		finishedConnections:      []*api.ConnectionInterfaceStruct{},
 		browseEverywhereAnchorId: browseEverywhereAnchorId,
 	}
 }
@@ -29,6 +31,7 @@ type outputConnection struct {
 	toolId                   int
 	name                     string
 	connections              []*api.ConnectionInterfaceStruct
+	finishedConnections      []*api.ConnectionInterfaceStruct
 	browseEverywhereAnchorId uint
 }
 
@@ -47,25 +50,33 @@ func (output *outputConnection) Init(info recordinfo.RecordInfo) error {
 		output.connections = append(output.connections, ii)
 	}
 
-	for _, connection := range output.connections {
+	errs := 0
+	for index, connection := range output.connections {
 		err := api.InitOutput(connection, output.name, info)
 		if err != nil {
-			return err
+			output.connections = append(output.connections[:index], output.connections[index+1:]...)
+			errs++
 		}
+	}
+	if errs > 0 {
+		return fmt.Errorf(`%v connection(s) failed to initialize`, errs)
 	}
 	return nil
 }
 
-func (output *outputConnection) PushRecord(record unsafe.Pointer) error {
-	for _, connection := range output.connections {
+func (output *outputConnection) PushRecord(record unsafe.Pointer) {
+	for index, connection := range output.connections {
 		err := api.PushRecord(connection, record)
 		if err != nil {
-			return err
+			output.finishedConnections = append(output.finishedConnections, output.connections[index])
+			output.connections = append(output.connections[:index], output.connections[index+1:]...)
 		}
 	}
-	return nil
 }
 
-func (output *outputConnection) Close() error {
-	return nil
+func (output *outputConnection) Close() {
+	for _, connection := range append(output.connections, output.finishedConnections...) {
+		api.CloseOutput(connection)
+	}
+	api.OutputMessage(output.toolId, api.Complete, ``)
 }

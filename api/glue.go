@@ -9,8 +9,6 @@ import (
 	"github.com/mattn/go-pointer"
 	"goalteryx/convert_strings"
 	"goalteryx/recordinfo"
-	"os"
-	"time"
 	"unsafe"
 )
 
@@ -49,6 +47,17 @@ type IncomingInterface interface {
 
 type ConnectionInterfaceStruct struct {
 	connection *C.struct_IncomingConnectionInterface
+}
+
+func NewConnectionInterfaceStruct(incomingInterface IncomingInterface) *ConnectionInterfaceStruct {
+	var ii *C.struct_IncomingConnectionInterface = C.newIi()
+	ii.handle = pointer.Save(incomingInterface)
+	ii.pII_Init = C.T_II_Init(C.iiInit)
+	ii.pII_PushRecord = C.T_II_PushRecord(C.iiPushRecord)
+	ii.pII_UpdateProgress = C.T_II_UpdateProgress(C.iiUpdateProgress)
+	ii.pII_Close = C.T_II_Close(C.iiClose)
+	ii.pII_Free = C.T_II_Free(C.iiFree)
+	return &ConnectionInterfaceStruct{connection: ii}
 }
 
 func ConfigurePlugin(plugin Plugin, toolId int, pXmlProperties unsafe.Pointer, pEngineInterface unsafe.Pointer, r_pluginInterface unsafe.Pointer) int {
@@ -152,6 +161,9 @@ func getPlugin(plugin Plugin) unsafe.Pointer {
 }
 
 func OutputMessage(toolId int, status MessageStatus, message string) {
+	if engine == nil {
+		return
+	}
 	cMessage, err := convert_strings.StringToWideC(message)
 	if err != nil {
 		return
@@ -203,14 +215,12 @@ func PushRecord(connection *ConnectionInterfaceStruct, record unsafe.Pointer) er
 	return nil
 }
 
+func CloseOutput(connection *ConnectionInterfaceStruct) {
+	C.callCloseOutput(connection.connection)
+}
+
 func CreateTempFileName(ext string) string {
 	cExt, _ := convert_strings.StringToWideC(ext)
 	cFileName := C.callEngineCreateTempFileName(engine, cExt)
 	return convert_strings.WideCToString(cFileName)
-}
-
-func printLogf(message string, args ...interface{}) {
-	file, _ := os.OpenFile("C:\\temp\\output.txt", os.O_WRONLY|os.O_APPEND, 0644)
-	defer file.Close()
-	_, _ = file.WriteString(fmt.Sprintf(time.Now().String()+": "+message+"\n", args...))
 }

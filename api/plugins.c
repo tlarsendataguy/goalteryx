@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include "plugins.h"
 
 void callEngineOutputMessage(struct EngineInterface *pEngineInterface, int toolId, int status, void * message) {
@@ -22,4 +23,14 @@ long callInitOutput(struct IncomingConnectionInterface * connection, void * reco
 
 long callPushRecord(struct IncomingConnectionInterface * connection, void * record) {
     return connection->pII_PushRecord(connection->handle, record);
+}
+
+long callCloseOutput(struct IncomingConnectionInterface * connection) {
+    connection->pII_Close(connection->handle);
+}
+
+struct IncomingConnectionInterface* newIi() {
+    struct IncomingConnectionInterface *ptr;
+    ptr = malloc(sizeof(struct IncomingConnectionInterface));
+    return ptr;
 }

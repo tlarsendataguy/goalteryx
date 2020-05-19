@@ -111,11 +111,7 @@ func (ii *MyPluginIncomingInterface) PushRecord(record unsafe.Pointer) bool {
 	} else {
 		api.OutputMessage(ii.Parent.ToolId, api.TransientInfo, fmt.Sprintf(`[%v] is %v`, ii.Parent.Field, value))
 	}
-	err = ii.Parent.Output1.PushRecord(record)
-	if err != nil {
-		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
-		return false
-	}
+	ii.Parent.Output1.PushRecord(record)
 	byteVal, isNull, err := ii.inInfo.GetByteValueFrom(`ByteField`, record)
 	if err != nil {
 		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
@@ -131,11 +127,7 @@ func (ii *MyPluginIncomingInterface) PushRecord(record unsafe.Pointer) bool {
 		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
 		return false
 	}
-	err = ii.Parent.Blah.PushRecord(blahRecord)
-	if err != nil {
-		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
-		return false
-	}
+	ii.Parent.Blah.PushRecord(blahRecord)
 	return true
 }
 
@@ -144,7 +136,8 @@ func (ii *MyPluginIncomingInterface) UpdateProgress(percent float64) {
 }
 
 func (ii *MyPluginIncomingInterface) Close() {
-
+	ii.Parent.Output1.Close()
+	ii.Parent.Blah.Close()
 }
 
 func (ii *MyPluginIncomingInterface) Free() {
