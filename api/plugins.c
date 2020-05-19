@@ -4,6 +4,10 @@ void callEngineOutputMessage(struct EngineInterface *pEngineInterface, int toolI
 	pEngineInterface->pOutputMessage(pEngineInterface->handle, toolId, status, message);
 }
 
+void * callEngineCreateTempFileName(struct EngineInterface *pEngineInterface, void * ext) {
+	return pEngineInterface->pCreateTempFileName(pEngineInterface->handle, ext);
+}
+
 unsigned callEngineBrowseEverywhereReserveAnchor(struct EngineInterface *pEngineInterface, int toolId) {
 	return pEngineInterface->pBrowseEverywhereReserveAnchor(pEngineInterface->handle, toolId);
 }

@@ -53,6 +53,7 @@ typedef long ( _stdcall * OutputToolProgress)(void * handle, int nToolID, double
 typedef long ( _stdcall * OutputMessage)(void * handle, int nToolID, int nStatus, wchar_t *pMessage);
 typedef unsigned ( _stdcall * BrowseEverywhereReserveAnchor)(void * handle, int nToolId);
 typedef struct IncomingConnectionInterface* ( _stdcall * BrowseEverywhereGetII)(void * handle, unsigned nReservationId,  int nToolId, void * strOutputName);
+typedef void * ( _stdcall * CreateTempFileName)(void * handle, void * pExt);
 
 struct EngineInterface {
     int sizeof_EngineInterface;
@@ -63,25 +64,27 @@ struct EngineInterface {
     OutputMessage pOutputMessage;
     BrowseEverywhereReserveAnchor pBrowseEverywhereReserveAnchor;
     BrowseEverywhereGetII pBrowseEverywhereGetII;
+    CreateTempFileName pCreateTempFileName;
 };
 
 // For the glue
 
-void * GetPlugin();
+void * getPlugin();
 typedef long (*outputFunc)(int nToolID, int nStatus, void * pMessage);
 void callEngineOutputMessage(struct EngineInterface *pEngineInterface, int toolId, int status, void * message);
 unsigned callEngineBrowseEverywhereReserveAnchor(struct EngineInterface *pEngineInterface, int toolId);
 struct IncomingConnectionInterface* callEngineBrowseEverywhereGetII(struct EngineInterface *pEngineInterface, unsigned browseEverywhereAnchorId, int toolId, void * name);
 
-long PiPushAllRecords(void * handle, __int64 recordLimit);
-void PiClose(void * handle, bool hasErrors);
-long PiAddIncomingConnection(void * handle, void * connectionType, void * connectionName, struct IncomingConnectionInterface * incomingInterface);
-long PiAddOutgoingConnection(void * handle, void * connectionName, struct IncomingConnectionInterface * incomingInterface);
-long IiInit(void * handle, void * recordInfoIn);
-long IiPushRecord(void * handle, void * record);
-void IiUpdateProgress(void * handle, double percent);
-void IiClose(void * handle);
-void IiFree(void * handle);
+long piPushAllRecords(void * handle, __int64 recordLimit);
+void piClose(void * handle, bool hasErrors);
+long piAddIncomingConnection(void * handle, void * connectionType, void * connectionName, struct IncomingConnectionInterface * incomingInterface);
+long piAddOutgoingConnection(void * handle, void * connectionName, struct IncomingConnectionInterface * incomingInterface);
+long iiInit(void * handle, void * recordInfoIn);
+long iiPushRecord(void * handle, void * record);
+void iiUpdateProgress(void * handle, double percent);
+void iiClose(void * handle);
+void iiFree(void * handle);
 
 long callInitOutput(struct IncomingConnectionInterface * connection, void * recordMetaInfoXml);
 long callPushRecord(struct IncomingConnectionInterface * connection, void * record);
+void * callEngineCreateTempFileName(struct EngineInterface *pEngineInterface, void * ext);

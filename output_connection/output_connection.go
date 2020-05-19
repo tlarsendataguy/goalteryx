@@ -16,6 +16,7 @@ type OutputConnection interface {
 
 func New(toolId int, name string) OutputConnection {
 	browseEverywhereAnchorId := uint(0) // TODO fix this with api.BrowseEverywhereReserveAnchor(toolId)
+	//browseEverywhereAnchorId = api.BrowseEverywhereReserveAnchor(toolId)
 	return &outputConnection{
 		toolId:                   toolId,
 		name:                     name,
@@ -36,6 +37,11 @@ func (output *outputConnection) Add(connection *api.ConnectionInterfaceStruct) {
 }
 
 func (output *outputConnection) Init(info recordinfo.RecordInfo) error {
+	infoXml, err := info.ToXml(output.name)
+	if err != nil {
+		return err
+	}
+	api.OutputMessage(output.toolId, api.UpdateOutputMetaInfoXml, infoXml)
 	if output.browseEverywhereAnchorId != 0 {
 		ii := api.BrowseEverywhereGetII(output.browseEverywhereAnchorId, output.toolId, output.name)
 		output.connections = append(output.connections, ii)

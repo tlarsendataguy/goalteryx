@@ -14,7 +14,7 @@ import (
 	"unsafe"
 )
 
-var Engine *C.struct_EngineInterface
+var engine *C.struct_EngineInterface
 
 type MessageStatus int
 
@@ -27,6 +27,8 @@ const (
 	Complete                      MessageStatus = 4
 	FieldConversionError          MessageStatus = 5
 	TransientFieldConversionError MessageStatus = 0x40000000 | 5
+	UpdateOutputMetaInfoXml       MessageStatus = 10
+	BrowseEverywhereFileName      MessageStatus = 70
 )
 
 type Plugin interface {
@@ -51,22 +53,22 @@ type ConnectionInterfaceStruct struct {
 
 func ConfigurePlugin(plugin Plugin, toolId int, pXmlProperties unsafe.Pointer, pEngineInterface unsafe.Pointer, r_pluginInterface unsafe.Pointer) int {
 	config := convert_strings.WideCToString(pXmlProperties)
-	Engine = (*C.struct_EngineInterface)(pEngineInterface)
+	engine = (*C.struct_EngineInterface)(pEngineInterface)
 	if !plugin.Init(toolId, config) {
 		return 0
 	}
 
 	pluginInterface := (*C.struct_PluginInterface)(r_pluginInterface)
-	pluginInterface.handle = GetPlugin(plugin)
-	pluginInterface.pPI_PushAllRecords = C.T_PI_PushAllRecords(C.PiPushAllRecords)
-	pluginInterface.pPI_Close = C.T_PI_Close(C.PiClose)
-	pluginInterface.pPI_AddIncomingConnection = C.T_PI_AddIncomingConnection(C.PiAddIncomingConnection)
-	pluginInterface.pPI_AddOutgoingConnection = C.T_PI_AddOutgoingConnection(C.PiAddOutgoingConnection)
+	pluginInterface.handle = getPlugin(plugin)
+	pluginInterface.pPI_PushAllRecords = C.T_PI_PushAllRecords(C.piPushAllRecords)
+	pluginInterface.pPI_Close = C.T_PI_Close(C.piClose)
+	pluginInterface.pPI_AddIncomingConnection = C.T_PI_AddIncomingConnection(C.piAddIncomingConnection)
+	pluginInterface.pPI_AddOutgoingConnection = C.T_PI_AddOutgoingConnection(C.piAddOutgoingConnection)
 	return 1
 }
 
-//export PiPushAllRecords
-func PiPushAllRecords(handle unsafe.Pointer, recordLimit C.__int64) C.long {
+//export piPushAllRecords
+func piPushAllRecords(handle unsafe.Pointer, recordLimit C.__int64) C.long {
 	alteryxPlugin := pointer.Restore(handle).(Plugin)
 	if alteryxPlugin.PushAllRecords(int(recordLimit)) {
 		return C.long(1)
@@ -74,30 +76,30 @@ func PiPushAllRecords(handle unsafe.Pointer, recordLimit C.__int64) C.long {
 	return C.long(0)
 }
 
-//export PiClose
-func PiClose(handle unsafe.Pointer, hasErrors C.bool) {
+//export piClose
+func piClose(handle unsafe.Pointer, hasErrors C.bool) {
 	alteryxPlugin := pointer.Restore(handle).(Plugin)
 	alteryxPlugin.Close(bool(hasErrors))
 }
 
-//export PiAddIncomingConnection
-func PiAddIncomingConnection(handle unsafe.Pointer, connectionType unsafe.Pointer, connectionName unsafe.Pointer, incomingInterface *C.struct_IncomingConnectionInterface) C.long {
+//export piAddIncomingConnection
+func piAddIncomingConnection(handle unsafe.Pointer, connectionType unsafe.Pointer, connectionName unsafe.Pointer, incomingInterface *C.struct_IncomingConnectionInterface) C.long {
 	alteryxPlugin := pointer.Restore(handle).(Plugin)
 	goName := convert_strings.WideCToString(connectionName)
 	goType := convert_strings.WideCToString(connectionType)
 	goIncomingInterface := alteryxPlugin.AddIncomingConnection(goType, goName)
 	iiHandle := pointer.Save(goIncomingInterface)
 	incomingInterface.handle = iiHandle
-	incomingInterface.pII_Init = C.T_II_Init(C.IiInit)
-	incomingInterface.pII_PushRecord = C.T_II_PushRecord(C.IiPushRecord)
-	incomingInterface.pII_UpdateProgress = C.T_II_UpdateProgress(C.IiUpdateProgress)
-	incomingInterface.pII_Close = C.T_II_Close(C.IiClose)
-	incomingInterface.pII_Free = C.T_II_Free(C.IiFree)
+	incomingInterface.pII_Init = C.T_II_Init(C.iiInit)
+	incomingInterface.pII_PushRecord = C.T_II_PushRecord(C.iiPushRecord)
+	incomingInterface.pII_UpdateProgress = C.T_II_UpdateProgress(C.iiUpdateProgress)
+	incomingInterface.pII_Close = C.T_II_Close(C.iiClose)
+	incomingInterface.pII_Free = C.T_II_Free(C.iiFree)
 	return C.long(1)
 }
 
-//export PiAddOutgoingConnection
-func PiAddOutgoingConnection(handle unsafe.Pointer, connectionName unsafe.Pointer, incomingConnection *C.struct_IncomingConnectionInterface) C.long {
+//export piAddOutgoingConnection
+func piAddOutgoingConnection(handle unsafe.Pointer, connectionName unsafe.Pointer, incomingConnection *C.struct_IncomingConnectionInterface) C.long {
 	alteryxPlugin := pointer.Restore(handle).(Plugin)
 	goName := convert_strings.WideCToString(connectionName)
 	connectionInterface := &ConnectionInterfaceStruct{connection: incomingConnection}
@@ -107,8 +109,8 @@ func PiAddOutgoingConnection(handle unsafe.Pointer, connectionName unsafe.Pointe
 	return C.long(0)
 }
 
-//export IiInit
-func IiInit(handle unsafe.Pointer, recordInfoIn unsafe.Pointer) C.long {
+//export iiInit
+func iiInit(handle unsafe.Pointer, recordInfoIn unsafe.Pointer) C.long {
 	incomingInterface := pointer.Restore(handle).(IncomingInterface)
 	goRecordInfoIn := convert_strings.WideCToString(recordInfoIn)
 	if incomingInterface.Init(goRecordInfoIn) {
@@ -117,8 +119,8 @@ func IiInit(handle unsafe.Pointer, recordInfoIn unsafe.Pointer) C.long {
 	return C.long(0)
 }
 
-//export IiPushRecord
-func IiPushRecord(handle unsafe.Pointer, record unsafe.Pointer) C.long {
+//export iiPushRecord
+func iiPushRecord(handle unsafe.Pointer, record unsafe.Pointer) C.long {
 	incomingInterface := pointer.Restore(handle).(IncomingInterface)
 	if incomingInterface.PushRecord(record) {
 		return C.long(1)
@@ -126,26 +128,26 @@ func IiPushRecord(handle unsafe.Pointer, record unsafe.Pointer) C.long {
 	return C.long(0)
 }
 
-//export IiUpdateProgress
-func IiUpdateProgress(handle unsafe.Pointer, percent C.double) {
+//export iiUpdateProgress
+func iiUpdateProgress(handle unsafe.Pointer, percent C.double) {
 	incomingInterface := pointer.Restore(handle).(IncomingInterface)
 	incomingInterface.UpdateProgress(float64(percent))
 }
 
-//export IiClose
-func IiClose(handle unsafe.Pointer) {
+//export iiClose
+func iiClose(handle unsafe.Pointer) {
 	incomingInterface := pointer.Restore(handle).(IncomingInterface)
 	incomingInterface.Close()
 }
 
-//export IiFree
-func IiFree(handle unsafe.Pointer) {
+//export iiFree
+func iiFree(handle unsafe.Pointer) {
 	incomingInterface := pointer.Restore(handle).(IncomingInterface)
 	incomingInterface.Free()
 }
 
-//export GetPlugin
-func GetPlugin(plugin Plugin) unsafe.Pointer {
+//export getPlugin
+func getPlugin(plugin Plugin) unsafe.Pointer {
 	return pointer.Save(plugin)
 }
 
@@ -158,12 +160,12 @@ func OutputMessage(toolId int, status MessageStatus, message string) {
 		return
 	}
 
-	C.callEngineOutputMessage(Engine, C.int(toolId), C.int(status), cMessage)
+	C.callEngineOutputMessage(engine, C.int(toolId), C.int(status), cMessage)
 }
 
 func BrowseEverywhereReserveAnchor(toolId int) uint {
 	//printLogf(`start reserving browse everywhere anchor ID`)
-	anchorId := C.callEngineBrowseEverywhereReserveAnchor(Engine, C.int(toolId))
+	anchorId := C.callEngineBrowseEverywhereReserveAnchor(engine, C.int(toolId))
 	//printLogf(`done reserving browse everywhere anchor ID`)
 	//printLogf(`returned browse everywhere anchor ID: %v`, anchorId)
 	return uint(anchorId)
@@ -172,7 +174,7 @@ func BrowseEverywhereReserveAnchor(toolId int) uint {
 func BrowseEverywhereGetII(browseEverywhereReservationId uint, toolId int, name string) *ConnectionInterfaceStruct {
 	//printLogf(`start getting browse everywhere II`)
 	cName, _ := convert_strings.StringToWideC(name)
-	ii := C.callEngineBrowseEverywhereGetII(Engine, C.unsigned(browseEverywhereReservationId), C.int(toolId), cName)
+	ii := C.callEngineBrowseEverywhereGetII(engine, C.unsigned(browseEverywhereReservationId), C.int(toolId), cName)
 	//printLogf(`done getting browse everywhere II`)
 	return &ConnectionInterfaceStruct{connection: ii}
 }
@@ -199,6 +201,12 @@ func PushRecord(connection *ConnectionInterfaceStruct, record unsafe.Pointer) er
 		return fmt.Errorf(`error calling pII_PushRecord`)
 	}
 	return nil
+}
+
+func CreateTempFileName(ext string) string {
+	cExt, _ := convert_strings.StringToWideC(ext)
+	cFileName := C.callEngineCreateTempFileName(engine, cExt)
+	return convert_strings.WideCToString(cFileName)
 }
 
 func printLogf(message string, args ...interface{}) {
