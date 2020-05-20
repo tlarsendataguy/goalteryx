@@ -118,12 +118,24 @@ func isVarFieldNull(field *fieldInfoEditor, record unsafe.Pointer) bool {
 
 func getVarBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
 	varStart := *((*int32)(unsafe.Pointer(uintptr(record) + field.location)))
-	varLen := *((*int32)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart)))) / 2
+
+	varLenFirstByte := *((*byte)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart))))
+	varLen := int32(0)
+	offset := field.location + uintptr(varStart)
+	if varLenFirstByte&byte(1) == 1 {
+		varLen = int32(varLenFirstByte >> 1)
+		offset += 1
+	} else {
+		varLen = *((*int32)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart)))) / 2
+		offset += 4
+	}
+
+	println(`varLen: `, strconv.Itoa(int(varLen)))
 	varBytes := make([]byte, varLen)
 
 	var index int32
 	for index = 0; index < varLen; index++ {
-		varBytes[index] = *((*byte)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart) + uintptr(4) + uintptr(index))))
+		varBytes[index] = *((*byte)(unsafe.Pointer(uintptr(record) + offset + uintptr(index))))
 	}
 	return varBytes
 }
