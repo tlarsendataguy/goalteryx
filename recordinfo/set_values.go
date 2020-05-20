@@ -42,6 +42,14 @@ func (info *recordInfo) SetWStringField(fieldName string, value string) error {
 	return info.setValue(fieldName, value)
 }
 
+func (info *recordInfo) SetV_StringField(fieldName string, value string) error {
+	return info.setValue(fieldName, value)
+}
+
+func (info *recordInfo) SetV_WStringField(fieldName string, value string) error {
+	return info.setValue(fieldName, value)
+}
+
 func (info *recordInfo) SetDateField(fieldName string, value time.Time) error {
 	return info.setValue(fieldName, value)
 }

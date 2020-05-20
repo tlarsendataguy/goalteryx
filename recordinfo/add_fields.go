@@ -41,11 +41,11 @@ func (info *recordInfo) AddWStringField(name string, source string, size int) st
 }
 
 func (info *recordInfo) AddV_StringField(name string, source string, size int) string {
-	return info.addField(name, source, size, 0, V_StringType, 4, 0, nil)
+	return info.addField(name, source, size, 0, V_StringType, 4, 0, generateV_String)
 }
 
 func (info *recordInfo) AddV_WStringField(name string, source string, size int) string {
-	return info.addField(name, source, size, 0, V_WStringType, 4, 0, nil)
+	return info.addField(name, source, size, 0, V_WStringType, 4, 0, generateV_WString)
 }
 
 func (info *recordInfo) AddDateField(name string, source string) string {

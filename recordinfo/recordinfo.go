@@ -50,6 +50,8 @@ type RecordInfo interface {
 	SetDoubleField(fieldName string, value float64) error
 	SetStringField(fieldName string, value string) error
 	SetWStringField(fieldName string, value string) error
+	SetV_StringField(fieldName string, value string) error
+	SetV_WStringField(fieldName string, value string) error
 	SetDateField(fieldName string, value time.Time) error
 	SetDateTimeField(fieldName string, value time.Time) error
 	SetFieldNull(fieldName string) error
@@ -126,10 +128,33 @@ func (info *recordInfo) checkFieldName(name string) string {
 	return name
 }
 
-func (info *recordInfo) getRecordSize() int {
-	size := 0
+func (info *recordInfo) getRecordSizes() (fixed int, variable int) {
+	fixed = 0
+	variable = 0
 	for _, field := range info.fields {
-		size += int(field.fixedLen + field.nullByteLen)
+		fixed += int(field.fixedLen + field.nullByteLen)
+		variable += field.variableSize()
 	}
-	return size
+	return
+}
+
+func (editor *fieldInfoEditor) variableSize() int {
+	switch editor.Type {
+	case V_StringType:
+		return calcVarSizeFromLen(len(editor.value.(string)))
+	case V_WStringType:
+		return calcVarSizeFromLen(len(editor.value.(string)) * 2)
+	default:
+		return 0
+	}
+}
+
+func calcVarSizeFromLen(valueLen int) int {
+	if valueLen < 4 {
+		return 0
+	}
+	if valueLen < 128 {
+		return valueLen + 1
+	}
+	return valueLen + 4
 }

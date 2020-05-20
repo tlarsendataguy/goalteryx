@@ -11,17 +11,22 @@ import (
 )
 
 func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
-	if size := info.getRecordSize(); size > len(info.blob) {
-		info.blob = make([]byte, size)
+	fixed, variable := info.getRecordSizes()
+	totalSize := fixed + 4 + variable
+	if totalSize > len(info.blob) {
+		info.blob = make([]byte, totalSize)
 	}
-	start := 0
+	binary.LittleEndian.PutUint32(info.blob[fixed:fixed+4], uint32(variable))
+
+	fixedStart := 0
+	varStart := fixed + 4
 	var err error
 	for _, field := range info.fields {
 		getBytes := field.generator
 		if getBytes == nil {
 			return nil, fmt.Errorf(`field '%v' does not have a byte generator`, field.Name)
 		}
-		start, err = getBytes(field, info.blob, start)
+		fixedStart, varStart, err = getBytes(field, info.blob, fixedStart, varStart)
 		if err != nil {
 			return nil, err
 		}
@@ -29,16 +34,16 @@ func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 	return unsafe.Pointer(&info.blob[0]), nil
 }
 
-func generateByte(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateByte(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	dataSize := 2
 	putFunc := func(dataSize int, blobSlice []byte) error {
-		blobSlice[startAt] = field.value.(byte)
+		blobSlice[fixedStartAt] = field.value.(byte)
 		return nil
 	}
-	return putFixedBytesWithNullByte(field, blob, startAt, dataSize, putFunc)
+	return putFixedBytesWithNullByte(field, blob, fixedStartAt, dataSize, putFunc, varStartAt)
 }
 
-func generateBool(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateBool(field *fieldInfoEditor, blob []byte, startAt int, varStartAt int) (int, int, error) {
 	if field.value == nil {
 		blob[startAt] = 2
 	} else if field.value.(bool) {
@@ -46,40 +51,40 @@ func generateBool(field *fieldInfoEditor, blob []byte, startAt int) (int, error)
 	} else {
 		blob[startAt] = 0
 	}
-	return startAt + 1, nil
+	return startAt + 1, varStartAt, nil
 }
 
-func generateInt16(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateInt16(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	dataSize := 3
 	putFunc := func(dataSize int, blobSlice []byte) error {
 		value := field.value.(int16)
 		binary.LittleEndian.PutUint16(blobSlice, uint16(value))
 		return nil
 	}
-	return putFixedBytesWithNullByte(field, blob, startAt, dataSize, putFunc)
+	return putFixedBytesWithNullByte(field, blob, fixedStartAt, dataSize, putFunc, varStartAt)
 }
 
-func generateInt32(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateInt32(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	dataSize := 5
 	putFunc := func(dataSize int, blobSlice []byte) error {
 		value := field.value.(int32)
 		binary.LittleEndian.PutUint32(blobSlice, uint32(value))
 		return nil
 	}
-	return putFixedBytesWithNullByte(field, blob, startAt, dataSize, putFunc)
+	return putFixedBytesWithNullByte(field, blob, fixedStartAt, dataSize, putFunc, varStartAt)
 }
 
-func generateInt64(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateInt64(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	dataSize := 9
 	putFunc := func(dataSize int, blobSlice []byte) error {
 		value := field.value.(int64)
 		binary.LittleEndian.PutUint64(blobSlice, uint64(value))
 		return nil
 	}
-	return putFixedBytesWithNullByte(field, blob, startAt, dataSize, putFunc)
+	return putFixedBytesWithNullByte(field, blob, fixedStartAt, dataSize, putFunc, varStartAt)
 }
 
-func generateFixedDecimal(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateFixedDecimal(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	dataSize := int(field.fixedLen) + 1
 	putFunc := func(dataSize int, blobSlice []byte) error {
 		value := field.value.(float64)
@@ -94,30 +99,30 @@ func generateFixedDecimal(field *fieldInfoEditor, blob []byte, startAt int) (int
 		}
 		return nil
 	}
-	return putFixedBytesWithNullByte(field, blob, startAt, dataSize, putFunc)
+	return putFixedBytesWithNullByte(field, blob, fixedStartAt, dataSize, putFunc, varStartAt)
 }
 
-func generateFloat32(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateFloat32(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	dataSize := 5
 	putFunc := func(dataSize int, blobSlice []byte) error {
 		value := field.value.(float32)
 		binary.LittleEndian.PutUint32(blobSlice, math.Float32bits(value))
 		return nil
 	}
-	return putFixedBytesWithNullByte(field, blob, startAt, dataSize, putFunc)
+	return putFixedBytesWithNullByte(field, blob, fixedStartAt, dataSize, putFunc, varStartAt)
 }
 
-func generateFloat64(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateFloat64(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	dataSize := 9
 	putFunc := func(dataSize int, blobSlice []byte) error {
 		value := field.value.(float64)
 		binary.LittleEndian.PutUint64(blobSlice, math.Float64bits(value))
 		return nil
 	}
-	return putFixedBytesWithNullByte(field, blob, startAt, dataSize, putFunc)
+	return putFixedBytesWithNullByte(field, blob, fixedStartAt, dataSize, putFunc, varStartAt)
 }
 
-func generateString(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateString(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	dataSize := int(field.fixedLen) + 1
 	putFunc := func(dataSize int, blobSlice []byte) error {
 		value := field.value.(string)
@@ -130,10 +135,10 @@ func generateString(field *fieldInfoEditor, blob []byte, startAt int) (int, erro
 		}
 		return nil
 	}
-	return putFixedBytesWithNullByte(field, blob, startAt, dataSize, putFunc)
+	return putFixedBytesWithNullByte(field, blob, fixedStartAt, dataSize, putFunc, varStartAt)
 }
 
-func generateWString(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateWString(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	dataSize := int(field.fixedLen) + 1
 	putFunc := func(dataSize int, blobSlice []byte) error {
 		value := field.value.(string)
@@ -156,10 +161,10 @@ func generateWString(field *fieldInfoEditor, blob []byte, startAt int) (int, err
 		}
 		return nil
 	}
-	return putFixedBytesWithNullByte(field, blob, startAt, dataSize, putFunc)
+	return putFixedBytesWithNullByte(field, blob, fixedStartAt, dataSize, putFunc, varStartAt)
 }
 
-func generateDate(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateDate(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	dataSize := int(field.fixedLen) + 1
 	putFunc := func(dataSize int, blobSlice []byte) error {
 		value := field.value.(time.Time)
@@ -169,10 +174,10 @@ func generateDate(field *fieldInfoEditor, blob []byte, startAt int) (int, error)
 		}
 		return nil
 	}
-	return putFixedBytesWithNullByte(field, blob, startAt, dataSize, putFunc)
+	return putFixedBytesWithNullByte(field, blob, fixedStartAt, dataSize, putFunc, varStartAt)
 }
 
-func generateDateTime(field *fieldInfoEditor, blob []byte, startAt int) (int, error) {
+func generateDateTime(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	dataSize := int(field.fixedLen) + 1
 	putFunc := func(dataSize int, blobSlice []byte) error {
 		value := field.value.(time.Time)
@@ -182,11 +187,30 @@ func generateDateTime(field *fieldInfoEditor, blob []byte, startAt int) (int, er
 		}
 		return nil
 	}
-	return putFixedBytesWithNullByte(field, blob, startAt, dataSize, putFunc)
+	return putFixedBytesWithNullByte(field, blob, fixedStartAt, dataSize, putFunc, varStartAt)
 }
 
-func putFixedBytesWithNullByte(field *fieldInfoEditor, blob []byte, startAt int, dataSize int, putData func(dataSize int, blobSlice []byte) error) (int, error) {
-	blobSlice := blob[startAt : startAt+dataSize]
+func generateV_String(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
+	value := field.value.(string)
+	valueBytes := []byte(value)
+	return putVarData(field, blob, valueBytes)
+}
+
+func generateV_WString(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
+	value := field.value.(string)
+	valueUtf16, err := syscall.UTF16FromString(value)
+	if err != nil {
+		return 0, 0, err
+	}
+	valueBytes := make([]byte, len(valueUtf16)*2)
+	for index, valueChar := range valueUtf16 {
+		binary.LittleEndian.PutUint16(valueBytes[index*2:(index*2)+2], valueChar)
+	}
+	return putVarData(field, blob, valueBytes)
+}
+
+func putFixedBytesWithNullByte(field *fieldInfoEditor, blob []byte, fixedStartAt int, dataSize int, putData func(dataSize int, blobSlice []byte) error, varStartAt int) (int, int, error) {
+	blobSlice := blob[fixedStartAt : fixedStartAt+dataSize]
 
 	if field.value == nil {
 		for index := 0; index < dataSize-1; index++ {
@@ -196,9 +220,13 @@ func putFixedBytesWithNullByte(field *fieldInfoEditor, blob []byte, startAt int,
 	} else {
 		err := putData(dataSize, blobSlice)
 		if err != nil {
-			return startAt, err
+			return fixedStartAt, varStartAt, err
 		}
 		blobSlice[dataSize-1] = 0
 	}
-	return startAt + dataSize, nil
+	return fixedStartAt + dataSize, varStartAt, nil
+}
+
+func putVarData(field *fieldInfoEditor, blob []byte, data []byte) (int, int, error) {
+	return 0, 0, nil
 }
