@@ -2,6 +2,7 @@ package recordinfo_test
 
 import (
 	"goalteryx/recordinfo"
+	"strings"
 	"testing"
 	"time"
 )
@@ -65,12 +66,11 @@ func TestCachedRecords(t *testing.T) {
 	}
 }
 
-/*
-func TestSetLongVarDataFieldsAndGenerateRecord(t *testing.T){
+func TestSetLongVarDataFieldsAndGenerateRecord(t *testing.T) {
 	recordInfo := recordinfo.New()
 	recordInfo.AddByteField(`ByteField`, ``)
 	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`,``,250)
+	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
 
 	_ = recordInfo.SetByteField(`ByteField`, 1)
 	_ = recordInfo.SetV_StringField(`V_StringField`, strings.Repeat(`B`, 200))
@@ -83,7 +83,7 @@ func TestSetLongVarDataFieldsAndGenerateRecord(t *testing.T){
 	value, isNull, err := recordInfo.GetV_StringValueFrom(`V_StringField`, record)
 	checkExpectedGetValueFrom(t, value, strings.Repeat(`B`, 200), isNull, false, err, nil)
 }
-*/
+
 func generateTestRecordInfo() recordinfo.RecordInfo {
 	recordInfo := recordinfo.New()
 	recordInfo.AddByteField(`ByteField`, ``)

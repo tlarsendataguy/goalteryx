@@ -193,7 +193,7 @@ func generateDateTime(field *fieldInfoEditor, blob []byte, fixedStartAt int, var
 func generateV_String(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
 	value := field.value.(string)
 	valueBytes := []byte(value)
-	return putVarData(field, blob, valueBytes)
+	return putVarData(field, blob, valueBytes, fixedStartAt, varStartAt)
 }
 
 func generateV_WString(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
@@ -202,11 +202,15 @@ func generateV_WString(field *fieldInfoEditor, blob []byte, fixedStartAt int, va
 	if err != nil {
 		return 0, 0, err
 	}
+
+	// remove the null terminator from the UTF16 string
+	valueUtf16 = valueUtf16[0 : len(valueUtf16)-1]
+
 	valueBytes := make([]byte, len(valueUtf16)*2)
 	for index, valueChar := range valueUtf16 {
 		binary.LittleEndian.PutUint16(valueBytes[index*2:(index*2)+2], valueChar)
 	}
-	return putVarData(field, blob, valueBytes)
+	return putVarData(field, blob, valueBytes, fixedStartAt, varStartAt)
 }
 
 func putFixedBytesWithNullByte(field *fieldInfoEditor, blob []byte, fixedStartAt int, dataSize int, putData func(dataSize int, blobSlice []byte) error, varStartAt int) (int, int, error) {
@@ -227,6 +231,18 @@ func putFixedBytesWithNullByte(field *fieldInfoEditor, blob []byte, fixedStartAt
 	return fixedStartAt + dataSize, varStartAt, nil
 }
 
-func putVarData(field *fieldInfoEditor, blob []byte, data []byte) (int, int, error) {
-	return 0, 0, nil
+func putVarData(field *fieldInfoEditor, blob []byte, data []byte, fixedStartAt int, varStartAt int) (int, int, error) {
+	binary.LittleEndian.PutUint32(blob[fixedStartAt:fixedStartAt+4], uint32(varStartAt-fixedStartAt))
+	fixedStartAt += 4
+
+	varDataLen := uint32(len(data))
+	binary.LittleEndian.PutUint32(blob[varStartAt:varStartAt+4], varDataLen*2) // Alteryx seems to multiply all var lens by 2
+	varStartAt += 4
+
+	var index uint32
+	for index = 0; index < varDataLen; index++ {
+		blob[varStartAt] = data[index]
+		varStartAt++
+	}
+	return fixedStartAt, varStartAt, nil
 }

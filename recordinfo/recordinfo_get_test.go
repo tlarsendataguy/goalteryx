@@ -342,7 +342,7 @@ func checkExpectedGetValueFrom(t *testing.T, value interface{}, expectedValue in
 		t.Fatalf("expected error: %v\ngot: %v", expectedErr, err)
 	}
 	if value != expectedValue {
-		t.Fatalf(`expected '%v' but got '%v'`, expectedValue, value)
+		t.Fatalf("expected\n%v\nbut got\n%v\n", expectedValue, value)
 	}
 	if isNull != expectedIsNull {
 		t.Fatalf(`expected isNull=%v but got isNull=%v`, expectedIsNull, isNull)
