@@ -199,7 +199,7 @@ func (info *recordInfo) GetDateTimeValueFrom(fieldName string, record unsafe.Poi
 func (info *recordInfo) GetInterfaceValueFrom(fieldName string, record unsafe.Pointer) (value interface{}, isNull bool, err error) {
 	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
 	if returnEarly {
-		return nil, isNull, err
+		return nil, isNull, fmt.Errorf(`error in GetInterfaceValueFrom: %v`, err.Error())
 	}
 	switch field.Type {
 	case ByteType:
@@ -222,12 +222,16 @@ func (info *recordInfo) GetInterfaceValueFrom(fieldName string, record unsafe.Po
 		return info.GetStringValueFrom(fieldName, record)
 	case WStringType:
 		return info.GetWStringValueFrom(fieldName, record)
+	case V_StringType:
+		return info.GetV_StringValueFrom(fieldName, record)
+	case V_WStringType:
+		return info.GetV_WStringValueFrom(fieldName, record)
 	case DateType:
 		return info.GetDateValueFrom(fieldName, record)
 	case DateTimeType:
 		return info.GetDateTimeValueFrom(fieldName, record)
 	default:
-		return nil, false, fmt.Errorf(`field [%v] has invalid type '%v'`, field.Name, field.Type)
+		return nil, false, fmt.Errorf(`error in GetInterfaceValueFrom: field [%v] has invalid type '%v'`, field.Name, field.Type)
 	}
 }
 

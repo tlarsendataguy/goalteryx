@@ -98,13 +98,6 @@ func (ii *MyPluginIncomingInterface) Init(recordInfoIn string) bool {
 }
 
 func (ii *MyPluginIncomingInterface) PushRecord(record unsafe.Pointer) bool {
-	size := 450
-	recordBytes := make([]byte, size)
-	for i := 0; i < size; i++ {
-		recordBytes[i] = *((*byte)(unsafe.Pointer(uintptr(record) + uintptr(i))))
-	}
-	api.OutputMessage(ii.Parent.ToolId, api.Info, fmt.Sprintf(`%v`, recordBytes))
-
 	var value interface{}
 	var isNull bool
 	var err error
@@ -118,7 +111,35 @@ func (ii *MyPluginIncomingInterface) PushRecord(record unsafe.Pointer) bool {
 	} else {
 		api.OutputMessage(ii.Parent.ToolId, api.TransientInfo, fmt.Sprintf(`[%v] is %v`, ii.Parent.Field, value))
 	}
-	ii.Parent.Output1.PushRecord(record)
+
+	for index := 0; index < ii.inInfo.NumFields(); index++ {
+		field, err := ii.inInfo.GetFieldByIndex(index)
+		if err != nil {
+			api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
+			return false
+		}
+		value, isNull, err := ii.inInfo.GetInterfaceValueFrom(field.Name, record)
+		if err != nil {
+			api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
+			return false
+		}
+		if isNull {
+			_ = ii.inInfo.SetFieldNull(field.Name)
+			continue
+		}
+		err = ii.inInfo.SetFromInterface(field.Name, value)
+		if err != nil {
+			api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
+			return false
+		}
+	}
+
+	outputRecord, err := ii.inInfo.GenerateRecord()
+	if err != nil {
+		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
+		return false
+	}
+	ii.Parent.Output1.PushRecord(outputRecord)
 	byteVal, isNull, err := ii.inInfo.GetByteValueFrom(`ByteField`, record)
 	if err != nil {
 		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())

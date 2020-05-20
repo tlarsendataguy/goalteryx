@@ -1,6 +1,9 @@
 package recordinfo
 
-import "time"
+import (
+	"fmt"
+	"time"
+)
 
 func (info *recordInfo) SetByteField(fieldName string, value byte) error {
 	return info.setValue(fieldName, value)
@@ -64,6 +67,41 @@ func (info *recordInfo) SetFieldNull(fieldName string) error {
 		return nil
 	}
 	field.value = nil
+	return nil
+}
+
+func (info *recordInfo) SetFromInterface(fieldName string, value interface{}) error {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return err
+	}
+
+	var ok bool
+	switch field.Type {
+	case ByteType:
+		field.value, ok = value.(byte)
+	case BoolType:
+		field.value, ok = value.(bool)
+	case Int16Type:
+		field.value, ok = value.(int16)
+	case Int32Type:
+		field.value, ok = value.(int32)
+	case Int64Type:
+		field.value, ok = value.(int64)
+	case FloatType:
+		field.value, ok = value.(float32)
+	case FixedDecimalType, DoubleType:
+		field.value, ok = value.(float64)
+	case StringType, WStringType, V_StringType, V_WStringType:
+		field.value, ok = value.(string)
+	case DateType, DateTimeType:
+		field.value, ok = value.(time.Time)
+	default:
+		return fmt.Errorf(`[%v] field type '%v' is not valid`, field.Name, field.Type)
+	}
+	if !ok {
+		return fmt.Errorf(`tried to set [%v] with a %T but the field is a %v field`, field.Name, value, field.Type)
+	}
 	return nil
 }
 

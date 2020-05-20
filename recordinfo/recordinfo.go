@@ -55,6 +55,7 @@ type RecordInfo interface {
 	SetDateField(fieldName string, value time.Time) error
 	SetDateTimeField(fieldName string, value time.Time) error
 	SetFieldNull(fieldName string) error
+	SetFromInterface(fieldName string, valuei interface{}) error
 
 	GenerateRecord() (unsafe.Pointer, error)
 	ToXml(connection string) (string, error)

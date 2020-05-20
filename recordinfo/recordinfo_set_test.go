@@ -171,6 +171,28 @@ func TestSetNullVarDataFieldsAndGenerateRecord(t *testing.T) {
 	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil)
 }
 
+func TestSetFromInterface(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+	err := recordInfo.SetFromInterface(`ByteField`, byte(5))
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	record, _ := recordInfo.GenerateRecord()
+	value, isNull, err := recordInfo.GetByteValueFrom(`ByteField`, record)
+	checkExpectedGetValueFrom(t, value, byte(5), isNull, false, err, nil)
+}
+
+func TestSetFromInterfaceIncorrectType(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+	err := recordInfo.SetFromInterface(`ByteField`, int32(5))
+	if err == nil {
+		t.Fatalf(`expected an error but got none`)
+	}
+	t.Logf(err.Error())
+}
+
 func generateTestRecordInfo() recordinfo.RecordInfo {
 	recordInfo := recordinfo.New()
 	recordInfo.AddByteField(`ByteField`, ``)
