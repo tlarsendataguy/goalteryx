@@ -82,6 +82,30 @@ func TestSetLongVarDataFieldsAndGenerateRecord(t *testing.T) {
 	}
 	value, isNull, err := recordInfo.GetV_StringValueFrom(`V_StringField`, record)
 	checkExpectedGetValueFrom(t, value, strings.Repeat(`B`, 200), isNull, false, err, nil)
+
+	value, isNull, err = recordInfo.GetV_WStringValueFrom(`V_WStringField`, record)
+	checkExpectedGetValueFrom(t, value, strings.Repeat(`A`, 100), isNull, false, err, nil)
+}
+
+func TestSetShortVarDataFieldsAndGenerateRecord(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
+	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+
+	_ = recordInfo.SetByteField(`ByteField`, 1)
+	_ = recordInfo.SetV_StringField(`V_StringField`, strings.Repeat(`B`, 100))
+	_ = recordInfo.SetV_WStringField(`V_WStringField`, strings.Repeat(`A`, 50))
+
+	record, err := recordInfo.GenerateRecord()
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	value, isNull, err := recordInfo.GetV_StringValueFrom(`V_StringField`, record)
+	checkExpectedGetValueFrom(t, value, strings.Repeat(`B`, 100), isNull, false, err, nil)
+
+	value, isNull, err = recordInfo.GetV_WStringValueFrom(`V_WStringField`, record)
+	checkExpectedGetValueFrom(t, value, strings.Repeat(`A`, 50), isNull, false, err, nil)
 }
 
 func generateTestRecordInfo() recordinfo.RecordInfo {

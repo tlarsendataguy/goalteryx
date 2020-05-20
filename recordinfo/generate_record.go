@@ -200,7 +200,7 @@ func generateV_WString(field *fieldInfoEditor, blob []byte, fixedStartAt int, va
 	value := field.value.(string)
 	valueUtf16, err := syscall.UTF16FromString(value)
 	if err != nil {
-		return 0, 0, err
+		return fixedStartAt, varStartAt, err
 	}
 
 	// remove the null terminator from the UTF16 string
@@ -236,8 +236,13 @@ func putVarData(field *fieldInfoEditor, blob []byte, data []byte, fixedStartAt i
 	fixedStartAt += 4
 
 	varDataLen := uint32(len(data))
-	binary.LittleEndian.PutUint32(blob[varStartAt:varStartAt+4], varDataLen*2) // Alteryx seems to multiply all var lens by 2
-	varStartAt += 4
+	if varDataLen < 128 {
+		blob[varStartAt] = byte(varDataLen*2) | 1 // Alteryx seems to multiply all var lens by 2
+		varStartAt += 1
+	} else {
+		binary.LittleEndian.PutUint32(blob[varStartAt:varStartAt+4], varDataLen*2) // Alteryx seems to multiply all var lens by 2
+		varStartAt += 4
+	}
 
 	var index uint32
 	for index = 0; index < varDataLen; index++ {
