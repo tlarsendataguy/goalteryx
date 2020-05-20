@@ -117,23 +117,33 @@ func isVarFieldNull(field *fieldInfoEditor, record unsafe.Pointer) bool {
 }
 
 func getVarBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
-	varStart := *((*int32)(unsafe.Pointer(uintptr(record) + field.location)))
+	varStart := *((*uint32)(unsafe.Pointer(uintptr(record) + field.location)))
+	var varLen uint32
+	offset := field.location
 
-	varLenFirstByte := *((*byte)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart))))
-	varLen := int32(0)
-	offset := field.location + uintptr(varStart)
-	if varLenFirstByte&byte(1) == 1 {
-		varLen = int32(varLenFirstByte >> 1)
-		offset += 1
+	// small string optimization, check if high bit is not set and third bit is set
+	// small string optimization len is in the 29th and 30th bits
+	if (varStart&0x80000000) == 0 && (varStart&0x30000000) != 0 {
+		varLen = varStart >> 28
 	} else {
-		varLen = *((*int32)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart)))) / 2
-		offset += 4
+		// strip away high bit
+		// high bit is set to signal fields larger than int32 bytes to differentiate from small string optimization
+		// at this point we have determined there is no small string optimization and so we can strip it away
+		varStart &= 0x7fffffff
+
+		varLenFirstByte := *((*byte)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart))))
+		offset += uintptr(varStart)
+		if varLenFirstByte&byte(1) == 1 {
+			varLen = uint32(varLenFirstByte >> 1)
+			offset += 1
+		} else {
+			varLen = *((*uint32)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart)))) / 2
+			offset += 4
+		}
 	}
 
-	println(`varLen: `, strconv.Itoa(int(varLen)))
 	varBytes := make([]byte, varLen)
-
-	var index int32
+	var index uint32
 	for index = 0; index < varLen; index++ {
 		varBytes[index] = *((*byte)(unsafe.Pointer(uintptr(record) + offset + uintptr(index))))
 	}

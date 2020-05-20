@@ -234,6 +234,7 @@ func TestCorrectlyRetrieveV_StringLongValue(t *testing.T) {
 	recordInfo.AddByteField(`ByteField`, ``)
 	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
 	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+
 	value, isNull, err := recordInfo.GetV_StringValueFrom(`V_StringField`, varFieldLongRecord)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
@@ -263,21 +264,30 @@ func TestCorrectlyRetrieveV_WStringLongValue(t *testing.T) {
 	}
 }
 
-func TestCorrectlyRetrieveV_WStringNull(t *testing.T) {
+func TestCorrectlyRetrieveVarStringsNull(t *testing.T) {
 	recordInfo := recordinfo.New()
 	recordInfo.AddByteField(`ByteField`, ``)
 	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
 	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+
 	value, isNull, err := recordInfo.GetV_WStringValueFrom(`V_WStringField`, varFieldNullRecord)
-	if err != nil {
-		t.Fatalf(`expected no error but got: %v`, err.Error())
-	}
-	if !isNull {
-		t.Fatalf(`expected is null but got not null`)
-	}
-	if value != `` {
-		t.Fatalf("expected '' but got %v", value)
-	}
+	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil)
+
+	value, isNull, err = recordInfo.GetV_StringValueFrom(`V_StringField`, varFieldNullRecord)
+	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil)
+}
+
+func TestCorrectlyRetrieveVarStringsEmpty(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
+	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+
+	value, isNull, err := recordInfo.GetV_WStringValueFrom(`V_WStringField`, varFieldEmptyStrings)
+	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil)
+
+	value, isNull, err = recordInfo.GetV_StringValueFrom(`V_StringField`, varFieldEmptyStrings)
+	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil)
 }
 
 func TestCorrectlyRetrieveV_StringShortValue(t *testing.T) {
@@ -314,6 +324,19 @@ func TestCorrectlyRetrieveV_WStringShortValue(t *testing.T) {
 	}
 }
 
+func TestCorrectlyRetrieveVarTinyValue(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
+	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+
+	value, isNull, err := recordInfo.GetV_StringValueFrom(`V_StringField`, varFieldTinyRecord)
+	checkExpectedGetValueFrom(t, value, `B`, isNull, false, err, nil)
+
+	value, isNull, err = recordInfo.GetV_WStringValueFrom(`V_WStringField`, varFieldTinyRecord)
+	checkExpectedGetValueFrom(t, value, `A`, isNull, false, err, nil)
+}
+
 func checkExpectedGetValueFrom(t *testing.T, value interface{}, expectedValue interface{}, isNull bool, expectedIsNull bool, err error, expectedErr error) {
 	if err != expectedErr {
 		t.Fatalf("expected error: %v\ngot: %v", expectedErr, err)
@@ -347,6 +370,12 @@ var recordInfoXml = `<MetaInfo connection="Output">
 	</RecordInfo>
 </MetaInfo>
 `
+
+// byte with 1, v_wstring with '', v_string with ''
+var varFieldEmptyStrings = unsafe.Pointer(&[]byte{1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}[0])
+
+// byte with 1, v_wstring with 'A', v_string with 'B'
+var varFieldTinyRecord = unsafe.Pointer(&[]byte{1, 0, 65, 0, 0, 32, 66, 0, 0, 16, 0, 0, 0, 0}[0])
 
 // byte with 1, v_wstring with 50 A's, v_string with 100 B's
 var varFieldShortRecord = unsafe.Pointer(&[]byte{
