@@ -191,12 +191,20 @@ func generateDateTime(field *fieldInfoEditor, blob []byte, fixedStartAt int, var
 }
 
 func generateV_String(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
+	if field.value == nil {
+		return putVarNull(blob, fixedStartAt, varStartAt)
+	}
+
 	value := field.value.(string)
 	valueBytes := []byte(value)
 	return putVarData(field, blob, valueBytes, fixedStartAt, varStartAt)
 }
 
 func generateV_WString(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
+	if field.value == nil {
+		return putVarNull(blob, fixedStartAt, varStartAt)
+	}
+
 	value := field.value.(string)
 	valueUtf16, err := syscall.UTF16FromString(value)
 	if err != nil {
@@ -229,6 +237,11 @@ func putFixedBytesWithNullByte(field *fieldInfoEditor, blob []byte, fixedStartAt
 		blobSlice[dataSize-1] = 0
 	}
 	return fixedStartAt + dataSize, varStartAt, nil
+}
+
+func putVarNull(blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
+	binary.LittleEndian.PutUint32(blob[fixedStartAt:fixedStartAt+4], 1)
+	return fixedStartAt + 4, varStartAt, nil
 }
 
 func putVarData(field *fieldInfoEditor, blob []byte, data []byte, fixedStartAt int, varStartAt int) (int, int, error) {

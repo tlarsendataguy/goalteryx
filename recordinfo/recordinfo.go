@@ -139,6 +139,10 @@ func (info *recordInfo) getRecordSizes() (fixed int, variable int) {
 }
 
 func (editor *fieldInfoEditor) variableSize() int {
+	if editor.value == nil {
+		return 0
+	}
+
 	switch editor.Type {
 	case V_StringType:
 		return calcVarSizeFromLen(len(editor.value.(string)))

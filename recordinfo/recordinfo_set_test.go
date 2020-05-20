@@ -129,6 +129,48 @@ func TestSetTinyVarDataFieldsAndGenerateRecord(t *testing.T) {
 	checkExpectedGetValueFrom(t, value, `A`, isNull, false, err, nil)
 }
 
+func TestSetEmptyVarDataFieldsAndGenerateRecord(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
+	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+
+	_ = recordInfo.SetByteField(`ByteField`, 1)
+	_ = recordInfo.SetV_StringField(`V_StringField`, ``)
+	_ = recordInfo.SetV_WStringField(`V_WStringField`, ``)
+
+	record, err := recordInfo.GenerateRecord()
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	value, isNull, err := recordInfo.GetV_StringValueFrom(`V_StringField`, record)
+	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil)
+
+	value, isNull, err = recordInfo.GetV_WStringValueFrom(`V_WStringField`, record)
+	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil)
+}
+
+func TestSetNullVarDataFieldsAndGenerateRecord(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
+	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+
+	_ = recordInfo.SetByteField(`ByteField`, 1)
+	_ = recordInfo.SetFieldNull(`V_StringField`)
+	_ = recordInfo.SetFieldNull(`V_WStringField`)
+
+	record, err := recordInfo.GenerateRecord()
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	value, isNull, err := recordInfo.GetV_StringValueFrom(`V_StringField`, record)
+	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil)
+
+	value, isNull, err = recordInfo.GetV_WStringValueFrom(`V_WStringField`, record)
+	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil)
+}
+
 func generateTestRecordInfo() recordinfo.RecordInfo {
 	recordInfo := recordinfo.New()
 	recordInfo.AddByteField(`ByteField`, ``)
