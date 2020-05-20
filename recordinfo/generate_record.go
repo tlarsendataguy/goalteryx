@@ -232,10 +232,23 @@ func putFixedBytesWithNullByte(field *fieldInfoEditor, blob []byte, fixedStartAt
 }
 
 func putVarData(field *fieldInfoEditor, blob []byte, data []byte, fixedStartAt int, varStartAt int) (int, int, error) {
+	varDataLen := uint32(len(data))
+
+	// Small string optimization
+	if varDataLen < 4 {
+		varDataLen <<= 28
+		fixedBytes := make([]byte, 4)
+		for index, fixedByte := range data {
+			fixedBytes[index] = fixedByte
+		}
+		varDataUint32 := binary.LittleEndian.Uint32(fixedBytes) | varDataLen
+		binary.LittleEndian.PutUint32(blob[fixedStartAt:fixedStartAt+4], varDataUint32)
+		return fixedStartAt + 4, varStartAt, nil
+	}
+
 	binary.LittleEndian.PutUint32(blob[fixedStartAt:fixedStartAt+4], uint32(varStartAt-fixedStartAt))
 	fixedStartAt += 4
 
-	varDataLen := uint32(len(data))
 	if varDataLen < 128 {
 		blob[varStartAt] = byte(varDataLen*2) | 1 // Alteryx seems to multiply all var lens by 2
 		varStartAt += 1
