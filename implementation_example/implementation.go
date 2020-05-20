@@ -98,6 +98,13 @@ func (ii *MyPluginIncomingInterface) Init(recordInfoIn string) bool {
 }
 
 func (ii *MyPluginIncomingInterface) PushRecord(record unsafe.Pointer) bool {
+	size := 450
+	recordBytes := make([]byte, size)
+	for i := 0; i < size; i++ {
+		recordBytes[i] = *((*byte)(unsafe.Pointer(uintptr(record) + uintptr(i))))
+	}
+	api.OutputMessage(ii.Parent.ToolId, api.Info, fmt.Sprintf(`%v`, recordBytes))
+
 	var value interface{}
 	var isNull bool
 	var err error

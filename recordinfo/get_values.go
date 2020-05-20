@@ -1,9 +1,11 @@
 package recordinfo
 
 import (
+	"encoding/binary"
 	"fmt"
 	"goalteryx/convert_strings"
 	"strconv"
+	"syscall"
 	"time"
 	"unsafe"
 )
@@ -91,6 +93,59 @@ func (info *recordInfo) GetWStringValueFrom(fieldName string, record unsafe.Poin
 		return ``, isNull, err
 	}
 	return convert_strings.WideCToString(unsafe.Pointer(uintptr(record) + field.location)), false, nil
+}
+
+func (info *recordInfo) GetV_StringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return ``, false, err
+	}
+
+	if isVarFieldNull(field, record) {
+		return ``, true, nil
+	}
+
+	varBytes := getVarBytes(field, record)
+	return string(varBytes), false, nil
+}
+
+func isVarFieldNull(field *fieldInfoEditor, record unsafe.Pointer) bool {
+	if *((*int32)(unsafe.Pointer(uintptr(record) + field.location))) == 1 {
+		return true
+	}
+	return false
+}
+
+func getVarBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
+	varStart := *((*int32)(unsafe.Pointer(uintptr(record) + field.location)))
+	varLen := *((*int32)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart)))) / 2
+	varBytes := make([]byte, varLen)
+
+	var index int32
+	for index = 0; index < varLen; index++ {
+		varBytes[index] = *((*byte)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart) + uintptr(4) + uintptr(index))))
+	}
+	return varBytes
+}
+
+func (info *recordInfo) GetV_WStringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return ``, false, err
+	}
+
+	if isVarFieldNull(field, record) {
+		return ``, true, nil
+	}
+
+	varBytes := getVarBytes(field, record)
+	varUint16 := make([]uint16, len(varBytes)/2)
+	varUint16Index := 0
+	for index := 0; index < len(varBytes); index += 2 {
+		varUint16[varUint16Index] = binary.LittleEndian.Uint16(varBytes[index : index+2])
+		varUint16Index++
+	}
+	return syscall.UTF16ToString(varUint16), false, nil
 }
 
 func (info *recordInfo) GetDateValueFrom(fieldName string, record unsafe.Pointer) (value time.Time, isNull bool, err error) {

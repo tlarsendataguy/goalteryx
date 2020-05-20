@@ -2,6 +2,7 @@ package recordinfo_test
 
 import (
 	"goalteryx/recordinfo"
+	"strings"
 	"testing"
 	"time"
 	"unsafe"
@@ -228,6 +229,74 @@ func TestCorrectlyRetrieveDateTimeValue(t *testing.T) {
 	checkExpectedGetValueFrom(t, value, zeroDate, isNull, true, err, nil)
 }
 
+func TestCorrectlyRetrieveV_StringLongValue(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
+	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	value, isNull, err := recordInfo.GetV_StringValueFrom(`V_StringField`, varFieldLongRecord)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected is not null but got null`)
+	}
+	if expected := strings.Repeat(`B`, 200); value != expected {
+		t.Fatalf("expected\n%v\nbut got\n%v", expected, value)
+	}
+}
+
+func TestCorrectlyRetrieveV_WStringLongValue(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
+	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	value, isNull, err := recordInfo.GetV_WStringValueFrom(`V_WStringField`, varFieldLongRecord)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected is not null but got null`)
+	}
+	if expected := strings.Repeat(`A`, 100); value != expected {
+		t.Fatalf("expected\n%v\nbut got\n%v", expected, value)
+	}
+}
+
+func TestCorrectlyRetrieveV_WStringNull(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
+	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	value, isNull, err := recordInfo.GetV_WStringValueFrom(`V_WStringField`, varFieldNullRecord)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected is null but got not null`)
+	}
+	if value != `` {
+		t.Fatalf("expected '' but got %v", value)
+	}
+}
+
+func TestCorrectlyRetrieveV_StringShortValue(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
+	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	value, isNull, err := recordInfo.GetV_StringValueFrom(`V_StringField`, varFieldShortRecord)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected is not null but got null`)
+	}
+	if expected := strings.Repeat(`B`, 100); value != expected {
+		t.Fatalf("expected\n%v\nbut got\n%v", expected, value)
+	}
+}
+
 func checkExpectedGetValueFrom(t *testing.T, value interface{}, expectedValue interface{}, isNull bool, expectedIsNull bool, err error, expectedErr error) {
 	if err != expectedErr {
 		t.Fatalf("expected error: %v\ngot: %v", expectedErr, err)
@@ -261,6 +330,18 @@ var recordInfoXml = `<MetaInfo connection="Output">
 	</RecordInfo>
 </MetaInfo>
 `
+
+var varFieldShortRecord = unsafe.Pointer(&[]byte{
+	1, 0, 12, 0, 0, 0, 109, 0, 0, 0, 202, 0, 0, 0, 201, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 201, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 0, 0, 0, 0, 0, 0, 0,
+})
+
+var varFieldLongRecord = unsafe.Pointer(&[]byte{
+	1, 0, 12, 0, 0, 0, 212, 0, 0, 0, 152, 1, 0, 0, 144, 1, 0, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 65, 0, 144, 1, 0, 0, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 66, 61, 0, 34, 0, 116, 0, 101, 0, 115, 0, 116, 0, 34, 0, 32, 0, 115, 0, 231, 216, 177, 205, 246, 32, 0, 0, 192, 233,
+}[0])
+
+var varFieldNullRecord = unsafe.Pointer(&[]byte{
+	1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 49, 0, 48, 0,
+}[0])
 
 var fixedFieldRecord = unsafe.Pointer(&[]byte{
 	1, 0, 1, 16, 0, 0, 32, 0, 0, 0, 0, 64, 0, 0, 0, 0, 0, 0, 0, 0, 49, 50, 51, 46, 52, 53, 48, 48, 48, 48, 0, 0, 116,
