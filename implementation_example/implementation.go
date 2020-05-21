@@ -81,16 +81,12 @@ func (ii *MyPluginIncomingInterface) PushRecord(record unsafe.Pointer) bool {
 			api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
 			return false
 		}
-		value, isNull, err := ii.inInfo.GetInterfaceValueFrom(field.Name, record)
+		value, err := ii.inInfo.GetRawBytesFrom(field.Name, record)
 		if err != nil {
 			api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
 			return false
 		}
-		if isNull {
-			_ = ii.inInfo.SetFieldNull(field.Name)
-			continue
-		}
-		err = ii.inInfo.SetFromInterface(field.Name, value)
+		err = ii.inInfo.SetFromRawBytes(field.Name, value)
 		if err != nil {
 			api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
 			return false

@@ -3,121 +3,223 @@ package recordinfo
 import (
 	"encoding/binary"
 	"fmt"
-	"goalteryx/convert_strings"
+	"math"
+	"reflect"
 	"strconv"
 	"syscall"
 	"time"
 	"unsafe"
 )
 
-func (info *recordInfo) GetByteValueFrom(fieldName string, record unsafe.Pointer) (value byte, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return byte(0), isNull, err
+func (info *recordInfo) GetIntValueFrom(fieldName string, record unsafe.Pointer) (value int, isNull bool, err error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return 0, false, err
 	}
-	return *((*byte)(unsafe.Pointer(uintptr(record) + field.location))), false, nil
+
+	switch field.Type {
+	case ByteType:
+		raw := *((*[2]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		if raw[1] == 1 {
+			return 0, true, nil
+		}
+		return int(raw[0]), false, nil
+
+	case Int16Type:
+		raw := *((*[3]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		if raw[2] == 1 {
+			return 0, true, nil
+		}
+		return int(binary.LittleEndian.Uint16(raw[:2])), false, nil
+
+	case Int32Type:
+		raw := *((*[5]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		if raw[4] == 1 {
+			return 0, true, nil
+		}
+		return int(binary.LittleEndian.Uint32(raw[:4])), false, nil
+
+	case Int64Type:
+		raw := *((*[9]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		if raw[8] == 1 {
+			return 0, true, nil
+		}
+		return int(binary.LittleEndian.Uint64(raw[:8])), false, nil
+
+	default:
+		return 0, false, fmt.Errorf(`[%v]'s type of '%v' is not a valid int type`, field.Name, field.Type)
+	}
 }
 
 func (info *recordInfo) GetBoolValueFrom(fieldName string, record unsafe.Pointer) (value bool, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return false, isNull, err
-	}
-	return *((*bool)(unsafe.Pointer(uintptr(record) + field.location))), false, nil
-}
-
-func (info *recordInfo) GetInt16ValueFrom(fieldName string, record unsafe.Pointer) (value int16, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return 0, isNull, err
-	}
-	return *((*int16)(unsafe.Pointer(uintptr(record) + field.location))), false, nil
-}
-
-func (info *recordInfo) GetInt32ValueFrom(fieldName string, record unsafe.Pointer) (value int32, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return 0, isNull, err
-	}
-	return *((*int32)(unsafe.Pointer(uintptr(record) + field.location))), false, nil
-}
-
-func (info *recordInfo) GetInt64ValueFrom(fieldName string, record unsafe.Pointer) (value int64, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return 0, isNull, err
-	}
-	return *((*int64)(unsafe.Pointer(uintptr(record) + field.location))), false, nil
-}
-
-func (info *recordInfo) GetFixedDecimalValueFrom(fieldName string, record unsafe.Pointer) (value float64, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return 0, isNull, err
-	}
-	valueStr := convert_strings.CToString(unsafe.Pointer(uintptr(record) + field.location))
-	value, err = strconv.ParseFloat(valueStr, 64)
+	field, err := info.getFieldInfo(fieldName)
 	if err != nil {
-		return 0, false, fmt.Errorf(`error converting '%v' to double in '%v' field`, value, fieldName)
+		return false, false, err
 	}
-	return value, false, nil
+
+	if field.Type != BoolType {
+		return false, false, fmt.Errorf(`[%v]'s type of '%v' is not a valid bool type`, field.Name, field.Type)
+	}
+
+	raw := *((*byte)(unsafe.Pointer(uintptr(record) + field.location)))
+	if raw == 2 {
+		return false, true, nil
+	}
+	if raw == 0 {
+		return false, false, nil
+	}
+	return true, false, nil
 }
 
-func (info *recordInfo) GetFloatValueFrom(fieldName string, record unsafe.Pointer) (value float32, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return 0, isNull, err
+func (info *recordInfo) GetFloatValueFrom(fieldName string, record unsafe.Pointer) (value float64, isNull bool, err error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return 0, false, err
 	}
-	return *((*float32)(unsafe.Pointer(uintptr(record) + field.location))), false, nil
-}
 
-func (info *recordInfo) GetDoubleValueFrom(fieldName string, record unsafe.Pointer) (value float64, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return 0, isNull, err
+	switch field.Type {
+	case FloatType:
+		raw := *((*[5]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		if raw[4] == 1 {
+			return 0, true, nil
+		}
+		return float64(math.Float32frombits(binary.LittleEndian.Uint32(raw[:4]))), false, nil
+	case DoubleType:
+		raw := *((*[9]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		if raw[8] == 1 {
+			return 0, true, nil
+		}
+		return math.Float64frombits(binary.LittleEndian.Uint64(raw[:8])), false, nil
+	case FixedDecimalType:
+		raw := info.getRawBytes(field, record)
+		if raw[field.fixedLen] == 1 {
+			return 0, true, nil
+		}
+		value, err := strconv.ParseFloat(string(truncateAtNullByte(raw)), 64)
+		return value, false, err
+	default:
+		return 0, false, fmt.Errorf(`[%v]'s type of '%v' is not a valid float type`, field.Name, field.Type)
 	}
-	return *((*float64)(unsafe.Pointer(uintptr(record) + field.location))), false, nil
 }
 
 func (info *recordInfo) GetStringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return ``, isNull, err
-	}
-	return convert_strings.CToString(unsafe.Pointer(uintptr(record) + field.location)), false, nil
-}
-
-func (info *recordInfo) GetWStringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return ``, isNull, err
-	}
-	return convert_strings.WideCToString(unsafe.Pointer(uintptr(record) + field.location)), false, nil
-}
-
-func (info *recordInfo) GetV_StringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error) {
 	field, err := info.getFieldInfo(fieldName)
 	if err != nil {
 		return ``, false, err
 	}
 
-	if isVarFieldNull(field, record) {
-		return ``, true, nil
-	}
+	switch field.Type {
+	case StringType:
+		raw := info.getRawBytes(field, record)
+		if raw[field.fixedLen] == 1 {
+			return ``, true, nil
+		}
+		return string(truncateAtNullByte(raw)), false, nil
 
-	varBytes := getVarBytes(field, record)
-	return string(varBytes), false, nil
+	case V_StringType:
+		raw := info.getRawBytes(field, record)
+		if raw == nil {
+			return ``, true, nil
+		}
+		if len(raw) == 0 {
+			return ``, false, nil
+		}
+		return string(raw), false, nil
+
+	case WStringType:
+		raw := info.getRawBytes(field, record)
+		if raw[field.fixedLen] == 1 {
+			return ``, true, nil
+		}
+		charLen := len(raw) / 2
+		chars := make([]uint16, charLen)
+		for charIndex := 0; charIndex < charLen; charIndex++ {
+			chars[charIndex] = binary.LittleEndian.Uint16(raw[charIndex*2 : charIndex*2+2])
+		}
+		return syscall.UTF16ToString(chars), false, nil
+
+	case V_WStringType:
+		raw := info.getRawBytes(field, record)
+		if raw == nil {
+			return ``, true, nil
+		}
+		if len(raw) == 0 {
+			return ``, false, nil
+		}
+
+		charLen := len(raw) / 2
+		chars := make([]uint16, charLen)
+		for charIndex := 0; charIndex < charLen; charIndex++ {
+			chars[charIndex] = binary.LittleEndian.Uint16(raw[charIndex*2 : charIndex*2+2])
+		}
+		return syscall.UTF16ToString(chars), false, nil
+
+	default:
+		return ``, false, fmt.Errorf(`[%v]'s type of '%v' is not a valid string type`, field.Name, field.Type)
+	}
 }
 
-func isVarFieldNull(field *fieldInfoEditor, record unsafe.Pointer) bool {
-	if *((*int32)(unsafe.Pointer(uintptr(record) + field.location))) == 1 {
-		return true
+func (info *recordInfo) GetDateValueFrom(fieldName string, record unsafe.Pointer) (value time.Time, isNull bool, err error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return zeroDate, false, err
 	}
-	return false
+
+	raw := info.getRawBytes(field, record)
+	if raw[field.fixedLen] == 1 {
+		return zeroDate, true, nil
+	}
+
+	switch field.Type {
+	case DateType:
+		value, err := time.Parse(dateFormat, string(raw[:field.fixedLen]))
+		return value, false, err
+
+	case DateTimeType:
+		value, err := time.Parse(dateTimeFormat, string(raw[:field.fixedLen]))
+		return value, false, err
+
+	default:
+		return zeroDate, false, fmt.Errorf(`[%v]'s type of '%v' is not a valid date type`, field.Name, field.Type)
+	}
+}
+
+func (info *recordInfo) GetRawBytesFrom(fieldName string, record unsafe.Pointer) (value []byte, err error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return nil, fmt.Errorf(`error getting raw bytes: %v`, err.Error())
+	}
+	return info.getRawBytes(field, record), nil
+}
+
+func (info *recordInfo) getRawBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
+	switch field.Type {
+	case V_StringType, V_WStringType:
+		return getVarBytes(field, record)
+	default:
+		return getFixedBytes(field, record)
+	}
+}
+
+func getFixedBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
+	totalLen := int(field.fixedLen + field.nullByteLen)
+	var raw []byte
+	rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&raw))
+	rawHeader.Data = uintptr(record) + field.location
+	rawHeader.Len = totalLen
+	rawHeader.Cap = totalLen
+	return raw
 }
 
 func getVarBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
 	varStart := *((*uint32)(unsafe.Pointer(uintptr(record) + field.location)))
+	if varStart == 0 {
+		return []byte{}
+	}
+	if varStart == 1 {
+		return nil
+	}
+
 	var varLen uint32
 	offset := field.location
 
@@ -142,134 +244,20 @@ func getVarBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
 		}
 	}
 
-	varBytes := make([]byte, varLen)
-	var index uint32
-	for index = 0; index < varLen; index++ {
-		varBytes[index] = *((*byte)(unsafe.Pointer(uintptr(record) + offset + uintptr(index))))
-	}
-	return varBytes
+	var raw []byte
+	rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&raw))
+	rawHeader.Data = uintptr(record) + offset
+	rawHeader.Len = int(varLen)
+	rawHeader.Cap = int(varLen)
+	return raw
 }
 
-func (info *recordInfo) GetV_WStringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error) {
-	field, err := info.getFieldInfo(fieldName)
-	if err != nil {
-		return ``, false, err
-	}
-
-	if isVarFieldNull(field, record) {
-		return ``, true, nil
-	}
-
-	varBytes := getVarBytes(field, record)
-	varUint16 := make([]uint16, len(varBytes)/2)
-	varUint16Index := 0
-	for index := 0; index < len(varBytes); index += 2 {
-		varUint16[varUint16Index] = binary.LittleEndian.Uint16(varBytes[index : index+2])
-		varUint16Index++
-	}
-	return syscall.UTF16ToString(varUint16), false, nil
-}
-
-func (info *recordInfo) GetDateValueFrom(fieldName string, record unsafe.Pointer) (value time.Time, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return zeroDate, isNull, err
-	}
-	dateStr := convert_strings.CToString(unsafe.Pointer(uintptr(record) + field.location))
-	date, err := time.Parse(dateFormat, dateStr)
-	if err != nil {
-		return zeroDate, false, fmt.Errorf(`error converting date '%v' in GetDateValueFrom for field [%v], use format yyyy-MM-dd`, dateStr, fieldName)
-	}
-	return date, false, nil
-}
-
-func (info *recordInfo) GetDateTimeValueFrom(fieldName string, record unsafe.Pointer) (value time.Time, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return zeroDate, isNull, err
-	}
-	dateStr := convert_strings.CToString(unsafe.Pointer(uintptr(record) + field.location))
-	date, err := time.Parse(dateTimeFormat, dateStr)
-	if err != nil {
-		return zeroDate, false, fmt.Errorf(`error converting datetime '%v' in GetDateValueFrom for field [%v], use format yyyy-MM-dd hh:mm:ss`, dateStr, fieldName)
-	}
-	return date, false, nil
-}
-
-func (info *recordInfo) GetInterfaceValueFrom(fieldName string, record unsafe.Pointer) (value interface{}, isNull bool, err error) {
-	returnEarly, isNull, err, field := info.shouldReturnEarlyWith(fieldName, record)
-	if returnEarly {
-		return nil, isNull, fmt.Errorf(`error in GetInterfaceValueFrom: %v`, err.Error())
-	}
-	switch field.Type {
-	case ByteType:
-		return info.GetByteValueFrom(fieldName, record)
-	case BoolType:
-		return info.GetBoolValueFrom(fieldName, record)
-	case Int16Type:
-		return info.GetInt16ValueFrom(fieldName, record)
-	case Int32Type:
-		return info.GetInt32ValueFrom(fieldName, record)
-	case Int64Type:
-		return info.GetInt64ValueFrom(fieldName, record)
-	case FixedDecimalType:
-		return info.GetFixedDecimalValueFrom(fieldName, record)
-	case FloatType:
-		return info.GetFloatValueFrom(fieldName, record)
-	case DoubleType:
-		return info.GetDoubleValueFrom(fieldName, record)
-	case StringType:
-		return info.GetStringValueFrom(fieldName, record)
-	case WStringType:
-		return info.GetWStringValueFrom(fieldName, record)
-	case V_StringType:
-		return info.GetV_StringValueFrom(fieldName, record)
-	case V_WStringType:
-		return info.GetV_WStringValueFrom(fieldName, record)
-	case DateType:
-		return info.GetDateValueFrom(fieldName, record)
-	case DateTimeType:
-		return info.GetDateTimeValueFrom(fieldName, record)
-	default:
-		return nil, false, fmt.Errorf(`error in GetInterfaceValueFrom: field [%v] has invalid type '%v'`, field.Name, field.Type)
-	}
-}
-
-func (info *recordInfo) shouldReturnEarlyWith(fieldName string, record unsafe.Pointer) (returnEarly bool, isNull bool, err error, field *fieldInfoEditor) {
-	field, err = info.getFieldInfo(fieldName)
-	if err != nil {
-		return true, false, err, nil
-	}
-	if isValueNull(field, record) {
-		return true, true, nil, field
-	}
-	return false, false, nil, field
-}
-
-var nullByteTypes = []string{
-	ByteType,
-	Int16Type,
-	Int32Type,
-	Int64Type,
-	FixedDecimalType,
-	FloatType,
-	DoubleType,
-	StringType,
-	WStringType,
-	DateType,
-	DateTimeType,
-}
-
-func isValueNull(field *fieldInfoEditor, record unsafe.Pointer) bool {
-	for _, nullByteType := range nullByteTypes {
-		if nullByteType == field.Type {
-			nullByte := *((*byte)(unsafe.Pointer(uintptr(record) + field.location + field.fixedLen)))
-			return nullByte == byte(1)
+func truncateAtNullByte(raw []byte) []byte {
+	var dataLen int
+	for dataLen = 0; dataLen < len(raw); dataLen++ {
+		if raw[dataLen] == 0 {
+			break
 		}
 	}
-	if field.Type == BoolType {
-		nullByte := *((*byte)(unsafe.Pointer(uintptr(record) + field.location)))
-		return nullByte == byte(2)
-	}
-	return false
+	return raw[:dataLen]
 }

@@ -21,7 +21,5 @@ var DateTimeType = `DateTime`
 
 var zeroDate = time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC)
 
-type generateBytes func(field *fieldInfoEditor, blob []byte, fixedStartAt int, varStartAt int) (newFixedStart int, newVarStart int, err error)
-
 var dateFormat = `2006-01-02`
 var dateTimeFormat = `2006-01-02 15:04:05`

@@ -24,45 +24,27 @@ type RecordInfo interface {
 	AddDateField(name string, source string) string
 	AddDateTimeField(name string, source string) string
 
-	GetByteValueFrom(fieldName string, record unsafe.Pointer) (value byte, isNull bool, err error)
+	GetIntValueFrom(fieldName string, record unsafe.Pointer) (value int, isNull bool, err error)
 	GetBoolValueFrom(fieldName string, record unsafe.Pointer) (value bool, isNull bool, err error)
-	GetInt16ValueFrom(fieldName string, record unsafe.Pointer) (value int16, isNull bool, err error)
-	GetInt32ValueFrom(fieldName string, record unsafe.Pointer) (value int32, isNull bool, err error)
-	GetInt64ValueFrom(fieldName string, record unsafe.Pointer) (value int64, isNull bool, err error)
-	GetFixedDecimalValueFrom(fieldName string, record unsafe.Pointer) (value float64, isNull bool, err error)
-	GetFloatValueFrom(fieldName string, record unsafe.Pointer) (value float32, isNull bool, err error)
-	GetDoubleValueFrom(fieldName string, record unsafe.Pointer) (value float64, isNull bool, err error)
+	GetFloatValueFrom(fieldName string, record unsafe.Pointer) (value float64, isNull bool, err error)
 	GetStringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error)
-	GetWStringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error)
-	GetV_StringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error)
-	GetV_WStringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error)
 	GetDateValueFrom(fieldName string, record unsafe.Pointer) (value time.Time, isNull bool, err error)
-	GetDateTimeValueFrom(fieldName string, record unsafe.Pointer) (value time.Time, isNull bool, err error)
-	GetInterfaceValueFrom(fieldName string, record unsafe.Pointer) (value interface{}, isNull bool, err error)
+	GetRawBytesFrom(fieldName string, record unsafe.Pointer) (value []byte, err error)
 
-	SetByteField(fieldName string, value byte) error
+	SetIntField(fieldName string, value int) error
 	SetBoolField(fieldName string, value bool) error
-	SetInt16Field(fieldName string, value int16) error
-	SetInt32Field(fieldName string, value int32) error
-	SetInt64Field(fieldName string, value int64) error
-	SetFixedDecimalField(fieldName string, value float64) error
-	SetFloatField(fieldName string, value float32) error
-	SetDoubleField(fieldName string, value float64) error
+	SetFloatField(fieldName string, value float64) error
 	SetStringField(fieldName string, value string) error
-	SetWStringField(fieldName string, value string) error
-	SetV_StringField(fieldName string, value string) error
-	SetV_WStringField(fieldName string, value string) error
 	SetDateField(fieldName string, value time.Time) error
-	SetDateTimeField(fieldName string, value time.Time) error
 	SetFieldNull(fieldName string) error
-	SetFromInterface(fieldName string, valuei interface{}) error
+	SetFromRawBytes(fieldName string, value []byte) error
 
 	GenerateRecord() (unsafe.Pointer, error)
 	ToXml(connection string) (string, error)
 }
 
 type recordInfo struct {
-	currentLen uintptr
+	fixedLen   uintptr
 	numFields  int
 	fields     []*fieldInfoEditor
 	fieldNames map[string]int
@@ -86,8 +68,8 @@ type fieldInfoEditor struct {
 	location    uintptr
 	fixedLen    uintptr
 	nullByteLen uintptr
-	value       interface{}
-	generator   generateBytes
+	fixedValue  []byte
+	varValue    []byte
 }
 
 func New() RecordInfo {
@@ -140,15 +122,13 @@ func (info *recordInfo) getRecordSizes() (fixed int, variable int) {
 }
 
 func (editor *fieldInfoEditor) variableSize() int {
-	if editor.value == nil {
+	if editor.fixedValue == nil {
 		return 0
 	}
 
 	switch editor.Type {
-	case V_StringType:
-		return calcVarSizeFromLen(len(editor.value.(string)))
-	case V_WStringType:
-		return calcVarSizeFromLen(len(editor.value.(string)) * 2)
+	case V_StringType, V_WStringType:
+		return calcVarSizeFromLen(len(editor.fixedValue))
 	default:
 		return 0
 	}
