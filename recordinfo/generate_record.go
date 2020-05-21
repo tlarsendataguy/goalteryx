@@ -12,6 +12,20 @@ func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 		info.blob = make([]byte, totalSize)
 	}
 	binary.LittleEndian.PutUint32(info.blob[fixed:fixed+4], uint32(variable))
+
+	fixedWriteIndex := 0
+	varWriteIndex := fixed + 4
+	for _, field := range info.fields {
+		for byteIndex := 0; byteIndex < len(field.fixedValue); byteIndex++ {
+			info.blob[fixedWriteIndex] = field.fixedValue[byteIndex]
+			fixedWriteIndex++
+		}
+		for byteIndex := 0; byteIndex < len(field.varValue); byteIndex++ {
+			info.blob[varWriteIndex] = field.varValue[byteIndex]
+			varWriteIndex++
+		}
+	}
+
 	return unsafe.Pointer(&info.blob[0]), nil
 }
 

@@ -78,10 +78,10 @@ func TestCorrectlyRetrieveByteValue(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetIntValueFrom(`ByteField`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, 1, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, 1, isNull, false, err, nil, `error retrieving byte:`)
 
 	value, isNull, err = recordInfo.GetIntValueFrom(`ByteField`, nullRecord)
-	checkExpectedGetValueFrom(t, value, 0, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, 0, isNull, true, err, nil, `error retrieving null byte:`)
 }
 
 func TestCorrectlyRetrieveBoolValue(t *testing.T) {
@@ -91,10 +91,10 @@ func TestCorrectlyRetrieveBoolValue(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetBoolValueFrom(`BoolField`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, true, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, true, isNull, false, err, nil, `error retrieving bool:`)
 
 	value, isNull, err = recordInfo.GetBoolValueFrom(`BoolField`, nullRecord)
-	checkExpectedGetValueFrom(t, value, false, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, false, isNull, true, err, nil, `error retrieving null bool:`)
 }
 
 func TestCorrectlyRetrieveInt16Value(t *testing.T) {
@@ -104,10 +104,10 @@ func TestCorrectlyRetrieveInt16Value(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetIntValueFrom(`Int16Field`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, 16, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, 16, isNull, false, err, nil, `error retrieving int16:`)
 
 	value, isNull, err = recordInfo.GetIntValueFrom(`Int16Field`, nullRecord)
-	checkExpectedGetValueFrom(t, value, 0, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, 0, isNull, true, err, nil, `error retrieving null int16:`)
 }
 
 func TestCorrectlyRetrieveInt32Value(t *testing.T) {
@@ -117,10 +117,10 @@ func TestCorrectlyRetrieveInt32Value(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetIntValueFrom(`Int32Field`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, 32, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, 32, isNull, false, err, nil, `error retrieving int32:`)
 
 	value, isNull, err = recordInfo.GetIntValueFrom(`Int32Field`, nullRecord)
-	checkExpectedGetValueFrom(t, value, 0, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, 0, isNull, true, err, nil, `error retrieving null int32:`)
 }
 
 func TestCorrectlyRetrieveInt64Value(t *testing.T) {
@@ -130,10 +130,10 @@ func TestCorrectlyRetrieveInt64Value(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetIntValueFrom(`Int64Field`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, 64, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, 64, isNull, false, err, nil, `error retrieving int64:`)
 
 	value, isNull, err = recordInfo.GetIntValueFrom(`Int64Field`, nullRecord)
-	checkExpectedGetValueFrom(t, value, 0, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, 0, isNull, true, err, nil, `error retrieving null int64:`)
 }
 
 func TestCorrectlyRetrieveFixedDecimalValue(t *testing.T) {
@@ -143,10 +143,10 @@ func TestCorrectlyRetrieveFixedDecimalValue(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetFloatValueFrom(`FixedDecimalField`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, 123.450000, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, 123.450000, isNull, false, err, nil, `error retrieving fixed decimal:`)
 
 	value, isNull, err = recordInfo.GetFloatValueFrom(`FixedDecimalField`, nullRecord)
-	checkExpectedGetValueFrom(t, value, 0.0, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, 0.0, isNull, true, err, nil, `error retrieving null fixed decimal:`)
 }
 
 func TestCorrectlyRetrieveFloatValue(t *testing.T) {
@@ -156,10 +156,10 @@ func TestCorrectlyRetrieveFloatValue(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetFloatValueFrom(`FloatField`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, float64(float32(678.9)), isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, float64(float32(678.9)), isNull, false, err, nil, `error retrieving float:`)
 
 	value, isNull, err = recordInfo.GetFloatValueFrom(`FloatField`, nullRecord)
-	checkExpectedGetValueFrom(t, value, 0.0, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, 0.0, isNull, true, err, nil, `error retrieving null float:`)
 }
 
 func TestCorrectlyRetrieveDoubleValue(t *testing.T) {
@@ -169,10 +169,10 @@ func TestCorrectlyRetrieveDoubleValue(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetFloatValueFrom(`DoubleField`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, 0.12345, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, 0.12345, isNull, false, err, nil, `error retrieving double:`)
 
 	value, isNull, err = recordInfo.GetFloatValueFrom(`DoubleField`, nullRecord)
-	checkExpectedGetValueFrom(t, value, 0.0, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, 0.0, isNull, true, err, nil, `error retrieving null double:`)
 }
 
 func TestCorrectlyRetrieveStringValue(t *testing.T) {
@@ -182,10 +182,10 @@ func TestCorrectlyRetrieveStringValue(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`StringField`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, `A`, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, `A`, isNull, false, err, nil, `error retrieving string:`)
 
 	value, isNull, err = recordInfo.GetStringValueFrom(`StringField`, nullRecord)
-	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil, `error retrieving null string:`)
 }
 
 func TestCorrectlyRetrieveWStringValue(t *testing.T) {
@@ -195,10 +195,10 @@ func TestCorrectlyRetrieveWStringValue(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`WStringField`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, `AB`, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, `AB`, isNull, false, err, nil, `error retrieving wstring:`)
 
 	value, isNull, err = recordInfo.GetStringValueFrom(`WStringField`, nullRecord)
-	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil, `error retrieving null wstring:`)
 }
 
 var zeroDate = time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC)
@@ -210,10 +210,10 @@ func TestCorrectlyRetrieveDateValue(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetDateValueFrom(`DateField`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC), isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC), isNull, false, err, nil, `error retrieving date:`)
 
 	value, isNull, err = recordInfo.GetDateValueFrom(`DateField`, nullRecord)
-	checkExpectedGetValueFrom(t, value, zeroDate, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, zeroDate, isNull, true, err, nil, `error retrieving null date:`)
 }
 
 func TestCorrectlyRetrieveDateTimeValue(t *testing.T) {
@@ -223,10 +223,10 @@ func TestCorrectlyRetrieveDateTimeValue(t *testing.T) {
 	}
 
 	value, isNull, err := recordInfo.GetDateValueFrom(`DateTimeField`, sampleRecord)
-	checkExpectedGetValueFrom(t, value, time.Date(2020, 2, 3, 4, 5, 6, 0, time.UTC), isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, time.Date(2020, 2, 3, 4, 5, 6, 0, time.UTC), isNull, false, err, nil, `error retrieving datetime:`)
 
 	value, isNull, err = recordInfo.GetDateValueFrom(`DateTimeField`, nullRecord)
-	checkExpectedGetValueFrom(t, value, zeroDate, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, zeroDate, isNull, true, err, nil, `error retrieving null datetime:`)
 }
 
 func TestCorrectlyRetrieveV_StringLongValue(t *testing.T) {
@@ -271,10 +271,10 @@ func TestCorrectlyRetrieveVarStringsNull(t *testing.T) {
 	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_WStringField`, varFieldNullRecord)
-	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil, `error retrieving null v_wstring:`)
 
 	value, isNull, err = recordInfo.GetStringValueFrom(`V_StringField`, varFieldNullRecord)
-	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil, `error retrieving null v_string:`)
 }
 
 func TestCorrectlyRetrieveVarStringsEmpty(t *testing.T) {
@@ -284,10 +284,10 @@ func TestCorrectlyRetrieveVarStringsEmpty(t *testing.T) {
 	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_WStringField`, varFieldEmptyStrings)
-	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil, `error retrieving empty v_wstring:`)
 
 	value, isNull, err = recordInfo.GetStringValueFrom(`V_StringField`, varFieldEmptyStrings)
-	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil, `error retrieving empty v_string:`)
 }
 
 func TestCorrectlyRetrieveV_StringShortValue(t *testing.T) {
@@ -331,21 +331,21 @@ func TestCorrectlyRetrieveVarTinyValue(t *testing.T) {
 	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, varFieldTinyRecord)
-	checkExpectedGetValueFrom(t, value, `B`, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, `B`, isNull, false, err, nil, `error retrieving tiny v_string:`)
 
 	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, varFieldTinyRecord)
-	checkExpectedGetValueFrom(t, value, `A`, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, `A`, isNull, false, err, nil, `error retrieving tine v_wstring:`)
 }
 
-func checkExpectedGetValueFrom(t *testing.T, value interface{}, expectedValue interface{}, isNull bool, expectedIsNull bool, err error, expectedErr error) {
+func checkExpectedGetValueFrom(t *testing.T, value interface{}, expectedValue interface{}, isNull bool, expectedIsNull bool, err error, expectedErr error, msg string) {
 	if err != expectedErr {
-		t.Fatalf("expected error: %v\ngot: %v", expectedErr, err)
+		t.Fatalf("%v expected error: %v\ngot: %v", msg, expectedErr, err)
 	}
 	if value != expectedValue {
-		t.Fatalf("expected\n%v\nbut got\n%v\n", expectedValue, value)
+		t.Fatalf("%v expected\n%v\nbut got\n%v\n", msg, expectedValue, value)
 	}
 	if isNull != expectedIsNull {
-		t.Fatalf(`expected isNull=%v but got isNull=%v`, expectedIsNull, isNull)
+		t.Fatalf(`%v expected isNull=%v but got isNull=%v`, msg, expectedIsNull, isNull)
 	}
 }
 

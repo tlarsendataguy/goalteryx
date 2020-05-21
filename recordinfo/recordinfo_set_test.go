@@ -17,42 +17,42 @@ func TestSetValuesAndGenerateRecord(t *testing.T) {
 	}
 
 	byteVal, isNull, err := recordInfo.GetIntValueFrom(`ByteField`, record)
-	checkExpectedGetValueFrom(t, byteVal, 1, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, byteVal, 1, isNull, false, err, nil, `error setting byte:`)
 
 	boolVal, isNull, err := recordInfo.GetBoolValueFrom(`BoolField`, record)
-	checkExpectedGetValueFrom(t, boolVal, true, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, boolVal, true, isNull, false, err, nil, `error setting bool:`)
 
 	int16Val, isNull, err := recordInfo.GetIntValueFrom(`Int16Field`, record)
-	checkExpectedGetValueFrom(t, int16Val, 2, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, int16Val, 2, isNull, false, err, nil, `error setting int16:`)
 
 	int32Val, isNull, err := recordInfo.GetIntValueFrom(`Int32Field`, record)
-	checkExpectedGetValueFrom(t, int32Val, 3, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, int32Val, 3, isNull, false, err, nil, `error setting int32:`)
 
 	int64Val, isNull, err := recordInfo.GetIntValueFrom(`Int64Field`, record)
-	checkExpectedGetValueFrom(t, int64Val, 4, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, int64Val, 4, isNull, false, err, nil, `error setting int64:`)
 
 	fixedDecimalVal, isNull, err := recordInfo.GetFloatValueFrom(`FixedDecimalField`, record)
-	checkExpectedGetValueFrom(t, fixedDecimalVal, 123.45, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, fixedDecimalVal, 123.45, isNull, false, err, nil, `error setting fixeddecimal:`)
 
 	floatVal, isNull, err := recordInfo.GetFloatValueFrom(`FloatField`, record)
-	checkExpectedGetValueFrom(t, floatVal, 654.321, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, floatVal, float64(float32(654.321)), isNull, false, err, nil, `error setting float:`)
 
 	doubleVal, isNull, err := recordInfo.GetFloatValueFrom(`DoubleField`, record)
-	checkExpectedGetValueFrom(t, doubleVal, 909.33, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, doubleVal, 909.33, isNull, false, err, nil, `error setting double:`)
 
 	stringVal, isNull, err := recordInfo.GetStringValueFrom(`StringField`, record)
-	checkExpectedGetValueFrom(t, stringVal, `ABCDEFG`, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, stringVal, `ABCDEFG`, isNull, false, err, nil, `error setting string:`)
 
 	wstringVal, isNull, err := recordInfo.GetStringValueFrom(`WStringField`, record)
-	checkExpectedGetValueFrom(t, wstringVal, `CXVY`, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, wstringVal, `CXVY`, isNull, false, err, nil, `error setting wstring:`)
 
 	dateVal, isNull, err := recordInfo.GetDateValueFrom(`DateField`, record)
 	expectedDate := time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
-	checkExpectedGetValueFrom(t, dateVal, expectedDate, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, dateVal, expectedDate, isNull, false, err, nil, `error setting date:`)
 
 	dateTimeVal, isNull, err := recordInfo.GetDateValueFrom(`DateTimeField`, record)
 	expectedDate = time.Date(2021, 3, 4, 5, 6, 7, 0, time.UTC)
-	checkExpectedGetValueFrom(t, dateTimeVal, expectedDate, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, dateTimeVal, expectedDate, isNull, false, err, nil, `error setting datetime:`)
 }
 
 func TestCachedRecords(t *testing.T) {
@@ -81,10 +81,10 @@ func TestSetLongVarDataFieldsAndGenerateRecord(t *testing.T) {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
-	checkExpectedGetValueFrom(t, value, strings.Repeat(`B`, 200), isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, strings.Repeat(`B`, 200), isNull, false, err, nil, `error setting long v_string:`)
 
 	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, record)
-	checkExpectedGetValueFrom(t, value, strings.Repeat(`A`, 100), isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, strings.Repeat(`A`, 100), isNull, false, err, nil, `error setting long v_wstring:`)
 }
 
 func TestSetShortVarDataFieldsAndGenerateRecord(t *testing.T) {
@@ -102,10 +102,10 @@ func TestSetShortVarDataFieldsAndGenerateRecord(t *testing.T) {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
-	checkExpectedGetValueFrom(t, value, strings.Repeat(`B`, 100), isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, strings.Repeat(`B`, 100), isNull, false, err, nil, `error setting short v_string:`)
 
 	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, record)
-	checkExpectedGetValueFrom(t, value, strings.Repeat(`A`, 50), isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, strings.Repeat(`A`, 50), isNull, false, err, nil, `error setting short v_wstring:`)
 }
 
 func TestSetTinyVarDataFieldsAndGenerateRecord(t *testing.T) {
@@ -123,10 +123,10 @@ func TestSetTinyVarDataFieldsAndGenerateRecord(t *testing.T) {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
-	checkExpectedGetValueFrom(t, value, `B`, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, `B`, isNull, false, err, nil, `error setting tiny v_string:`)
 
 	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, record)
-	checkExpectedGetValueFrom(t, value, `A`, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, `A`, isNull, false, err, nil, `error setting tiny v_wstring:`)
 }
 
 func TestSetEmptyVarDataFieldsAndGenerateRecord(t *testing.T) {
@@ -144,10 +144,10 @@ func TestSetEmptyVarDataFieldsAndGenerateRecord(t *testing.T) {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
-	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil, `error setting empty v_string:`)
 
 	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, record)
-	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil)
+	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil, `error setting empty v_wstring:`)
 }
 
 func TestSetNullVarDataFieldsAndGenerateRecord(t *testing.T) {
@@ -165,10 +165,10 @@ func TestSetNullVarDataFieldsAndGenerateRecord(t *testing.T) {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
-	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil, `error setting null v_string:`)
 
 	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, record)
-	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil)
+	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil, `error setting null v_wstring:`)
 }
 
 func generateTestRecordInfo() recordinfo.RecordInfo {
