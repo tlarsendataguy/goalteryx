@@ -18,28 +18,28 @@ func (info *recordInfo) GetIntValueFrom(fieldName string, record unsafe.Pointer)
 	}
 
 	switch field.Type {
-	case ByteType:
+	case Byte:
 		raw := *((*[2]byte)(unsafe.Pointer(uintptr(record) + field.location)))
 		if raw[1] == 1 {
 			return 0, true, nil
 		}
 		return int(raw[0]), false, nil
 
-	case Int16Type:
+	case Int16:
 		raw := *((*[3]byte)(unsafe.Pointer(uintptr(record) + field.location)))
 		if raw[2] == 1 {
 			return 0, true, nil
 		}
 		return int(binary.LittleEndian.Uint16(raw[:2])), false, nil
 
-	case Int32Type:
+	case Int32:
 		raw := *((*[5]byte)(unsafe.Pointer(uintptr(record) + field.location)))
 		if raw[4] == 1 {
 			return 0, true, nil
 		}
 		return int(binary.LittleEndian.Uint32(raw[:4])), false, nil
 
-	case Int64Type:
+	case Int64:
 		raw := *((*[9]byte)(unsafe.Pointer(uintptr(record) + field.location)))
 		if raw[8] == 1 {
 			return 0, true, nil
@@ -47,7 +47,7 @@ func (info *recordInfo) GetIntValueFrom(fieldName string, record unsafe.Pointer)
 		return int(binary.LittleEndian.Uint64(raw[:8])), false, nil
 
 	default:
-		return 0, false, fmt.Errorf(`[%v]'s type of '%v' is not a valid int type`, field.Name, field.Type)
+		return 0, false, invalidTypeError(field, `int`)
 	}
 }
 
@@ -57,8 +57,8 @@ func (info *recordInfo) GetBoolValueFrom(fieldName string, record unsafe.Pointer
 		return false, false, err
 	}
 
-	if field.Type != BoolType {
-		return false, false, fmt.Errorf(`[%v]'s type of '%v' is not a valid bool type`, field.Name, field.Type)
+	if field.Type != Bool {
+		return false, false, invalidTypeError(field, `bool`)
 	}
 
 	raw := *((*byte)(unsafe.Pointer(uintptr(record) + field.location)))
@@ -78,19 +78,19 @@ func (info *recordInfo) GetFloatValueFrom(fieldName string, record unsafe.Pointe
 	}
 
 	switch field.Type {
-	case FloatType:
+	case Float:
 		raw := *((*[5]byte)(unsafe.Pointer(uintptr(record) + field.location)))
 		if raw[4] == 1 {
 			return 0, true, nil
 		}
 		return float64(math.Float32frombits(binary.LittleEndian.Uint32(raw[:4]))), false, nil
-	case DoubleType:
+	case Double:
 		raw := *((*[9]byte)(unsafe.Pointer(uintptr(record) + field.location)))
 		if raw[8] == 1 {
 			return 0, true, nil
 		}
 		return math.Float64frombits(binary.LittleEndian.Uint64(raw[:8])), false, nil
-	case FixedDecimalType:
+	case FixedDecimal:
 		raw := info.getRawBytes(field, record)
 		if raw[field.fixedLen] == 1 {
 			return 0, true, nil
@@ -98,7 +98,7 @@ func (info *recordInfo) GetFloatValueFrom(fieldName string, record unsafe.Pointe
 		value, err := strconv.ParseFloat(string(truncateAtNullByte(raw)), 64)
 		return value, false, err
 	default:
-		return 0, false, fmt.Errorf(`[%v]'s type of '%v' is not a valid float type`, field.Name, field.Type)
+		return 0, false, invalidTypeError(field, `float`)
 	}
 }
 
@@ -109,14 +109,14 @@ func (info *recordInfo) GetStringValueFrom(fieldName string, record unsafe.Point
 	}
 
 	switch field.Type {
-	case StringType:
+	case String:
 		raw := info.getRawBytes(field, record)
 		if raw[field.fixedLen] == 1 {
 			return ``, true, nil
 		}
 		return string(truncateAtNullByte(raw)), false, nil
 
-	case V_StringType:
+	case V_String:
 		raw := info.getRawBytes(field, record)
 		if raw == nil {
 			return ``, true, nil
@@ -126,7 +126,7 @@ func (info *recordInfo) GetStringValueFrom(fieldName string, record unsafe.Point
 		}
 		return string(raw), false, nil
 
-	case WStringType:
+	case WString:
 		raw := info.getRawBytes(field, record)
 		if raw[field.fixedLen] == 1 {
 			return ``, true, nil
@@ -138,7 +138,7 @@ func (info *recordInfo) GetStringValueFrom(fieldName string, record unsafe.Point
 		}
 		return syscall.UTF16ToString(chars), false, nil
 
-	case V_WStringType:
+	case V_WString:
 		raw := info.getRawBytes(field, record)
 		if raw == nil {
 			return ``, true, nil
@@ -155,7 +155,7 @@ func (info *recordInfo) GetStringValueFrom(fieldName string, record unsafe.Point
 		return syscall.UTF16ToString(chars), false, nil
 
 	default:
-		return ``, false, fmt.Errorf(`[%v]'s type of '%v' is not a valid string type`, field.Name, field.Type)
+		return ``, false, invalidTypeError(field, `string`)
 	}
 }
 
@@ -171,16 +171,16 @@ func (info *recordInfo) GetDateValueFrom(fieldName string, record unsafe.Pointer
 	}
 
 	switch field.Type {
-	case DateType:
+	case Date:
 		value, err := time.Parse(dateFormat, string(raw[:field.fixedLen]))
 		return value, false, err
 
-	case DateTimeType:
+	case DateTime:
 		value, err := time.Parse(dateTimeFormat, string(raw[:field.fixedLen]))
 		return value, false, err
 
 	default:
-		return zeroDate, false, fmt.Errorf(`[%v]'s type of '%v' is not a valid date type`, field.Name, field.Type)
+		return zeroDate, false, invalidTypeError(field, `date`)
 	}
 }
 
@@ -194,7 +194,7 @@ func (info *recordInfo) GetRawBytesFrom(fieldName string, record unsafe.Pointer)
 
 func (info *recordInfo) getRawBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
 	switch field.Type {
-	case V_StringType, V_WStringType:
+	case V_String, V_WString:
 		return getVarBytes(field, record)
 	default:
 		return getFixedBytes(field, record)
@@ -260,4 +260,8 @@ func truncateAtNullByte(raw []byte) []byte {
 		}
 	}
 	return raw[:dataLen]
+}
+
+func invalidTypeError(field *fieldInfoEditor, expectedType string) error {
+	return fmt.Errorf(`[%v]'s type of '%v' is not a valid %v type`, field.Name, fieldTypeMap[field.Type], expectedType)
 }

@@ -9,7 +9,7 @@ func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 	fixed, variable := info.getRecordSizes()
 	totalSize := fixed + 4 + variable
 	if totalSize >= len(info.blob) {
-		info.blob = make([]byte, totalSize+20) // some extra for growth
+		info.blob = make([]byte, totalSize+20) // arbitrary padding to try and minimize memory allocation
 	}
 	binary.LittleEndian.PutUint32(info.blob[fixed:fixed+4], uint32(variable))
 
@@ -17,7 +17,7 @@ func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 	varWriteIndex := fixed + 4
 	for _, field := range info.fields {
 		switch field.Type {
-		case V_StringType, V_WStringType:
+		case V_String, V_WString:
 			if field.value == nil {
 				binary.LittleEndian.PutUint32(info.blob[fixedWriteIndex:fixedWriteIndex+4], 1)
 				fixedWriteIndex += 4

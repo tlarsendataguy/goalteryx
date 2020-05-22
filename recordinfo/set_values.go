@@ -17,16 +17,16 @@ func (info *recordInfo) SetIntField(fieldName string, value int) error {
 
 	clearNullFlag(field)
 	switch field.Type {
-	case ByteType:
+	case Byte:
 		field.value[0] = byte(value)
-	case Int16Type:
+	case Int16:
 		binary.LittleEndian.PutUint16(field.value[0:2], uint16(value))
-	case Int32Type:
+	case Int32:
 		binary.LittleEndian.PutUint32(field.value[0:4], uint32(value))
-	case Int64Type:
+	case Int64:
 		binary.LittleEndian.PutUint64(field.value[0:8], uint64(value))
 	default:
-		return fmt.Errorf(`[%v]'s type of '%v' is not a valid int type`, field.Name, field.Type)
+		return invalidTypeError(field, `int`)
 	}
 	return nil
 }
@@ -37,8 +37,8 @@ func (info *recordInfo) SetBoolField(fieldName string, value bool) error {
 		return err
 	}
 
-	if field.Type != BoolType {
-		return fmt.Errorf(`[%v]'s type of '%v' is not a valid bool type`, field.Name, field.Type)
+	if field.Type != Bool {
+		return invalidTypeError(field, `bool`)
 	}
 
 	if value {
@@ -58,7 +58,7 @@ func (info *recordInfo) SetFloatField(fieldName string, value float64) error {
 	clearNullFlag(field)
 
 	switch field.Type {
-	case FixedDecimalType:
+	case FixedDecimal:
 		format := `%` + fmt.Sprintf(`%v.%vf`, field.Size, field.Precision)
 		valueStr := []byte(strings.TrimSpace(fmt.Sprintf(format, value)))
 		size := int(field.fixedLen)
@@ -67,16 +67,16 @@ func (info *recordInfo) SetFloatField(fieldName string, value float64) error {
 			field.value[size] = 0
 		}
 
-	case FloatType:
+	case Float:
 		data := math.Float32bits(float32(value))
 		binary.LittleEndian.PutUint32(field.value[0:field.fixedLen], data)
 
-	case DoubleType:
+	case Double:
 		data := math.Float64bits(value)
 		binary.LittleEndian.PutUint64(field.value[0:field.fixedLen], data)
 
 	default:
-		return fmt.Errorf(`[%v]'s type of '%v' is not a valid float type`, field.Name, field.Type)
+		return invalidTypeError(field, `float`)
 	}
 
 	return nil
@@ -89,7 +89,7 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 	}
 
 	switch field.Type {
-	case StringType:
+	case String:
 		valueBytes := []byte(value)
 		size := int(field.fixedLen)
 		copy(field.value, valueBytes)
@@ -97,7 +97,7 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 			field.value[size] = 0
 		}
 
-	case V_StringType:
+	case V_String:
 		valueBytes := []byte(value)
 		field.varLen = len(valueBytes)
 		if len(valueBytes) >= len(field.value) {
@@ -105,7 +105,7 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 		}
 		copy(field.value, valueBytes)
 
-	case WStringType:
+	case WString:
 		chars, err := syscall.UTF16FromString(value)
 		if err != nil {
 			return err
@@ -117,7 +117,7 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 			binary.LittleEndian.PutUint16(field.value[index*2:index*2+2], char)
 		}
 
-	case V_WStringType:
+	case V_WString:
 		chars, err := syscall.UTF16FromString(value)
 		if err != nil {
 			return err
@@ -142,7 +142,7 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 		}
 
 	default:
-		return fmt.Errorf(`[%v]'s type of '%v' is not a valid string type`, field.Name, field.Type)
+		return invalidTypeError(field, `string`)
 	}
 
 	return nil
@@ -156,12 +156,12 @@ func (info *recordInfo) SetDateField(fieldName string, value time.Time) error {
 
 	var valueStr string
 	switch field.Type {
-	case DateType:
+	case Date:
 		valueStr = value.Format(dateFormat)
-	case DateTimeType:
+	case DateTime:
 		valueStr = value.Format(dateTimeFormat)
 	default:
-		return fmt.Errorf(`[%v]'s type of '%v' is not a valid date type`, field.Name, field.Type)
+		return invalidTypeError(field, `date`)
 	}
 
 	copy(field.value, valueStr)
@@ -184,7 +184,7 @@ func (info *recordInfo) SetFromRawBytes(fieldName string, value []byte) error {
 	}
 
 	switch field.Type {
-	case V_StringType, V_WStringType:
+	case V_String, V_WString:
 		if len(value) >= len(field.value) {
 			field.value = make([]byte, len(value)+20)
 		}

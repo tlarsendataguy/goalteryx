@@ -20,25 +20,25 @@ func TestInstantiateRecordInfoFromXml(t *testing.T) {
 		Name      string
 		Size      int
 		Scale     int
-		FieldType string
+		FieldType recordinfo.FieldType
 	}
 	expectedFields := []expectedStruct{
-		{`ByteField`, 1, 0, recordinfo.ByteType},
-		{`BoolField`, 1, 0, recordinfo.BoolType},
-		{`Int16Field`, 2, 0, recordinfo.Int16Type},
-		{`Int32Field`, 4, 0, recordinfo.Int32Type},
-		{`Int64Field`, 8, 0, recordinfo.Int64Type},
-		{`FixedDecimalField`, 19, 6, recordinfo.FixedDecimalType},
-		{`FloatField`, 4, 0, recordinfo.FloatType},
-		{`DoubleField`, 8, 0, recordinfo.DoubleType},
-		{`StringField`, 64, 0, recordinfo.StringType},
-		{`WStringField`, 64, 0, recordinfo.WStringType},
-		{`V_StringShortField`, 1000, 0, recordinfo.V_StringType},
-		{`V_StringLongField`, 2147483647, 0, recordinfo.V_StringType},
-		{`V_WStringShortField`, 10, 0, recordinfo.V_WStringType},
-		{`V_WStringLongField`, 1073741823, 0, recordinfo.V_WStringType},
-		{`DateField`, 10, 0, recordinfo.DateType},
-		{`DateTimeField`, 19, 0, recordinfo.DateTimeType},
+		{`ByteField`, 1, 0, recordinfo.Byte},
+		{`BoolField`, 1, 0, recordinfo.Bool},
+		{`Int16Field`, 2, 0, recordinfo.Int16},
+		{`Int32Field`, 4, 0, recordinfo.Int32},
+		{`Int64Field`, 8, 0, recordinfo.Int64},
+		{`FixedDecimalField`, 19, 6, recordinfo.FixedDecimal},
+		{`FloatField`, 4, 0, recordinfo.Float},
+		{`DoubleField`, 8, 0, recordinfo.Double},
+		{`StringField`, 64, 0, recordinfo.String},
+		{`WStringField`, 64, 0, recordinfo.WString},
+		{`V_StringShortField`, 1000, 0, recordinfo.V_String},
+		{`V_StringLongField`, 2147483647, 0, recordinfo.V_String},
+		{`V_WStringShortField`, 10, 0, recordinfo.V_WString},
+		{`V_WStringLongField`, 1073741823, 0, recordinfo.V_WString},
+		{`DateField`, 10, 0, recordinfo.Date},
+		{`DateTimeField`, 19, 0, recordinfo.DateTime},
 	}
 	for index, expectedField := range expectedFields {
 		field, _ := recordInfo.GetFieldByIndex(index)

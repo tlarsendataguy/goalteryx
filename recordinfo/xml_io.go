@@ -29,17 +29,17 @@ func FromXml(recordInfoXml string) (RecordInfo, error) {
 	recordInfo := New()
 	for index, field := range metaInfo.Fields {
 		switch field.Type {
-		case ByteType:
+		case byteType:
 			recordInfo.AddByteField(field.Name, field.Source)
-		case BoolType:
+		case boolType:
 			recordInfo.AddBoolField(field.Name, field.Source)
-		case Int16Type:
+		case int16Type:
 			recordInfo.AddInt16Field(field.Name, field.Source)
-		case Int32Type:
+		case int32Type:
 			recordInfo.AddInt32Field(field.Name, field.Source)
-		case Int64Type:
+		case int64Type:
 			recordInfo.AddInt64Field(field.Name, field.Source)
-		case FixedDecimalType:
+		case fixedDecimalType:
 			size, err := strconv.Atoi(field.Size)
 			if err != nil {
 				return nil, fmt.Errorf(`error converting field %v size to an int.  Provided size was %v`, index, field.Size)
@@ -49,37 +49,37 @@ func FromXml(recordInfoXml string) (RecordInfo, error) {
 				return nil, fmt.Errorf(`error converting field %v scale to an int.  Provided size was %v`, index, field.Size)
 			}
 			recordInfo.AddFixedDecimalField(field.Name, field.Source, size, scale)
-		case FloatType:
+		case floatType:
 			recordInfo.AddFloatField(field.Name, field.Source)
-		case DoubleType:
+		case doubleType:
 			recordInfo.AddDoubleField(field.Name, field.Source)
-		case StringType:
+		case stringType:
 			size, err := strconv.Atoi(field.Size)
 			if err != nil {
 				return nil, fmt.Errorf(`error converting field %v size to an int.  Provided size was %v`, index, field.Size)
 			}
 			recordInfo.AddStringField(field.Name, field.Source, size)
-		case WStringType:
+		case wStringType:
 			size, err := strconv.Atoi(field.Size)
 			if err != nil {
 				return nil, fmt.Errorf(`error converting field %v size to an int.  Provided size was %v`, index, field.Size)
 			}
 			recordInfo.AddWStringField(field.Name, field.Source, size)
-		case V_StringType:
+		case v_StringType:
 			size, err := strconv.Atoi(field.Size)
 			if err != nil {
 				return nil, fmt.Errorf(`error converting field %v size to an int.  Provided size was %v`, index, field.Size)
 			}
 			recordInfo.AddV_StringField(field.Name, field.Source, size)
-		case V_WStringType:
+		case v_WStringType:
 			size, err := strconv.Atoi(field.Size)
 			if err != nil {
 				return nil, fmt.Errorf(`error converting field %v size to an int.  Provided size was %v`, index, field.Size)
 			}
 			recordInfo.AddV_WStringField(field.Name, field.Source, size)
-		case DateType:
+		case dateType:
 			recordInfo.AddDateField(field.Name, field.Source)
-		case DateTimeType:
+		case dateTimeType:
 			recordInfo.AddDateTimeField(field.Name, field.Source)
 		default:
 			continue
@@ -96,7 +96,7 @@ func (info *recordInfo) ToXml(connection string) (string, error) {
 			Source: field.Source,
 			Size:   strconv.Itoa(field.Size),
 			Scale:  strconv.Itoa(field.Precision),
-			Type:   field.Type,
+			Type:   fieldTypeMap[field.Type],
 		})
 	}
 	recordInfo := xmlMetaInfo{XMLName: `MetaInfo`, Connection: connection, Fields: fields}

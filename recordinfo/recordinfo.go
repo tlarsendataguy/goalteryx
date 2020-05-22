@@ -56,7 +56,7 @@ type FieldInfo struct {
 	Source    string
 	Size      int
 	Precision int
-	Type      string
+	Type      FieldType
 }
 
 type fieldInfoEditor struct {
@@ -64,7 +64,7 @@ type fieldInfoEditor struct {
 	Source      string
 	Size        int
 	Precision   int
-	Type        string
+	Type        FieldType
 	location    uintptr
 	fixedLen    uintptr
 	nullByteLen uintptr
@@ -127,7 +127,7 @@ func (editor *fieldInfoEditor) variableSize() int {
 	}
 
 	switch editor.Type {
-	case V_StringType, V_WStringType:
+	case V_String, V_WString:
 		return calcVarSizeFromLen(editor.varLen)
 	default:
 		return 0
