@@ -67,7 +67,7 @@ func (info *recordInfo) addField(name string, source string, size int, scale int
 		location:    info.fixedLen,
 		fixedLen:    fixedLen,
 		nullByteLen: nullByteLen,
-		fixedValue:  make([]byte, fixedLen+nullByteLen),
+		value:       make([]byte, fixedLen+nullByteLen),
 	})
 	info.fieldNames[actualName] = info.numFields
 	info.numFields++

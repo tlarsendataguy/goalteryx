@@ -8,59 +8,50 @@ import (
 func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 	fixed, variable := info.getRecordSizes()
 	totalSize := fixed + 4 + variable
-	if totalSize > len(info.blob) {
-		info.blob = make([]byte, totalSize)
+	if totalSize >= len(info.blob) {
+		info.blob = make([]byte, totalSize+20) // some extra for growth
 	}
 	binary.LittleEndian.PutUint32(info.blob[fixed:fixed+4], uint32(variable))
 
 	fixedWriteIndex := 0
 	varWriteIndex := fixed + 4
 	for _, field := range info.fields {
-		for byteIndex := 0; byteIndex < len(field.fixedValue); byteIndex++ {
-			info.blob[fixedWriteIndex] = field.fixedValue[byteIndex]
-			fixedWriteIndex++
-		}
-		for byteIndex := 0; byteIndex < len(field.varValue); byteIndex++ {
-			info.blob[varWriteIndex] = field.varValue[byteIndex]
-			varWriteIndex++
+		switch field.Type {
+		case V_StringType, V_WStringType:
+			if field.value == nil {
+				binary.LittleEndian.PutUint32(info.blob[fixedWriteIndex:fixedWriteIndex+4], 1)
+				fixedWriteIndex += 4
+				continue
+			}
+			if len(field.value) == 0 {
+				binary.LittleEndian.PutUint32(info.blob[fixedWriteIndex:fixedWriteIndex+4], 1)
+				fixedWriteIndex += 4
+				continue
+			}
+			var err error
+			fixedWriteIndex, varWriteIndex, err = putVarData(info.blob, field, fixedWriteIndex, varWriteIndex)
+			if err != nil {
+				return nil, err
+			}
+		default:
+			for byteIndex := 0; byteIndex < len(field.value); byteIndex++ {
+				info.blob[fixedWriteIndex] = field.value[byteIndex]
+				fixedWriteIndex++
+			}
 		}
 	}
-
 	return unsafe.Pointer(&info.blob[0]), nil
 }
 
-func putFixedBytesWithNullByte(field *fieldInfoEditor, blob []byte, fixedStartAt int, dataSize int, putData func(dataSize int, blobSlice []byte) error, varStartAt int) (int, int, error) {
-	blobSlice := blob[fixedStartAt : fixedStartAt+dataSize]
-
-	if field.fixedValue == nil {
-		for index := 0; index < dataSize-1; index++ {
-			blobSlice[index] = 0
-		}
-		blobSlice[dataSize-1] = 1
-	} else {
-		err := putData(dataSize, blobSlice)
-		if err != nil {
-			return fixedStartAt, varStartAt, err
-		}
-		blobSlice[dataSize-1] = 0
-	}
-	return fixedStartAt + dataSize, varStartAt, nil
-}
-
-func putVarNull(blob []byte, fixedStartAt int, varStartAt int) (int, int, error) {
-	binary.LittleEndian.PutUint32(blob[fixedStartAt:fixedStartAt+4], 1)
-	return fixedStartAt + 4, varStartAt, nil
-}
-
-func putVarData(field *fieldInfoEditor, blob []byte, data []byte, fixedStartAt int, varStartAt int) (int, int, error) {
-	varDataLen := uint32(len(data))
+func putVarData(blob []byte, field *fieldInfoEditor, fixedStartAt int, varStartAt int) (int, int, error) {
+	varDataLen := uint32(field.varLen)
 
 	// Small string optimization
 	if varDataLen < 4 {
 		varDataLen <<= 28
 		fixedBytes := make([]byte, 4)
-		for index, fixedByte := range data {
-			fixedBytes[index] = fixedByte
+		for index := 0; index < field.varLen; index++ {
+			fixedBytes[index] = field.value[index]
 		}
 		varDataUint32 := binary.LittleEndian.Uint32(fixedBytes) | varDataLen
 		binary.LittleEndian.PutUint32(blob[fixedStartAt:fixedStartAt+4], varDataUint32)
@@ -80,7 +71,7 @@ func putVarData(field *fieldInfoEditor, blob []byte, data []byte, fixedStartAt i
 
 	var index uint32
 	for index = 0; index < varDataLen; index++ {
-		blob[varStartAt] = data[index]
+		blob[varStartAt] = field.value[index]
 		varStartAt++
 	}
 	return fixedStartAt, varStartAt, nil

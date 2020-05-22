@@ -68,8 +68,8 @@ type fieldInfoEditor struct {
 	location    uintptr
 	fixedLen    uintptr
 	nullByteLen uintptr
-	fixedValue  []byte
-	varValue    []byte
+	value       []byte
+	varLen      int
 }
 
 func New() RecordInfo {
@@ -122,13 +122,13 @@ func (info *recordInfo) getRecordSizes() (fixed int, variable int) {
 }
 
 func (editor *fieldInfoEditor) variableSize() int {
-	if editor.fixedValue == nil {
+	if editor.value == nil {
 		return 0
 	}
 
 	switch editor.Type {
 	case V_StringType, V_WStringType:
-		return calcVarSizeFromLen(len(editor.fixedValue))
+		return calcVarSizeFromLen(len(editor.value))
 	default:
 		return 0
 	}

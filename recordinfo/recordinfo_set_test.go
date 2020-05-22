@@ -171,6 +171,40 @@ func TestSetNullVarDataFieldsAndGenerateRecord(t *testing.T) {
 	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil, `error setting null v_wstring:`)
 }
 
+func TestSetFixedLenFromRawBytes(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddByteField(`ByteField`, ``)
+
+	err := recordInfo.SetFromRawBytes(`ByteField`, []byte{4, 0})
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	record, err := recordInfo.GenerateRecord()
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+
+	value, isNull, err := recordInfo.GetIntValueFrom(`ByteField`, record)
+	checkExpectedGetValueFrom(t, value, 4, isNull, false, err, nil, `error setting raw bytes:`)
+}
+
+func TestSetVarLenFromRawBytes(t *testing.T) {
+	recordInfo := recordinfo.New()
+	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+
+	err := recordInfo.SetFromRawBytes(`V_StringField`, []byte(`Hello world, how are you?`))
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	record, err := recordInfo.GenerateRecord()
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+
+	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
+	checkExpectedGetValueFrom(t, value, `Hello world, how are you?`, isNull, false, err, nil, `error setting raw bytes:`)
+}
+
 func generateTestRecordInfo() recordinfo.RecordInfo {
 	recordInfo := recordinfo.New()
 	recordInfo.AddByteField(`ByteField`, ``)

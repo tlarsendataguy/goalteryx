@@ -32,19 +32,35 @@ func TestSpeed(t *testing.T) {
 	info, _ := recordinfo.FromXml(recordInfoXml)
 
 	fieldCount := info.NumFields()
-	results := make(map[string]int64, fieldCount)
+	totalResults := make(map[string]int64, fieldCount)
+	doSet := true
+	doGenerateRecord := true
 	for index := 0; index < fieldCount; index++ {
 		field, _ := info.GetFieldByIndex(index)
 		start := time.Now()
-		for i := 0; i < 100000; i++ {
-			value, _ := sourceInfo.GetRawBytesFrom(field.Name, record)
-			_ = info.SetFromRawBytes(field.Name, value)
+		for i := 0; i < 1000000; i++ {
+			value, err := sourceInfo.GetRawBytesFrom(field.Name, record)
+			if err != nil {
+				t.Fatalf(`expected no error getting raw bytes from field %v, but got: %v`, field.Name, err.Error())
+			}
+			if doSet {
+				err = info.SetFromRawBytes(field.Name, value)
+				if err != nil {
+					t.Fatalf(`expected no error setting raw bytes to field %v, but got: %v`, field.Name, err.Error())
+				}
+
+			}
+			if doGenerateRecord {
+				_, err = info.GenerateRecord()
+				if err != nil {
+					t.Fatalf(`expected no error setting raw bytes to field %v, but got: %v`, field.Name, err.Error())
+				}
+			}
 		}
-		//_, _ = info.GenerateRecord()
 		end := time.Now()
 		duration := end.Sub(start)
-		results[field.Name] = duration.Milliseconds()
+		totalResults[field.Name] = duration.Milliseconds()
 	}
-	resultJson, _ := json.MarshalIndent(results, "", "  ")
+	resultJson, _ := json.MarshalIndent(totalResults, "", "  ")
 	t.Logf(string(resultJson))
 }
