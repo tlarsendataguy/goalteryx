@@ -128,7 +128,7 @@ func (editor *fieldInfoEditor) variableSize() int {
 
 	switch editor.Type {
 	case V_StringType, V_WStringType:
-		return calcVarSizeFromLen(len(editor.value))
+		return calcVarSizeFromLen(editor.varLen)
 	default:
 		return 0
 	}

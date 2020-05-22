@@ -48,7 +48,6 @@ func TestSpeed(t *testing.T) {
 				if err != nil {
 					t.Fatalf(`expected no error setting raw bytes to field %v, but got: %v`, field.Name, err.Error())
 				}
-
 			}
 			if doGenerateRecord {
 				_, err = info.GenerateRecord()

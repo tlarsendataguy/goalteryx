@@ -34,10 +34,8 @@ func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 				return nil, err
 			}
 		default:
-			for byteIndex := 0; byteIndex < len(field.value); byteIndex++ {
-				info.blob[fixedWriteIndex] = field.value[byteIndex]
-				fixedWriteIndex++
-			}
+			copy(info.blob[fixedWriteIndex:fixedWriteIndex+len(field.value)], field.value)
+			fixedWriteIndex += len(field.value)
 		}
 	}
 	return unsafe.Pointer(&info.blob[0]), nil
@@ -50,9 +48,7 @@ func putVarData(blob []byte, field *fieldInfoEditor, fixedStartAt int, varStartA
 	if varDataLen < 4 {
 		varDataLen <<= 28
 		fixedBytes := make([]byte, 4)
-		for index := 0; index < field.varLen; index++ {
-			fixedBytes[index] = field.value[index]
-		}
+		copy(fixedBytes, field.value[0:field.varLen])
 		varDataUint32 := binary.LittleEndian.Uint32(fixedBytes) | varDataLen
 		binary.LittleEndian.PutUint32(blob[fixedStartAt:fixedStartAt+4], varDataUint32)
 		return fixedStartAt + 4, varStartAt, nil
@@ -69,10 +65,6 @@ func putVarData(blob []byte, field *fieldInfoEditor, fixedStartAt int, varStartA
 		varStartAt += 4
 	}
 
-	var index uint32
-	for index = 0; index < varDataLen; index++ {
-		blob[varStartAt] = field.value[index]
-		varStartAt++
-	}
-	return fixedStartAt, varStartAt, nil
+	copy(blob[varStartAt:varStartAt+int(varDataLen)], field.value)
+	return fixedStartAt, varStartAt + int(varDataLen), nil
 }

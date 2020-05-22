@@ -62,12 +62,9 @@ func (info *recordInfo) SetFloatField(fieldName string, value float64) error {
 		format := `%` + fmt.Sprintf(`%v.%vf`, field.Size, field.Precision)
 		valueStr := []byte(strings.TrimSpace(fmt.Sprintf(format, value)))
 		size := int(field.fixedLen)
-		for index := 0; index < size; index++ {
-			if index >= len(valueStr) {
-				field.value[index] = 0
-			} else {
-				field.value[index] = valueStr[index]
-			}
+		copy(field.value, valueStr)
+		if size < int(field.fixedLen) {
+			field.value[size] = 0
 		}
 
 	case FloatType:
@@ -95,32 +92,18 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 	case StringType:
 		valueBytes := []byte(value)
 		size := int(field.fixedLen)
-		for index := 0; index < size; index++ {
-			if index >= len(valueBytes) {
-				field.value[index] = 0
-			} else {
-				field.value[index] = valueBytes[index]
-			}
+		copy(field.value, valueBytes)
+		if size < int(field.fixedLen) {
+			field.value[size] = 0
 		}
 
 	case V_StringType:
 		valueBytes := []byte(value)
+		field.varLen = len(valueBytes)
 		if len(valueBytes) >= len(field.value) {
 			field.value = make([]byte, len(valueBytes)+20) // arbitrary padding to try and minimize memory allocation
 		}
-		varLenIsUnset := true
-		size := len(field.value)
-		for index := 0; index < size; index++ {
-			if index >= len(valueBytes) {
-				if varLenIsUnset {
-					field.varLen = index
-					varLenIsUnset = false
-				}
-				field.value[index] = 0
-			} else {
-				field.value[index] = valueBytes[index]
-			}
-		}
+		copy(field.value, valueBytes)
 
 	case WStringType:
 		chars, err := syscall.UTF16FromString(value)
@@ -181,15 +164,7 @@ func (info *recordInfo) SetDateField(fieldName string, value time.Time) error {
 		return fmt.Errorf(`[%v]'s type of '%v' is not a valid date type`, field.Name, field.Type)
 	}
 
-	size := int(field.fixedLen)
-	for index := 0; index < size; index++ {
-		if index >= len(valueStr) {
-			field.value[index] = 0
-		} else {
-			field.value[index] = valueStr[index]
-		}
-	}
-
+	copy(field.value, valueStr)
 	return nil
 }
 
@@ -214,21 +189,9 @@ func (info *recordInfo) SetFromRawBytes(fieldName string, value []byte) error {
 			field.value = make([]byte, len(value)+20)
 		}
 		field.varLen = len(value)
-		for index := 0; index < len(field.value); index++ {
-			if index >= len(value) {
-				field.value[index] = 0
-			} else {
-				field.value[index] = value[index]
-			}
-		}
+		copy(field.value, value)
 	default:
-		for index := 0; index < int(field.fixedLen); index++ {
-			if index >= len(value) {
-				field.value[index] = 0
-			} else {
-				field.value[index] = value[index]
-			}
-		}
+		copy(field.value, value)
 	}
 	return nil
 }
