@@ -41,7 +41,6 @@ func (plugin *MyNewPlugin) PushAllRecords(recordLimit int) bool {
 }
 
 func (plugin *MyNewPlugin) Close(hasErrors bool) {
-
 }
 
 func (plugin *MyNewPlugin) AddIncomingConnection(connectionType string, connectionName string) api.IncomingInterface {

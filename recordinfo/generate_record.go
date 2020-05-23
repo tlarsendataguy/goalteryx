@@ -18,13 +18,13 @@ func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 	for _, field := range info.fields {
 		switch field.Type {
 		case V_String, V_WString:
-			if field.value == nil {
+			if field.isNull {
 				binary.LittleEndian.PutUint32(info.blob[fixedWriteIndex:fixedWriteIndex+4], 1)
 				fixedWriteIndex += 4
 				continue
 			}
-			if len(field.value) == 0 {
-				binary.LittleEndian.PutUint32(info.blob[fixedWriteIndex:fixedWriteIndex+4], 1)
+			if field.varLen == 0 {
+				binary.LittleEndian.PutUint32(info.blob[fixedWriteIndex:fixedWriteIndex+4], 0)
 				fixedWriteIndex += 4
 				continue
 			}
@@ -34,8 +34,9 @@ func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 				return nil, err
 			}
 		default:
-			copy(info.blob[fixedWriteIndex:fixedWriteIndex+len(field.value)], field.value)
-			fixedWriteIndex += len(field.value)
+			fixedLen := len(field.value)
+			copy(info.blob[fixedWriteIndex:fixedWriteIndex+fixedLen], field.value)
+			fixedWriteIndex += fixedLen
 		}
 	}
 	return unsafe.Pointer(&info.blob[0]), nil
@@ -65,6 +66,6 @@ func putVarData(blob []byte, field *fieldInfoEditor, fixedStartAt int, varStartA
 		varStartAt += 4
 	}
 
-	copy(blob[varStartAt:varStartAt+int(varDataLen)], field.value)
-	return fixedStartAt, varStartAt + int(varDataLen), nil
+	copy(blob[varStartAt:varStartAt+field.varLen], field.value)
+	return fixedStartAt, varStartAt + field.varLen, nil
 }

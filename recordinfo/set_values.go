@@ -46,6 +46,7 @@ func (info *recordInfo) SetBoolField(fieldName string, value bool) error {
 	} else {
 		field.value[0] = 0
 	}
+	field.isNull = false
 	return nil
 }
 
@@ -90,6 +91,7 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 
 	switch field.Type {
 	case String:
+		clearNullFlag(field)
 		valueBytes := []byte(value)
 		size := int(field.fixedLen)
 		copy(field.value, valueBytes)
@@ -100,12 +102,13 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 	case V_String:
 		valueBytes := []byte(value)
 		field.varLen = len(valueBytes)
-		if len(valueBytes) >= len(field.value) {
+		if field.varLen >= len(field.value) {
 			field.value = make([]byte, len(valueBytes)+20) // arbitrary padding to try and minimize memory allocation
 		}
 		copy(field.value, valueBytes)
 
 	case WString:
+		clearNullFlag(field)
 		chars, err := syscall.UTF16FromString(value)
 		if err != nil {
 			return err
@@ -154,6 +157,7 @@ func (info *recordInfo) SetDateField(fieldName string, value time.Time) error {
 		return err
 	}
 
+	clearNullFlag(field)
 	var valueStr string
 	switch field.Type {
 	case Date:
@@ -173,7 +177,8 @@ func (info *recordInfo) SetFieldNull(fieldName string) error {
 	if err != nil {
 		return nil
 	}
-	field.value = nil
+	field.varLen = 0
+	field.isNull = true
 	return nil
 }
 
@@ -185,18 +190,26 @@ func (info *recordInfo) SetFromRawBytes(fieldName string, value []byte) error {
 
 	switch field.Type {
 	case V_String, V_WString:
-		if len(value) >= len(field.value) {
-			field.value = make([]byte, len(value)+20)
+		if value == nil {
+			field.isNull = true
+			return nil
 		}
-		field.varLen = len(value)
+		valueLen := len(value)
+		if valueLen >= len(field.value) {
+			field.value = make([]byte, valueLen+20)
+		}
+		field.varLen = valueLen
 		copy(field.value, value)
+
 	default:
 		copy(field.value, value)
 	}
+	field.isNull = false
 	return nil
 }
 
 func clearNullFlag(field *fieldInfoEditor) {
-	nullByteLocation := len(field.value) - 1
+	nullByteLocation := field.fixedLen - 1
 	field.value[nullByteLocation] = 0
+	field.isNull = false
 }

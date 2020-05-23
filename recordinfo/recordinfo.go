@@ -70,6 +70,7 @@ type fieldInfoEditor struct {
 	nullByteLen uintptr
 	value       []byte
 	varLen      int
+	isNull      bool
 }
 
 func New() RecordInfo {
@@ -81,8 +82,8 @@ func (info *recordInfo) NumFields() int {
 }
 
 func (info *recordInfo) GetFieldByIndex(index int) (FieldInfo, error) {
-	if count := len(info.fields); index < 0 || index >= count {
-		return FieldInfo{}, fmt.Errorf(`index was not between 0 and %v`, count)
+	if index < 0 || index >= info.numFields {
+		return FieldInfo{}, fmt.Errorf(`index was not between 0 and %v`, info.numFields)
 	}
 	field := info.fields[index]
 	return FieldInfo{
@@ -112,26 +113,12 @@ func (info *recordInfo) checkFieldName(name string) string {
 }
 
 func (info *recordInfo) getRecordSizes() (fixed int, variable int) {
-	fixed = 0
+	fixed = int(info.fixedLen)
 	variable = 0
 	for _, field := range info.fields {
-		fixed += int(field.fixedLen + field.nullByteLen)
-		variable += field.variableSize()
+		variable += calcVarSizeFromLen(field.varLen)
 	}
 	return
-}
-
-func (editor *fieldInfoEditor) variableSize() int {
-	if editor.value == nil {
-		return 0
-	}
-
-	switch editor.Type {
-	case V_String, V_WString:
-		return calcVarSizeFromLen(editor.varLen)
-	default:
-		return 0
-	}
 }
 
 func calcVarSizeFromLen(valueLen int) int {
