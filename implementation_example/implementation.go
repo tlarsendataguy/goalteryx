@@ -8,13 +8,20 @@ import (
 	"goalteryx/api"
 	"goalteryx/output_connection"
 	"goalteryx/recordinfo"
+	"io"
+	"os"
+	"runtime/pprof"
 	"unsafe"
 )
 
 func main() {}
 
+var f io.Writer
+
 //export AlteryxGoPlugin
 func AlteryxGoPlugin(toolId C.int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) C.long {
+	f, _ = os.Create(`C:\repositories\goalteryx\goalteryx_profiling_fromayx.prof`)
+	_ = pprof.StartCPUProfile(f)
 	myPlugin := &MyNewPlugin{
 		Output1: output_connection.New(int(toolId), `Output1`),
 	}
@@ -41,6 +48,7 @@ func (plugin *MyNewPlugin) PushAllRecords(recordLimit int) bool {
 }
 
 func (plugin *MyNewPlugin) Close(hasErrors bool) {
+	pprof.StopCPUProfile()
 }
 
 func (plugin *MyNewPlugin) AddIncomingConnection(connectionType string, connectionName string) api.IncomingInterface {

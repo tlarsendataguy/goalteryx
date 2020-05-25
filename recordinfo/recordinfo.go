@@ -49,6 +49,8 @@ type recordInfo struct {
 	fields     []*fieldInfoEditor
 	fieldNames map[string]int
 	blob       []byte
+	blobHandle unsafe.Pointer
+	blobLen    int
 }
 
 type FieldInfo struct {
@@ -74,7 +76,7 @@ type fieldInfoEditor struct {
 }
 
 func New() RecordInfo {
-	return &recordInfo{fieldNames: map[string]int{}}
+	return &recordInfo{fieldNames: map[string]int{}, blobLen: 0}
 }
 
 func (info *recordInfo) NumFields() int {

@@ -1,15 +1,20 @@
 package recordinfo
 
+/*
+#include <stdlib.h>
+*/
+import "C"
 import (
 	"encoding/binary"
+	"reflect"
 	"unsafe"
 )
 
 func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 	fixed, variable := info.getRecordSizes()
 	totalSize := fixed + 4 + variable
-	if totalSize >= len(info.blob) {
-		info.blob = make([]byte, totalSize+20) // arbitrary padding to try and minimize memory allocation
+	if totalSize >= info.blobLen {
+		info.allocateNewBuffer(totalSize + 20) // arbitrary padding to try and minimize memory allocation
 	}
 	binary.LittleEndian.PutUint32(info.blob[fixed:fixed+4], uint32(variable))
 
@@ -39,7 +44,22 @@ func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 			fixedWriteIndex += fixedLen
 		}
 	}
-	return unsafe.Pointer(&info.blob[0]), nil
+	return info.blobHandle, nil
+}
+
+func (info *recordInfo) allocateNewBuffer(newSize int) {
+	if info.blobHandle != nil {
+		C.free(info.blobHandle)
+	}
+	info.blobHandle = C.malloc(C.ulonglong(newSize))
+
+	info.blob = []byte{}
+	blobSlice := (*reflect.SliceHeader)(unsafe.Pointer(&info.blob))
+	blobSlice.Data = uintptr(info.blobHandle)
+	blobSlice.Len = newSize
+	blobSlice.Cap = newSize
+
+	info.blobLen = newSize
 }
 
 func putVarData(blob []byte, field *fieldInfoEditor, fixedStartAt int, varStartAt int) (int, int, error) {
