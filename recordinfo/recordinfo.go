@@ -41,6 +41,7 @@ type RecordInfo interface {
 
 	GenerateRecord() (unsafe.Pointer, error)
 	ToXml(connection string) (string, error)
+	FixedSize() int
 }
 
 type recordInfo struct {
@@ -95,6 +96,10 @@ func (info *recordInfo) GetFieldByIndex(index int) (FieldInfo, error) {
 		Precision: field.Precision,
 		Type:      field.Type,
 	}, nil
+}
+
+func (info *recordInfo) FixedSize() int {
+	return int(info.fixedLen)
 }
 
 func (info *recordInfo) getFieldInfo(fieldName string) (*fieldInfoEditor, error) {

@@ -1,5 +1,6 @@
 #include <stdbool.h>
 #include <stddef.h>
+#include <string.h>
 
 // Plugin definitions
 
@@ -91,3 +92,7 @@ long callCloseOutput(struct IncomingConnectionInterface * connection);
 void * callEngineCreateTempFileName(struct EngineInterface *pEngineInterface, void * ext);
 
 struct IncomingConnectionInterface* newIi();
+
+long pushRecordCache(void * handle, void * cache);
+void * getIiIndex();
+void saveIncomingInterfaceFixedSize(void * incomingInterface, int index);

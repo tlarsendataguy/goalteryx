@@ -34,3 +34,43 @@ struct IncomingConnectionInterface* newIi() {
     ptr = malloc(sizeof(struct IncomingConnectionInterface));
     return ptr;
 }
+
+void* buffer[10];
+int bufferSizes[10] = {0,0,0,0,0,0,0,0,0,0};
+int currentBufferIndex = 0;
+int currentIiIndex = 0;
+int iiFixedSizes[100];
+
+void * getIiIndex(){
+    int* iiIndex = malloc(sizeof(int));
+    *iiIndex = currentIiIndex++;
+    return iiIndex;
+}
+
+void saveIncomingInterfaceFixedSize(void * handle, int fixedSize) {
+    int iiIndex = *((int*)handle);
+    iiFixedSizes[iiIndex] = fixedSize;
+}
+
+long iiPushRecord(void * handle, void * record) {
+    int iiIndex = *((int*)handle);
+    int fixedSize = iiFixedSizes[iiIndex];
+    if (currentBufferIndex == 10) {
+        pushRecordCache(handle, &buffer);
+        currentBufferIndex = 0;
+    }
+
+    int varSize = *(int*)(record+fixedSize);
+    int totalSize = fixedSize + 4 + varSize;
+    int bufferSize = bufferSizes[currentBufferIndex];
+    if (totalSize > bufferSize) {
+        if (bufferSize > 0) {
+            free(buffer[currentBufferIndex]);
+        }
+        buffer[currentBufferIndex] = malloc(totalSize);
+        bufferSizes[currentBufferIndex] = totalSize;
+    }
+    memcpy(buffer[currentBufferIndex], record, totalSize);
+    currentBufferIndex++;
+    return 1;
+}
