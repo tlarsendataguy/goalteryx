@@ -93,6 +93,13 @@ void * callEngineCreateTempFileName(struct EngineInterface *pEngineInterface, vo
 
 struct IncomingConnectionInterface* newIi();
 
+struct IncomingRecordCache
+{
+    void*      buffer[10];
+    int        bufferSizes[10];
+    int        currentBufferIndex;
+};
+
 long pushRecordCache(void * handle, void * cache, int cacheSize);
 void closeRecordCache(void * handle);
 void * getIiIndex();

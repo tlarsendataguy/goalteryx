@@ -35,10 +35,8 @@ struct IncomingConnectionInterface* newIi() {
     return ptr;
 }
 
-void* buffer[10];
-int bufferSizes[10] = {0,0,0,0,0,0,0,0,0,0};
-int currentBufferIndex = 0;
 int currentIiIndex = 0;
+struct IncomingRecordCache* buffers[100];
 int iiFixedSizes[100];
 
 void * getIiIndex(){
@@ -49,33 +47,38 @@ void * getIiIndex(){
 
 void saveIncomingInterfaceFixedSize(void * handle, int fixedSize) {
     int iiIndex = *((int*)handle);
+    struct IncomingRecordCache* cache = malloc(sizeof(struct IncomingRecordCache));
+    buffers[iiIndex] = cache;
     iiFixedSizes[iiIndex] = fixedSize;
 }
 
 long iiPushRecord(void * handle, void * record) {
     int iiIndex = *((int*)handle);
     int fixedSize = iiFixedSizes[iiIndex];
-    if (currentBufferIndex == 10) {
-        pushRecordCache(handle, &buffer, currentBufferIndex);
-        currentBufferIndex = 0;
+    struct IncomingRecordCache *buffer = buffers[iiIndex];
+    if (buffer->currentBufferIndex == 10) {
+        pushRecordCache(handle, &(buffer->buffer), buffer->currentBufferIndex);
+        buffer->currentBufferIndex = 0;
     }
 
     int varSize = *(int*)(record+fixedSize);
     int totalSize = fixedSize + 4 + varSize;
-    int bufferSize = bufferSizes[currentBufferIndex];
+    int bufferSize = buffer->bufferSizes[buffer->currentBufferIndex];
     if (totalSize > bufferSize) {
         if (bufferSize > 0) {
-            free(buffer[currentBufferIndex]);
+            free(buffer->buffer[buffer->currentBufferIndex]);
         }
-        buffer[currentBufferIndex] = malloc(totalSize);
-        bufferSizes[currentBufferIndex] = totalSize;
+        buffer->buffer[buffer->currentBufferIndex] = malloc(totalSize);
+        buffer->bufferSizes[buffer->currentBufferIndex] = totalSize;
     }
-    memcpy(buffer[currentBufferIndex], record, totalSize);
-    currentBufferIndex++;
+    memcpy(buffer->buffer[buffer->currentBufferIndex], record, totalSize);
+    buffer->currentBufferIndex++;
     return 1;
 }
 
 void closeRecordCache(void * handle){
-    pushRecordCache(handle, &buffer, currentBufferIndex);
-    currentBufferIndex = 0;
+    int iiIndex = *((int*)handle);
+    struct IncomingRecordCache *buffer = buffers[iiIndex];
+    pushRecordCache(handle, &(buffer->buffer), buffer->currentBufferIndex);
+    buffer->currentBufferIndex = 0;
 }
