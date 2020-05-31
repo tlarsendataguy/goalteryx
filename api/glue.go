@@ -65,7 +65,6 @@ func NewConnectionInterfaceStruct(incomingInterface IncomingInterface) *Connecti
 }
 
 func ConfigurePlugin(plugin Plugin, toolId int, pXmlProperties unsafe.Pointer, pEngineInterface unsafe.Pointer, r_pluginInterface unsafe.Pointer) int {
-	printLogf(`Starting ConfigurePlugin`)
 	config := convert_strings.WideCToString(pXmlProperties)
 	engine = (*C.struct_EngineInterface)(pEngineInterface)
 	if !plugin.Init(toolId, config) {
@@ -98,31 +97,19 @@ func piClose(handle unsafe.Pointer, hasErrors C.bool) {
 
 //export piAddIncomingConnection
 func piAddIncomingConnection(handle unsafe.Pointer, connectionType unsafe.Pointer, connectionName unsafe.Pointer, incomingInterface *C.struct_IncomingConnectionInterface) C.long {
-	printLogf(`starting piAddIncomingConnection`)
 	alteryxPlugin := pointer.Restore(handle).(Plugin)
 	goName := convert_strings.WideCToString(connectionName)
 	goType := convert_strings.WideCToString(connectionType)
 	goIncomingInterface := alteryxPlugin.AddIncomingConnection(goType, goName)
-	printLogf(`getting handle`)
 	iiIndexHandle := C.getIiIndex()
-	printLogf(`converting handle to int`)
 	iiIndex := int(*(*C.int)(iiIndexHandle))
-	printLogf(`got iiIndex %v`, iiIndex)
-	printLogf(`saving Go interface`)
 	incomingInterfaces[iiIndex] = goIncomingInterface
-	printLogf(`saving handle`)
 	incomingInterface.handle = iiIndexHandle
-	printLogf(`saving pII_Init`)
 	incomingInterface.pII_Init = C.T_II_Init(C.iiInit)
-	printLogf(`saving pII_PushRecord`)
 	incomingInterface.pII_PushRecord = C.T_II_PushRecord(C.iiPushRecord)
-	printLogf(`saving pII_UpdateProgress`)
 	incomingInterface.pII_UpdateProgress = C.T_II_UpdateProgress(C.iiUpdateProgress)
-	printLogf(`saving pII_Close`)
 	incomingInterface.pII_Close = C.T_II_Close(C.iiClose)
-	printLogf(`saving pII_Free`)
 	incomingInterface.pII_Free = C.T_II_Free(C.iiFree)
-	printLogf(`done executing piAddIncomingConnection`)
 	return C.long(1)
 }
 
