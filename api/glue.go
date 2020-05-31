@@ -151,10 +151,10 @@ func iiInit(handle unsafe.Pointer, recordInfoIn unsafe.Pointer) C.long {
 }
 
 //export pushRecordCache
-func pushRecordCache(handle unsafe.Pointer, cache unsafe.Pointer) C.long {
+func pushRecordCache(handle unsafe.Pointer, cache unsafe.Pointer, cacheSize C.int) C.long {
 	incomingInterface := getIncomingInterfaceFromHandle(handle)
 	cacheArray := *((*[10]unsafe.Pointer)(cache))
-	for i := 0; i < len(cacheArray); i++ {
+	for i := 0; i < int(cacheSize); i++ {
 		ok := incomingInterface.PushRecord(cacheArray[i])
 		if !ok {
 			return C.long(0)
@@ -171,6 +171,7 @@ func iiUpdateProgress(handle unsafe.Pointer, percent C.double) {
 
 //export iiClose
 func iiClose(handle unsafe.Pointer) {
+	C.closeRecordCache(handle)
 	incomingInterface := getIncomingInterfaceFromHandle(handle)
 	incomingInterface.Close()
 }

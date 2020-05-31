@@ -56,7 +56,7 @@ long iiPushRecord(void * handle, void * record) {
     int iiIndex = *((int*)handle);
     int fixedSize = iiFixedSizes[iiIndex];
     if (currentBufferIndex == 10) {
-        pushRecordCache(handle, &buffer);
+        pushRecordCache(handle, &buffer, currentBufferIndex);
         currentBufferIndex = 0;
     }
 
@@ -73,4 +73,9 @@ long iiPushRecord(void * handle, void * record) {
     memcpy(buffer[currentBufferIndex], record, totalSize);
     currentBufferIndex++;
     return 1;
+}
+
+void closeRecordCache(void * handle){
+    pushRecordCache(handle, &buffer, currentBufferIndex);
+    currentBufferIndex = 0;
 }
