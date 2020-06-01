@@ -15,7 +15,8 @@ func TestPassAndFailInit(t *testing.T) {
 	connection.Add(api.NewConnectionInterfaceStruct(iiInitOk))
 	connection.Add(api.NewConnectionInterfaceStruct(iiInitFail))
 
-	err := connection.Init(recordinfo.New())
+	info := recordinfo.New()
+	err := connection.Init(info)
 	if err == nil {
 		t.Fatalf(`expected error but got none`)
 	}
@@ -23,16 +24,17 @@ func TestPassAndFailInit(t *testing.T) {
 	if !iiInitOk.IsInitialized {
 		t.Fatalf(`iiInitOk did not initialize`)
 	}
+	record, _ := info.GenerateRecord()
 
-	connection.PushRecord(nil)
+	connection.PushRecord(record)
+	connection.Close()
+
 	if iiInitOk.PushRecordCalls != 1 {
 		t.Fatalf(`expected 1 push record call for iiInitOk but got %v`, iiInitOk.PushRecordCalls)
 	}
 	if iiInitFail.PushRecordCalls != 0 {
 		t.Fatalf(`expected 0 push record calls for iiInitFail but got %v`, iiInitFail.PushRecordCalls)
 	}
-
-	connection.Close()
 	if iiInitOk.CloseCalls != 1 {
 		t.Fatalf(`expected 1 close call for iiInitOk but got %v`, iiInitOk.CloseCalls)
 	}
@@ -48,9 +50,11 @@ func TestPassAndFailPushRecord(t *testing.T) {
 	connection.Add(api.NewConnectionInterfaceStruct(iiPushOk))
 	connection.Add(api.NewConnectionInterfaceStruct(iiPushFail))
 
-	_ = connection.Init(recordinfo.New())
-	connection.PushRecord(nil)
-	connection.PushRecord(nil)
+	info := recordinfo.New()
+	_ = connection.Init(info)
+	record, _ := info.GenerateRecord()
+	connection.PushRecord(record)
+	connection.PushRecord(record)
 	connection.Close()
 
 	if iiPushOk.PushRecordCalls != 2 {

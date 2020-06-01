@@ -1,5 +1,6 @@
 package recordinfo
 
+import "C"
 import (
 	"fmt"
 	"time"
@@ -77,7 +78,10 @@ type fieldInfoEditor struct {
 }
 
 func New() RecordInfo {
-	return &recordInfo{fieldNames: map[string]int{}, blobLen: 0}
+	return &recordInfo{
+		fieldNames: map[string]int{},
+		blobLen:    0,
+	}
 }
 
 func (info *recordInfo) NumFields() int {

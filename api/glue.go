@@ -55,7 +55,10 @@ type ConnectionInterfaceStruct struct {
 
 func NewConnectionInterfaceStruct(incomingInterface IncomingInterface) *ConnectionInterfaceStruct {
 	var ii *C.struct_IncomingConnectionInterface = C.newIi()
-	ii.handle = pointer.Save(incomingInterface)
+	iiIndexHandle := C.getIiIndex()
+	iiIndex := int(*(*C.int)(iiIndexHandle))
+	incomingInterfaces[iiIndex] = incomingInterface
+	ii.handle = iiIndexHandle
 	ii.pII_Init = C.T_II_Init(C.iiInit)
 	ii.pII_PushRecord = C.T_II_PushRecord(C.iiPushRecord)
 	ii.pII_UpdateProgress = C.T_II_UpdateProgress(C.iiUpdateProgress)
