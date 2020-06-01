@@ -8,6 +8,11 @@ import (
 	"unsafe"
 )
 
+/*
+NOTE: Running output_connection_test as a Directory test results in failures.  I don't know why.  Run
+as a File test for correct results.
+*/
+
 func TestPassAndFailInit(t *testing.T) {
 	iiInitOk := &IiTestStruct{InitReturnValue: true, PushRecordReturnValue: true}
 	iiInitFail := &IiTestStruct{InitReturnValue: false, PushRecordReturnValue: true}
