@@ -21,6 +21,7 @@ func TestPassAndFailInit(t *testing.T) {
 	connection.Add(api.NewConnectionInterfaceStruct(iiInitFail))
 
 	info := recordinfo.New()
+	info.AddByteField(`SomeByte`, ``)
 	err := connection.Init(info)
 	if err == nil {
 		t.Fatalf(`expected error but got none`)
@@ -56,7 +57,11 @@ func TestPassAndFailPushRecord(t *testing.T) {
 	connection.Add(api.NewConnectionInterfaceStruct(iiPushFail))
 
 	info := recordinfo.New()
-	_ = connection.Init(info)
+	info.AddByteField(`SomeByte`, ``)
+	err := connection.Init(info)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
 	record, _ := info.GenerateRecord()
 	connection.PushRecord(record)
 	connection.PushRecord(record)
@@ -73,6 +78,39 @@ func TestPassAndFailPushRecord(t *testing.T) {
 	}
 	if iiPushFail.CloseCalls != 1 {
 		t.Fatalf(`expected 1 close call but got %v`, iiPushFail.CloseCalls)
+	}
+}
+
+func TestUpdateProgress(t *testing.T) {
+	iiPush1 := &IiTestStruct{InitReturnValue: true, PushRecordReturnValue: true}
+	iiPush2 := &IiTestStruct{InitReturnValue: true, PushRecordReturnValue: true}
+	connection := output_connection.New(1, `Test`)
+	connection.Add(api.NewConnectionInterfaceStruct(iiPush1))
+	connection.Add(api.NewConnectionInterfaceStruct(iiPush2))
+
+	info := recordinfo.New()
+	info.AddByteField(`SomeByte`, ``)
+	err := connection.Init(info)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+
+	connection.UpdateProgress(0.66)
+	if iiPush1.UpdateProgressResult != 0.66 {
+		t.Fatalf(`expected progress for 1 to be 0.66 but got %v`, iiPush1.UpdateProgressResult)
+	}
+
+	if iiPush2.UpdateProgressResult != 0.66 {
+		t.Fatalf(`expected progress for 2 to be 0.66 but got %v`, iiPush2.UpdateProgressResult)
+	}
+
+	connection.Close()
+	if iiPush1.UpdateProgressResult != 1.0 {
+		t.Fatalf(`expected progress for 1 to be 1.0 but got %v`, iiPush1.UpdateProgressResult)
+	}
+
+	if iiPush2.UpdateProgressResult != 1.0 {
+		t.Fatalf(`expected progress for 2 to be 1.0 but got %v`, iiPush2.UpdateProgressResult)
 	}
 }
 

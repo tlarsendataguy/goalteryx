@@ -75,6 +75,7 @@ typedef long (*outputFunc)(int nToolID, int nStatus, void * pMessage);
 void callEngineOutputMessage(struct EngineInterface *pEngineInterface, int toolId, int status, void * message);
 unsigned callEngineBrowseEverywhereReserveAnchor(struct EngineInterface *pEngineInterface, int toolId);
 struct IncomingConnectionInterface* callEngineBrowseEverywhereGetII(struct EngineInterface *pEngineInterface, unsigned browseEverywhereAnchorId, int toolId, void * name);
+long callEngineOutputToolProgress(struct EngineInterface *pEngineInterface, int toolId, double dPercentProgress);
 
 long piPushAllRecords(void * handle, __int64 recordLimit);
 void piClose(void * handle, bool hasErrors);
@@ -104,3 +105,4 @@ long pushRecordCache(void * handle, void * cache, int cacheSize);
 void closeRecordCache(void * handle);
 void * getIiIndex();
 void saveIncomingInterfaceFixedSize(void * incomingInterface, int index);
+void updateProgress(struct IncomingConnectionInterface * connection, double percent);

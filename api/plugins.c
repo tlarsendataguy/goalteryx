@@ -13,6 +13,10 @@ unsigned callEngineBrowseEverywhereReserveAnchor(struct EngineInterface *pEngine
 	return pEngineInterface->pBrowseEverywhereReserveAnchor(pEngineInterface->handle, toolId);
 }
 
+long callEngineOutputToolProgress(struct EngineInterface *pEngineInterface, int toolId, double dPercentProgress) {
+    return pEngineInterface->pOutputToolProgress(pEngineInterface->handle, toolId, dPercentProgress);
+}
+
 struct IncomingConnectionInterface* callEngineBrowseEverywhereGetII(struct EngineInterface *pEngineInterface, unsigned browseEverywhereAnchorId, int toolId, void * name) {
 	return pEngineInterface->pBrowseEverywhereGetII(pEngineInterface->handle, browseEverywhereAnchorId, toolId, name);
 }
@@ -81,4 +85,8 @@ void closeRecordCache(void * handle){
     struct IncomingRecordCache *buffer = buffers[iiIndex];
     pushRecordCache(handle, &(buffer->buffer), buffer->currentBufferIndex);
     buffer->currentBufferIndex = 0;
+}
+
+void updateProgress(struct IncomingConnectionInterface * connection, double percent){
+    connection->pII_UpdateProgress(connection->handle, percent);
 }

@@ -198,6 +198,13 @@ func OutputMessage(toolId int, status MessageStatus, message string) {
 	C.callEngineOutputMessage(engine, C.int(toolId), C.int(status), cMessage)
 }
 
+func OutputToolProgress(toolId int, percent float64) bool {
+	if C.callEngineOutputToolProgress(engine, C.int(toolId), C.double(percent)) == C.long(1) {
+		return true
+	}
+	return false
+}
+
 func BrowseEverywhereReserveAnchor(toolId int) uint {
 	//printLogf(`start reserving browse everywhere anchor ID`)
 	anchorId := C.callEngineBrowseEverywhereReserveAnchor(engine, C.int(toolId))
@@ -238,8 +245,12 @@ func PushRecord(connection *ConnectionInterfaceStruct, record unsafe.Pointer) er
 	return nil
 }
 
-func CloseOutput(connection *ConnectionInterfaceStruct) {
+func CloseOutputConnection(connection *ConnectionInterfaceStruct) {
 	C.callCloseOutput(connection.connection)
+}
+
+func UpdateOutputConnectionProgress(connection *ConnectionInterfaceStruct, percent float64) {
+	C.updateProgress(connection.connection, C.double(percent))
 }
 
 func CreateTempFileName(ext string) string {

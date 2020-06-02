@@ -110,7 +110,8 @@ func (ii *MyPluginIncomingInterface) PushRecord(record unsafe.Pointer) bool {
 }
 
 func (ii *MyPluginIncomingInterface) UpdateProgress(percent float64) {
-
+	api.OutputToolProgress(ii.Parent.ToolId, percent)
+	ii.Parent.Output1.UpdateProgress(percent)
 }
 
 func (ii *MyPluginIncomingInterface) Close() {

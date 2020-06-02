@@ -13,6 +13,7 @@ type OutputConnection interface {
 	Add(connection *api.ConnectionInterfaceStruct)
 	Init(info recordinfo.RecordInfo) error
 	PushRecord(record unsafe.Pointer)
+	UpdateProgress(percent float64)
 	Close()
 }
 
@@ -63,7 +64,9 @@ func (output *outputConnection) Init(info recordinfo.RecordInfo) error {
 		if err != nil {
 			output.connections = append(output.connections[:index], output.connections[index+1:]...)
 			errs++
+			continue
 		}
+		api.UpdateOutputConnectionProgress(connection, 0)
 	}
 	if errs > 0 {
 		return fmt.Errorf(`%v connection(s) failed to initialize`, errs)
@@ -95,10 +98,17 @@ func (output *outputConnection) OutputRecordCount(final bool) {
 	}
 }
 
+func (output *outputConnection) UpdateProgress(percent float64) {
+	for _, connection := range output.connections {
+		api.UpdateOutputConnectionProgress(connection, percent)
+	}
+}
+
 func (output *outputConnection) Close() {
 	output.OutputRecordCount(true)
 	for _, connection := range append(output.connections, output.finishedConnections...) {
-		api.CloseOutput(connection)
+		api.UpdateOutputConnectionProgress(connection, 1)
+		api.CloseOutputConnection(connection)
 	}
 	api.OutputMessage(output.toolId, api.Complete, ``)
 }
