@@ -30,6 +30,7 @@ const (
 	FieldConversionError          MessageStatus = 5
 	TransientFieldConversionError MessageStatus = 0x40000000 | 5
 	UpdateOutputMetaInfoXml       MessageStatus = 10
+	RecordCountString             MessageStatus = 50
 	BrowseEverywhereFileName      MessageStatus = 70
 )
 

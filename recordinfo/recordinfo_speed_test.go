@@ -38,7 +38,7 @@ func TestSpeed(t *testing.T) {
 	for index := 0; index < fieldCount; index++ {
 		field, _ := info.GetFieldByIndex(index)
 		start := time.Now()
-		for i := 0; i < 1000000; i++ {
+		for i := 0; i < 100000; i++ {
 			value, err := sourceInfo.GetRawBytesFrom(field.Name, record)
 			if err != nil {
 				t.Fatalf(`expected no error getting raw bytes from field %v, but got: %v`, field.Name, err.Error())

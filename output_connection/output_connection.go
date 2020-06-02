@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"goalteryx/api"
 	"goalteryx/recordinfo"
+	"time"
 	"unsafe"
 )
 
@@ -33,6 +34,10 @@ type outputConnection struct {
 	connections              []*api.ConnectionInterfaceStruct
 	finishedConnections      []*api.ConnectionInterfaceStruct
 	browseEverywhereAnchorId uint
+	recordCount              int
+	recordSize               int
+	recordInfo               recordinfo.RecordInfo
+	lastCountOutput          time.Time
 }
 
 func (output *outputConnection) Add(connection *api.ConnectionInterfaceStruct) {
@@ -40,6 +45,8 @@ func (output *outputConnection) Add(connection *api.ConnectionInterfaceStruct) {
 }
 
 func (output *outputConnection) Init(info recordinfo.RecordInfo) error {
+	output.recordInfo = info
+	output.lastCountOutput = time.Now()
 	infoXml, err := info.ToXml(output.name)
 	if err != nil {
 		return err
@@ -65,6 +72,10 @@ func (output *outputConnection) Init(info recordinfo.RecordInfo) error {
 }
 
 func (output *outputConnection) PushRecord(record unsafe.Pointer) {
+	output.recordCount++
+	output.recordSize += output.recordInfo.TotalSize(record)
+	output.OutputRecordCount(false)
+
 	for index, connection := range output.connections {
 		err := api.PushRecord(connection, record)
 		if err != nil {
@@ -74,7 +85,18 @@ func (output *outputConnection) PushRecord(record unsafe.Pointer) {
 	}
 }
 
+func (output *outputConnection) OutputRecordCount(final bool) {
+	if output.recordCount < 256 || output.recordCount%256 == 0 || final {
+		now := time.Now()
+		if now.Sub(output.lastCountOutput).Seconds() > 10 || final {
+			api.OutputMessage(output.toolId, api.RecordCountString, fmt.Sprintf(`%v|%v|%v`, output.name, output.recordCount, output.recordSize))
+			output.lastCountOutput = now
+		}
+	}
+}
+
 func (output *outputConnection) Close() {
+	output.OutputRecordCount(true)
 	for _, connection := range append(output.connections, output.finishedConnections...) {
 		api.CloseOutput(connection)
 	}

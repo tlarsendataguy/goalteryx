@@ -43,6 +43,7 @@ type RecordInfo interface {
 	GenerateRecord() (unsafe.Pointer, error)
 	ToXml(connection string) (string, error)
 	FixedSize() int
+	TotalSize(unsafe.Pointer) int
 }
 
 type recordInfo struct {
@@ -121,6 +122,11 @@ func (info *recordInfo) checkFieldName(name string) string {
 		_, exists = info.fieldNames[name]
 	}
 	return name
+}
+
+func (info *recordInfo) TotalSize(record unsafe.Pointer) int {
+	variable := int(*((*uint32)(unsafe.Pointer(uintptr(record) + info.fixedLen))))
+	return int(info.fixedLen) + 4 + variable
 }
 
 func (info *recordInfo) getRecordSizes() (fixed int, variable int) {
