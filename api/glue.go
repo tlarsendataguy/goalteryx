@@ -117,8 +117,7 @@ func piAddIncomingConnection(handle unsafe.Pointer, connectionType unsafe.Pointe
 		printLogf(`got tool id %v`, toolId)
 		cPresortXml, _ := convert_strings.StringToWideC(presortXml)
 		printLogf(`converted xml to C wide string`)
-		OutputMessage(toolId, Info, `test message`)
-		_ = C.callEnginePresort(engine, C.int(toolId), cPresortXml, incomingInterface)
+		incomingInterface = C.callEnginePresort(engine, C.int(toolId), cPresortXml, incomingInterface)
 		printLogf(`got new incoming interface`)
 	}
 	iiIndexHandle := C.getIiIndex()
