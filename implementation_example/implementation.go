@@ -7,6 +7,7 @@ import "C"
 import (
 	"goalteryx/api"
 	"goalteryx/output_connection"
+	"goalteryx/presort"
 	"goalteryx/recordinfo"
 	"io"
 	"os"
@@ -51,13 +52,22 @@ func (plugin *MyNewPlugin) Close(hasErrors bool) {
 	pprof.StopCPUProfile()
 }
 
-func (plugin *MyNewPlugin) AddIncomingConnection(connectionType string, connectionName string) api.IncomingInterface {
-	return &MyPluginIncomingInterface{Parent: plugin}
+func (plugin *MyNewPlugin) AddIncomingConnection(connectionType string, connectionName string) (api.IncomingInterface, *presort.PresortInfo) {
+	return &MyPluginIncomingInterface{Parent: plugin}, &presort.PresortInfo{
+		SortInfo: []presort.SortInfo{
+			{Field: `RowCount`, Order: presort.Desc},
+		},
+		FieldFilterList: nil,
+	}
 }
 
 func (plugin *MyNewPlugin) AddOutgoingConnection(connectionName string, connectionInterface *api.ConnectionInterfaceStruct) bool {
 	plugin.Output1.Add(connectionInterface)
 	return true
+}
+
+func (plugin *MyNewPlugin) GetToolId() int {
+	return plugin.ToolId
 }
 
 type MyPluginIncomingInterface struct {

@@ -46,6 +46,8 @@ struct PluginInterface
 	T_PI_PushAllRecords				pPI_PushAllRecords;
 };
 
+struct PresortConnectionInterface;
+
 // Engine definitions
 
 typedef void AlteryxThreadProc(void *pData);
@@ -55,6 +57,7 @@ typedef long ( _stdcall * OutputMessage)(void * handle, int nToolID, int nStatus
 typedef unsigned ( _stdcall * BrowseEverywhereReserveAnchor)(void * handle, int nToolId);
 typedef struct IncomingConnectionInterface* ( _stdcall * BrowseEverywhereGetII)(void * handle, unsigned nReservationId,  int nToolId, void * strOutputName);
 typedef void * ( _stdcall * CreateTempFileName)(void * handle, void * pExt);
+typedef long ( _stdcall * PreSort)(void * handle, int nToolId, void * pSortInfo, struct IncomingConnectionInterface *pOrigIncConnInt, struct IncomingConnectionInterface ** r_ppNewIncConnInt, struct PreSortConnectionInterface ** r_ppPreSortConnInt);
 
 struct EngineInterface {
     int sizeof_EngineInterface;
@@ -66,7 +69,11 @@ struct EngineInterface {
     BrowseEverywhereReserveAnchor pBrowseEverywhereReserveAnchor;
     BrowseEverywhereGetII pBrowseEverywhereGetII;
     CreateTempFileName pCreateTempFileName;
+    PreSort pPreSort;
 };
+
+struct PreSortConnectionInterface;
+
 
 // For the glue
 
@@ -91,6 +98,7 @@ long callInitOutput(struct IncomingConnectionInterface * connection, void * reco
 long callPushRecord(struct IncomingConnectionInterface * connection, void * record);
 long callCloseOutput(struct IncomingConnectionInterface * connection);
 void * callEngineCreateTempFileName(struct EngineInterface *pEngineInterface, void * ext);
+struct IncomingConnectionInterface *callEnginePresort(struct EngineInterface *pEngineInterface, int toolId, void * sortXml, struct IncomingConnectionInterface *originalInterface);
 
 struct IncomingConnectionInterface* newIi();
 

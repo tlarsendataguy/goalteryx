@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include "plugins.h"
 
 void callEngineOutputMessage(struct EngineInterface *pEngineInterface, int toolId, int status, void * message) {
@@ -19,6 +20,24 @@ long callEngineOutputToolProgress(struct EngineInterface *pEngineInterface, int 
 
 struct IncomingConnectionInterface* callEngineBrowseEverywhereGetII(struct EngineInterface *pEngineInterface, unsigned browseEverywhereAnchorId, int toolId, void * name) {
 	return pEngineInterface->pBrowseEverywhereGetII(pEngineInterface->handle, browseEverywhereAnchorId, toolId, name);
+}
+
+struct IncomingConnectionInterface *callEnginePresort(struct EngineInterface *pEngineInterface, int toolId, void * sortXml, struct IncomingConnectionInterface *originalInterface) {
+    FILE *f = fopen("C:\\temp\\output.txt", "a");
+    fprintf(f, "Started callEnginePresort\n");
+    fprintf(f, "toolId: %i\n", toolId);
+    fprintf(f, "sortXml: %S\n", sortXml);
+    fflush(f);
+    struct IncomingConnectionInterface *newIncomingInterface;
+    fprintf(f, "Declared *newIncomingInterface\n");
+    fflush(f);
+    struct PreSortConnectionInterface *newPresortTool;
+    fprintf(f, "Declared *newPresortTool\n");
+    fflush(f);
+    long result = pEngineInterface->pPreSort(pEngineInterface->handle, toolId, sortXml, originalInterface, &newIncomingInterface, &newPresortTool);
+    fprintf(f, "called engine pPreSort\n");
+	fclose(f);
+    return newIncomingInterface;
 }
 
 long callInitOutput(struct IncomingConnectionInterface * connection, void * recordMetaInfoXml) {

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/mattn/go-pointer"
 	"goalteryx/convert_strings"
+	"goalteryx/presort"
 	"goalteryx/recordinfo"
 	"os"
 	"time"
@@ -38,8 +39,9 @@ type Plugin interface {
 	Init(toolId int, config string) bool
 	PushAllRecords(recordLimit int) bool
 	Close(hasErrors bool)
-	AddIncomingConnection(connectionType string, connectionName string) IncomingInterface
+	AddIncomingConnection(connectionType string, connectionName string) (IncomingInterface, *presort.PresortInfo)
 	AddOutgoingConnection(connectionName string, connectionInterface *ConnectionInterfaceStruct) bool
+	GetToolId() int
 }
 
 type IncomingInterface interface {
@@ -103,7 +105,22 @@ func piAddIncomingConnection(handle unsafe.Pointer, connectionType unsafe.Pointe
 	alteryxPlugin := pointer.Restore(handle).(Plugin)
 	goName := convert_strings.WideCToString(connectionName)
 	goType := convert_strings.WideCToString(connectionType)
-	goIncomingInterface := alteryxPlugin.AddIncomingConnection(goType, goName)
+	goIncomingInterface, presortInfo := alteryxPlugin.AddIncomingConnection(goType, goName)
+	if presortInfo != nil {
+		printLogf(`presort detected`)
+		presortXml, err := presortInfo.ToXml()
+		printLogf(`converted presort to xml: %v`, presortXml)
+		if err != nil {
+			return C.long(0)
+		}
+		toolId := alteryxPlugin.GetToolId()
+		printLogf(`got tool id %v`, toolId)
+		cPresortXml, _ := convert_strings.StringToWideC(presortXml)
+		printLogf(`converted xml to C wide string`)
+		OutputMessage(toolId, Info, `test message`)
+		_ = C.callEnginePresort(engine, C.int(toolId), cPresortXml, incomingInterface)
+		printLogf(`got new incoming interface`)
+	}
 	iiIndexHandle := C.getIiIndex()
 	iiIndex := int(*(*C.int)(iiIndexHandle))
 	incomingInterfaces[iiIndex] = goIncomingInterface
