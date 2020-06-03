@@ -47,7 +47,6 @@ type IncomingInterface interface {
 	PushRecord(record unsafe.Pointer) bool
 	UpdateProgress(percent float64)
 	Close()
-	Free()
 }
 
 type ConnectionInterfaceStruct struct {
@@ -169,8 +168,7 @@ func iiClose(handle unsafe.Pointer) {
 
 //export iiFree
 func iiFree(handle unsafe.Pointer) {
-	incomingInterface := getIncomingInterfaceFromHandle(handle)
-	incomingInterface.Free()
+	C.freeRecordCache(handle)
 }
 
 //export getPlugin

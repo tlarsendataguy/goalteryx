@@ -40,8 +40,8 @@ struct IncomingConnectionInterface* newIi() {
 }
 
 int currentIiIndex = 0;
-struct IncomingRecordCache* buffers[100];
-int iiFixedSizes[100];
+struct IncomingRecordCache* buffers[1000];
+int iiFixedSizes[1000];
 
 void * getIiIndex(){
     int* iiIndex = malloc(sizeof(int));
@@ -77,6 +77,7 @@ long iiPushRecord(void * handle, void * record) {
     }
     memcpy(buffer->buffer[buffer->currentBufferIndex], record, totalSize);
     buffer->currentBufferIndex++;
+    buffer->recordCount++;
     return 1;
 }
 
@@ -89,4 +90,21 @@ void closeRecordCache(void * handle){
 
 void updateProgress(struct IncomingConnectionInterface * connection, double percent){
     connection->pII_UpdateProgress(connection->handle, percent);
+}
+
+void freeRecordCache(void * handle) {
+    int iiIndex = *((int*)handle);
+    struct IncomingRecordCache *buffer = buffers[iiIndex];
+
+    int ceiling = 10;
+    if (buffer->recordCount < 10) {
+        ceiling = buffer->recordCount;
+    }
+
+    for (int i = 0; i < ceiling; i++) {
+        free(buffer->buffer[i]);
+    }
+
+    free(buffer);
+    free(handle);
 }

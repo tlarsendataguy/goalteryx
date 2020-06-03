@@ -99,6 +99,7 @@ struct IncomingRecordCache
     void*      buffer[10];
     int        bufferSizes[10];
     int        currentBufferIndex;
+    int        recordCount;
 };
 
 long pushRecordCache(void * handle, void * cache, int cacheSize);
@@ -106,3 +107,4 @@ void closeRecordCache(void * handle);
 void * getIiIndex();
 void saveIncomingInterfaceFixedSize(void * incomingInterface, int index);
 void updateProgress(struct IncomingConnectionInterface * connection, double percent);
+void freeRecordCache(void * handle);

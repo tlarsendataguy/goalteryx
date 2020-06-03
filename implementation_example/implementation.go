@@ -117,7 +117,3 @@ func (ii *MyPluginIncomingInterface) UpdateProgress(percent float64) {
 func (ii *MyPluginIncomingInterface) Close() {
 	ii.Parent.Output1.Close()
 }
-
-func (ii *MyPluginIncomingInterface) Free() {
-
-}
