@@ -19,8 +19,7 @@ struct IncomingConnectionInterface
 {
 	int sizeof_IncomingConnectionInterface;
 	void * handle;
-	long ( _stdcall * pII_Init)(void * handle, void * pXmlRecordMetaInfo);
-	//T_II_Init			pII_Init;
+	T_II_Init			pII_Init;
 	T_II_PushRecord		pII_PushRecord;
 	T_II_UpdateProgress pII_UpdateProgress;
 	T_II_Close			pII_Close;
