@@ -10,7 +10,6 @@ import (
 	"goalteryx/presort"
 	"goalteryx/recordinfo"
 	"io"
-	"os"
 	"runtime/pprof"
 	"unsafe"
 )
@@ -21,8 +20,6 @@ var f io.Writer
 
 //export AlteryxGoPlugin
 func AlteryxGoPlugin(toolId C.int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) C.long {
-	f, _ = os.Create(`C:\repositories\goalteryx\goalteryx_profiling_fromayx.prof`)
-	_ = pprof.StartCPUProfile(f)
 	myPlugin := &MyNewPlugin{
 		Output1: output_connection.New(int(toolId), `Output1`),
 	}
@@ -40,6 +37,8 @@ type ConfigXml struct {
 }
 
 func (plugin *MyNewPlugin) Init(toolId int, config string) bool {
+	initVar := api.GetInitVar(toolId, api.UpdateOnly)
+	api.OutputMessage(toolId, api.Info, initVar)
 	plugin.ToolId = toolId
 	return true
 }

@@ -17,23 +17,7 @@ import (
 
 var engine *C.struct_EngineInterface
 
-type MessageStatus int
-
 var incomingInterfaces = make([]IncomingInterface, 1000)
-
-const (
-	Info                          MessageStatus = 1
-	TransientInfo                 MessageStatus = 0x40000000 | 1
-	Warning                       MessageStatus = 2
-	TransientWarning              MessageStatus = 0x40000000 | 2
-	Error                         MessageStatus = 3
-	Complete                      MessageStatus = 4
-	FieldConversionError          MessageStatus = 5
-	TransientFieldConversionError MessageStatus = 0x40000000 | 5
-	UpdateOutputMetaInfoXml       MessageStatus = 10
-	RecordCountString             MessageStatus = 50
-	BrowseEverywhereFileName      MessageStatus = 70
-)
 
 type Plugin interface {
 	Init(toolId int, config string) bool
@@ -66,15 +50,17 @@ func NewConnectionInterfaceStruct(incomingInterface IncomingInterface) *Connecti
 // Plugin methods
 
 func ConfigurePlugin(plugin Plugin, toolId int, pXmlProperties unsafe.Pointer, pEngineInterface unsafe.Pointer, r_pluginInterface unsafe.Pointer) int {
+	engine = (*C.struct_EngineInterface)(pEngineInterface)
+	C.c_setEngine(engine)
+
 	config := convert_strings.WideCToString(pXmlProperties)
 	if !plugin.Init(toolId, config) {
 		return 0
 	}
 
-	engine = (*C.struct_EngineInterface)(pEngineInterface)
 	pluginInterface := (*C.struct_PluginInterface)(r_pluginInterface)
 	handle := getPlugin(plugin)
-	C.c_configurePlugin(handle, pluginInterface, engine)
+	C.c_configurePlugin(handle, pluginInterface)
 	return 1
 }
 
@@ -202,9 +188,6 @@ func OutputUpdateProgress(connection *ConnectionInterfaceStruct, percent float64
 // Engine methods
 
 func OutputMessage(toolId int, status MessageStatus, message string) {
-	if engine == nil {
-		return
-	}
 	cMessage, err := convert_strings.StringToWideC(message)
 	if err != nil {
 		return
@@ -213,11 +196,11 @@ func OutputMessage(toolId int, status MessageStatus, message string) {
 		return
 	}
 
-	C.callEngineOutputMessage(engine, C.int(toolId), C.int(status), cMessage)
+	C.callEngineOutputMessage(C.int(toolId), C.int(status), cMessage)
 }
 
 func OutputToolProgress(toolId int, percent float64) bool {
-	if C.callEngineOutputToolProgress(engine, C.int(toolId), C.double(percent)) == C.long(1) {
+	if C.callEngineOutputToolProgress(C.int(toolId), C.double(percent)) == C.long(1) {
 		return true
 	}
 	return false
@@ -225,7 +208,7 @@ func OutputToolProgress(toolId int, percent float64) bool {
 
 func BrowseEverywhereReserveAnchor(toolId int) uint {
 	//printLogf(`start reserving browse everywhere anchor ID`)
-	anchorId := C.callEngineBrowseEverywhereReserveAnchor(engine, C.int(toolId))
+	anchorId := C.callEngineBrowseEverywhereReserveAnchor(C.int(toolId))
 	//printLogf(`done reserving browse everywhere anchor ID`)
 	//printLogf(`returned browse everywhere anchor ID: %v`, anchorId)
 	return uint(anchorId)
@@ -234,15 +217,26 @@ func BrowseEverywhereReserveAnchor(toolId int) uint {
 func BrowseEverywhereGetII(browseEverywhereReservationId uint, toolId int, name string) *ConnectionInterfaceStruct {
 	//printLogf(`start getting browse everywhere II`)
 	cName, _ := convert_strings.StringToWideC(name)
-	ii := C.callEngineBrowseEverywhereGetII(engine, C.unsigned(browseEverywhereReservationId), C.int(toolId), cName)
+	ii := C.callEngineBrowseEverywhereGetII(C.unsigned(browseEverywhereReservationId), C.int(toolId), cName)
 	//printLogf(`done getting browse everywhere II`)
 	return &ConnectionInterfaceStruct{connection: ii}
 }
 
 func CreateTempFileName(ext string) string {
 	cExt, _ := convert_strings.StringToWideC(ext)
-	cFileName := C.callEngineCreateTempFileName(engine, cExt)
+	cFileName := C.callEngineCreateTempFileName(cExt)
 	return convert_strings.WideCToString(cFileName)
+}
+
+func GetInitVar(toolId int, initVar InitVar) string {
+	cInitVar, _ := convert_strings.StringToWideC(string(initVar))
+
+	if initVar == RunMode || initVar == ActionApplies {
+		cInitVarValue := C.callEngineGetInitVar2(C.int(toolId), cInitVar)
+		return convert_strings.WideCToString(cInitVarValue)
+	}
+	cInitVarValue := C.callEngineGetInitVar(cInitVar)
+	return convert_strings.WideCToString(cInitVarValue)
 }
 
 // This section will get removed, eventually

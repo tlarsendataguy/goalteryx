@@ -55,21 +55,38 @@ struct PreSortConnectionInterface;
 typedef long ( _stdcall * OutputToolProgress)(void * handle, int nToolID, double dPercentProgress);
 typedef long ( _stdcall * OutputMessage)(void * handle, int nToolID, int nStatus, wchar_t *pMessage);
 typedef unsigned ( _stdcall * BrowseEverywhereReserveAnchor)(void * handle, int nToolId);
-typedef struct IncomingConnectionInterface* ( _stdcall * BrowseEverywhereGetII)(void * handle, unsigned nReservationId,  int nToolId, void * strOutputName);
-typedef void * ( _stdcall * CreateTempFileName)(void * handle, void * pExt);
-typedef long ( _stdcall * PreSort)(void * handle, int nToolId, void * pSortInfo, struct IncomingConnectionInterface *pOrigIncConnInt, struct IncomingConnectionInterface ** r_ppNewIncConnInt, struct PreSortConnectionInterface ** r_ppPreSortConnInt);
+typedef struct IncomingConnectionInterface* ( _stdcall * BrowseEverywhereGetII)(void * handle, unsigned nReservationId,  int nToolId, wchar_t * strOutputName);
+typedef wchar_t * ( _stdcall * CreateTempFileName)(void * handle, wchar_t * pExt);
+typedef long ( _stdcall * PreSort)(void * handle, int nToolId, wchar_t * pSortInfo, struct IncomingConnectionInterface *pOrigIncConnInt, struct IncomingConnectionInterface ** r_ppNewIncConnInt, struct PreSortConnectionInterface ** r_ppPreSortConnInt);
+typedef wchar_t * (_stdcall * GetInitVar)(void * handle, wchar_t *pVar);
+typedef wchar_t * (_stdcall * GetInitVar2)(void * handle, int nToolId, wchar_t *pVar);
 
 struct EngineInterface {
     int sizeof_EngineInterface;
-
     void * handle;
 
     OutputToolProgress pOutputToolProgress;
     OutputMessage pOutputMessage;
+    void * pAllocateMemory;
+    void * pFreeMemory;
+    PreSort pPreSort;
+    GetInitVar pGetInitVar;
+    CreateTempFileName pCreateTempFileName;
+    void * pQueueThread;
+
+    void * pCreateTempFileName2;
+    void * pIsLicensed;
+    void * pGetConstant;
+
+    GetInitVar2 pGetInitVar2;
+    void * pUnlicensedToolCancelled;
+
+    void * pGetConstant2;
+
     BrowseEverywhereReserveAnchor pBrowseEverywhereReserveAnchor;
     BrowseEverywhereGetII pBrowseEverywhereGetII;
-    CreateTempFileName pCreateTempFileName;
-    PreSort pPreSort;
+
+    void * pProfileSetTool;
 };
 
 struct PreSortConnectionInterface;
@@ -79,7 +96,7 @@ struct PreSortConnectionInterface;
 
 
 // Plugin methods
-void c_configurePlugin(void * handle, struct PluginInterface * pluginInterface, struct EngineInterface * pluginEngine);
+void c_configurePlugin(void * handle, struct PluginInterface * pluginInterface);
 long c_piPushAllRecords(void * handle, __int64 nRecordLimit);
 long go_piPushAllRecords(void * handle, __int64 nRecordLimit);
 void c_piClose(void * handle, bool bHasErrors);
@@ -117,8 +134,11 @@ long c_outputClose(struct IncomingConnectionInterface * connection);
 void c_outputUpdateProgress(struct IncomingConnectionInterface * connection, double percent);
 
 // Engine methods
-void callEngineOutputMessage(struct EngineInterface *pEngineInterface, int toolId, int status, void * message);
-void * callEngineCreateTempFileName(struct EngineInterface *pEngineInterface, void * ext);
-unsigned callEngineBrowseEverywhereReserveAnchor(struct EngineInterface *pEngineInterface, int toolId);
-long callEngineOutputToolProgress(struct EngineInterface *pEngineInterface, int toolId, double dPercentProgress);
-struct IncomingConnectionInterface* callEngineBrowseEverywhereGetII(struct EngineInterface *pEngineInterface, unsigned browseEverywhereAnchorId, int toolId, void * name);
+void c_setEngine(struct EngineInterface *pEngineInterface);
+void callEngineOutputMessage(int toolId, int status, void * message);
+void * callEngineCreateTempFileName(void * ext);
+unsigned callEngineBrowseEverywhereReserveAnchor(int toolId);
+long callEngineOutputToolProgress(int toolId, double dPercentProgress);
+struct IncomingConnectionInterface* callEngineBrowseEverywhereGetII(unsigned browseEverywhereAnchorId, int toolId, void * name);
+void * callEngineGetInitVar(void * initVar);
+void * callEngineGetInitVar2(int toolId, void * initVar);

@@ -7,15 +7,13 @@
 
 struct EngineInterface *engine;
 
-void c_configurePlugin(void * handle, struct PluginInterface * pluginInterface, struct EngineInterface * pluginEngine) {
-    engine = pluginEngine;
+void c_configurePlugin(void * handle, struct PluginInterface * pluginInterface) {
     pluginInterface->handle = handle;
     pluginInterface->pPI_PushAllRecords = c_piPushAllRecords;
     pluginInterface->pPI_AddIncomingConnection = c_piAddIncomingConnection;
     pluginInterface->pPI_AddOutgoingConnection = c_piAddOutgoingConnection;
     pluginInterface->pPI_Close = c_piClose;
 }
-
 
 long c_piPushAllRecords(void * handle, __int64 nRecordLimit) {
     return go_piPushAllRecords(handle, nRecordLimit);
@@ -26,33 +24,20 @@ void c_piClose(void * handle, bool bHasErrors) {
 }
 
 long c_piAddIncomingConnection(void * handle, void * connectionType, void * connectionName, struct IncomingConnectionInterface * incomingInterface) {
-    FILE *f = fopen("C:\\temp\\output.txt", "a");
-    fprintf(f, "Started c_piAddIncomingConnection\n");
-    fflush(f);
     void * iiHandle = go_piAddIncomingConnection(handle, connectionType, connectionName);
-    fprintf(f, "Got handle from piAddIncomingConnection\n");
-    fflush(f);
 
-    /*
     struct IncomingConnectionInterface *newIncomingInterface;
     struct PreSortConnectionInterface *newPresortTool;
 
-    fprintf(f, "defined variables needed for presort\n");
-    fflush(f);
-    long result = engine->pPreSort(engine->handle, 1, L"<SortInfo>\n<Field field=\"RowCount\" order=\"Asc\" />\n</SortInfo>\n", incomingInterface, &newIncomingInterface, &newPresortTool);
-    fprintf(f, "Got presort\n");
-    fflush(f);
-    */
+    long result = engine->pPreSort(engine->handle, 1, L"<SortInfo>\n<Field field=\"RowCount\" order=\"Desc\" />\n</SortInfo>\n", incomingInterface, &newIncomingInterface, &newPresortTool);
 
-    incomingInterface->handle = iiHandle;
-    incomingInterface->pII_Init = c_iiInit;
-    incomingInterface->pII_PushRecord = c_iiPushRecord;
-    incomingInterface->pII_UpdateProgress = c_iiUpdateProgress;
-    incomingInterface->pII_Close = c_iiClose;
-    incomingInterface->pII_Free = c_iiFree;
-    fprintf(f, "Done with c_piAddIncomingConnection\n");
-    fclose(f);
 
+    newIncomingInterface->handle = iiHandle;
+    newIncomingInterface->pII_Init = c_iiInit;
+    newIncomingInterface->pII_PushRecord = c_iiPushRecord;
+    newIncomingInterface->pII_UpdateProgress = c_iiUpdateProgress;
+    newIncomingInterface->pII_Close = c_iiClose;
+    newIncomingInterface->pII_Free = c_iiFree;
     return 1;
 }
 
@@ -172,22 +157,36 @@ void c_outputUpdateProgress(struct IncomingConnectionInterface * connection, dou
 
 // Engine methods
 
-void callEngineOutputMessage(struct EngineInterface *pEngineInterface, int toolId, int status, void * message) {
-	pEngineInterface->pOutputMessage(pEngineInterface->handle, toolId, status, message);
+void c_setEngine(struct EngineInterface *pEngineInterface) {
+    engine = pEngineInterface;
 }
 
-void * callEngineCreateTempFileName(struct EngineInterface *pEngineInterface, void * ext) {
-	return pEngineInterface->pCreateTempFileName(pEngineInterface->handle, ext);
+void callEngineOutputMessage(int toolId, int status, void * message) {
+	engine->pOutputMessage(engine->handle, toolId, status, message);
 }
 
-unsigned callEngineBrowseEverywhereReserveAnchor(struct EngineInterface *pEngineInterface, int toolId) {
-	return pEngineInterface->pBrowseEverywhereReserveAnchor(pEngineInterface->handle, toolId);
+void * callEngineCreateTempFileName(void * ext) {
+	return engine->pCreateTempFileName(engine->handle, ext);
 }
 
-long callEngineOutputToolProgress(struct EngineInterface *pEngineInterface, int toolId, double dPercentProgress) {
-    return pEngineInterface->pOutputToolProgress(pEngineInterface->handle, toolId, dPercentProgress);
+unsigned callEngineBrowseEverywhereReserveAnchor(int toolId) {
+	return engine->pBrowseEverywhereReserveAnchor(engine->handle, toolId);
 }
 
-struct IncomingConnectionInterface* callEngineBrowseEverywhereGetII(struct EngineInterface *pEngineInterface, unsigned browseEverywhereAnchorId, int toolId, void * name) {
-	return pEngineInterface->pBrowseEverywhereGetII(pEngineInterface->handle, browseEverywhereAnchorId, toolId, name);
+long callEngineOutputToolProgress(int toolId, double dPercentProgress) {
+    return engine->pOutputToolProgress(engine->handle, toolId, dPercentProgress);
+}
+
+struct IncomingConnectionInterface* callEngineBrowseEverywhereGetII(unsigned browseEverywhereAnchorId, int toolId, void * name) {
+	return engine->pBrowseEverywhereGetII(engine->handle, browseEverywhereAnchorId, toolId, name);
+}
+
+void * callEngineGetInitVar(void * initVar) {
+    void *value = engine->pGetInitVar(engine->handle, initVar);
+    return value;
+}
+
+void * callEngineGetInitVar2(int toolId, void * initVar) {
+    void *value = engine->pGetInitVar2(engine->handle, toolId, initVar);
+    return value;
 }
