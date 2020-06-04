@@ -19,7 +19,8 @@ struct IncomingConnectionInterface
 {
 	int sizeof_IncomingConnectionInterface;
 	void * handle;
-	T_II_Init			pII_Init;
+	long ( _stdcall * pII_Init)(void * handle, void * pXmlRecordMetaInfo);
+	//T_II_Init			pII_Init;
 	T_II_PushRecord		pII_PushRecord;
 	T_II_UpdateProgress pII_UpdateProgress;
 	T_II_Close			pII_Close;
@@ -77,31 +78,19 @@ struct PreSortConnectionInterface;
 
 // For the glue
 
-void * getPlugin();
-typedef long (*outputFunc)(int nToolID, int nStatus, void * pMessage);
-void callEngineOutputMessage(struct EngineInterface *pEngineInterface, int toolId, int status, void * message);
-unsigned callEngineBrowseEverywhereReserveAnchor(struct EngineInterface *pEngineInterface, int toolId);
-struct IncomingConnectionInterface* callEngineBrowseEverywhereGetII(struct EngineInterface *pEngineInterface, unsigned browseEverywhereAnchorId, int toolId, void * name);
-long callEngineOutputToolProgress(struct EngineInterface *pEngineInterface, int toolId, double dPercentProgress);
 
-long piPushAllRecords(void * handle, __int64 recordLimit);
-void piClose(void * handle, bool hasErrors);
-long piAddIncomingConnection(void * handle, void * connectionType, void * connectionName, struct IncomingConnectionInterface * incomingInterface);
-long piAddOutgoingConnection(void * handle, void * connectionName, struct IncomingConnectionInterface * incomingInterface);
-long iiInit(void * handle, void * recordInfoIn);
-long iiPushRecord(void * handle, void * record);
-void iiUpdateProgress(void * handle, double percent);
-void iiClose(void * handle);
-void iiFree(void * handle);
+// Plugin methods
+void c_configurePlugin(void * handle, struct PluginInterface * pluginInterface, struct EngineInterface * pluginEngine);
+long c_piPushAllRecords(void * handle, __int64 nRecordLimit);
+long go_piPushAllRecords(void * handle, __int64 nRecordLimit);
+void c_piClose(void * handle, bool bHasErrors);
+void go_piClose(void * handle, bool bHasErrors);
+long c_piAddIncomingConnection(void * handle, void * connectionType, void * connectionName, struct IncomingConnectionInterface * incomingInterface);
+void* go_piAddIncomingConnection(void * handle, void * connectionType, void * connectionName);
+long c_piAddOutgoingConnection(void * handle, void * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt);
+long go_piAddOutgoingConnection(void * handle, void * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt);
 
-long callInitOutput(struct IncomingConnectionInterface * connection, void * recordMetaInfoXml);
-long callPushRecord(struct IncomingConnectionInterface * connection, void * record);
-long callCloseOutput(struct IncomingConnectionInterface * connection);
-void * callEngineCreateTempFileName(struct EngineInterface *pEngineInterface, void * ext);
-struct IncomingConnectionInterface *callEnginePresort(struct EngineInterface *pEngineInterface, int toolId, void * sortXml, struct IncomingConnectionInterface *originalInterface);
-
-struct IncomingConnectionInterface* newIi();
-
+// Incoming interface methods
 struct IncomingRecordCache
 {
     void*      buffer[10];
@@ -109,10 +98,28 @@ struct IncomingRecordCache
     int        currentBufferIndex;
     int        recordCount;
 };
-
-long pushRecordCache(void * handle, void * cache, int cacheSize);
-void closeRecordCache(void * handle);
+struct IncomingConnectionInterface* newIi(void * iiHandle);
 void * getIiIndex();
-void saveIncomingInterfaceFixedSize(void * incomingInterface, int index);
-void updateProgress(struct IncomingConnectionInterface * connection, double percent);
-void freeRecordCache(void * handle);
+void saveIncomingInterfaceFixedSize(void * handle, int fixedSize);
+long c_iiInit(void * handle, void * recordInfoIn);
+long go_iiInit(void * handle, void * recordInfoIn);
+long c_iiPushRecord(void * handle, void * record);
+long go_iiPushRecordCache(void * handle, void * cache, int cacheSize);
+void c_iiUpdateProgress(void * handle, double percent);
+void go_iiUpdateProgress(void * handle, double percent);
+void c_iiClose(void * handle);
+void go_iiClose(void * handle);
+void c_iiFree(void * handle);
+
+// Output connection methods
+long c_outputInit(struct IncomingConnectionInterface * connection, void * recordMetaInfoXml);
+long c_outputPushRecord(struct IncomingConnectionInterface * connection, void * record);
+long c_outputClose(struct IncomingConnectionInterface * connection);
+void c_outputUpdateProgress(struct IncomingConnectionInterface * connection, double percent);
+
+// Engine methods
+void callEngineOutputMessage(struct EngineInterface *pEngineInterface, int toolId, int status, void * message);
+void * callEngineCreateTempFileName(struct EngineInterface *pEngineInterface, void * ext);
+unsigned callEngineBrowseEverywhereReserveAnchor(struct EngineInterface *pEngineInterface, int toolId);
+long callEngineOutputToolProgress(struct EngineInterface *pEngineInterface, int toolId, double dPercentProgress);
+struct IncomingConnectionInterface* callEngineBrowseEverywhereGetII(struct EngineInterface *pEngineInterface, unsigned browseEverywhereAnchorId, int toolId, void * name);
