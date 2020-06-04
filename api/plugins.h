@@ -96,15 +96,21 @@ struct PreSortConnectionInterface;
 
 
 // Plugin methods
+struct IncomingConnectionInfo {
+    void *handle;
+    void *presortString;
+};
 void c_configurePlugin(void * handle, struct PluginInterface * pluginInterface);
 long c_piPushAllRecords(void * handle, __int64 nRecordLimit);
 long go_piPushAllRecords(void * handle, __int64 nRecordLimit);
 void c_piClose(void * handle, bool bHasErrors);
 void go_piClose(void * handle, bool bHasErrors);
 long c_piAddIncomingConnection(void * handle, void * connectionType, void * connectionName, struct IncomingConnectionInterface * incomingInterface);
-void* go_piAddIncomingConnection(void * handle, void * connectionType, void * connectionName);
+struct IncomingConnectionInfo *go_piAddIncomingConnection(void * handle, void * connectionType, void * connectionName);
 long c_piAddOutgoingConnection(void * handle, void * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt);
 long go_piAddOutgoingConnection(void * handle, void * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt);
+struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, void * presortString);
+struct IncomingConnectionInfo *newUnsortedIncomingConnectionInfo(void * handle);
 
 // Incoming interface methods
 struct IncomingRecordCache

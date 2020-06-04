@@ -84,15 +84,20 @@ func go_piClose(handle unsafe.Pointer, hasErrors C.bool) {
 }
 
 //export go_piAddIncomingConnection
-func go_piAddIncomingConnection(handle unsafe.Pointer, connectionType unsafe.Pointer, connectionName unsafe.Pointer) unsafe.Pointer {
+func go_piAddIncomingConnection(handle unsafe.Pointer, connectionType unsafe.Pointer, connectionName unsafe.Pointer) *C.struct_IncomingConnectionInfo {
 	alteryxPlugin := pointer.Restore(handle).(Plugin)
 	goName := convert_strings.WideCToString(connectionName)
 	goType := convert_strings.WideCToString(connectionType)
-	goIncomingInterface, _ := alteryxPlugin.AddIncomingConnection(goType, goName)
+	goIncomingInterface, presortInfo := alteryxPlugin.AddIncomingConnection(goType, goName)
 	iiIndexHandle := C.getIiIndex()
 	iiIndex := int(*(*C.int)(iiIndexHandle))
 	incomingInterfaces[iiIndex] = goIncomingInterface
-	return iiIndexHandle
+	if presortInfo == nil {
+		return C.newUnsortedIncomingConnectionInfo(iiIndexHandle)
+	}
+	presortInfoXml, _ := presortInfo.ToXml()
+	cPresortInfoXml, _ := convert_strings.StringToWideC(presortInfoXml)
+	return C.newSortedIncomingConnectionInfo(iiIndexHandle, cPresortInfoXml)
 }
 
 //export go_piAddOutgoingConnection

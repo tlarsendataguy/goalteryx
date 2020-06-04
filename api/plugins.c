@@ -24,25 +24,41 @@ void c_piClose(void * handle, bool bHasErrors) {
 }
 
 long c_piAddIncomingConnection(void * handle, void * connectionType, void * connectionName, struct IncomingConnectionInterface * incomingInterface) {
-    void * iiHandle = go_piAddIncomingConnection(handle, connectionType, connectionName);
+    struct IncomingConnectionInfo *info = go_piAddIncomingConnection(handle, connectionType, connectionName);
 
-    struct IncomingConnectionInterface *newIncomingInterface;
-    struct PreSortConnectionInterface *newPresortTool;
+    struct IncomingConnectionInterface *actualIncomingInterface;
+    if (info->presortString) {
+        struct PreSortConnectionInterface *newPresortTool;
+        long result = engine->pPreSort(engine->handle, 1, info->presortString, incomingInterface, &actualIncomingInterface, &newPresortTool);
+    } else {
+        actualIncomingInterface = incomingInterface;
+    }
 
-    long result = engine->pPreSort(engine->handle, 1, L"<SortInfo>\n<Field field=\"RowCount\" order=\"Desc\" />\n</SortInfo>\n", incomingInterface, &newIncomingInterface, &newPresortTool);
-
-
-    newIncomingInterface->handle = iiHandle;
-    newIncomingInterface->pII_Init = c_iiInit;
-    newIncomingInterface->pII_PushRecord = c_iiPushRecord;
-    newIncomingInterface->pII_UpdateProgress = c_iiUpdateProgress;
-    newIncomingInterface->pII_Close = c_iiClose;
-    newIncomingInterface->pII_Free = c_iiFree;
+    actualIncomingInterface->handle = info->handle;
+    actualIncomingInterface->pII_Init = c_iiInit;
+    actualIncomingInterface->pII_PushRecord = c_iiPushRecord;
+    actualIncomingInterface->pII_UpdateProgress = c_iiUpdateProgress;
+    actualIncomingInterface->pII_Close = c_iiClose;
+    actualIncomingInterface->pII_Free = c_iiFree;
+    free(info);
     return 1;
 }
 
 long c_piAddOutgoingConnection(void * handle, void * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt){
     return go_piAddOutgoingConnection(handle, pOutgoingConnectionName, pIncConnInt);
+}
+
+struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, void * presortString){
+    struct IncomingConnectionInfo *info = malloc(sizeof(struct IncomingConnectionInfo));
+    info->handle = handle;
+    info->presortString = presortString;
+    return info;
+}
+
+struct IncomingConnectionInfo *newUnsortedIncomingConnectionInfo(void * handle){
+    struct IncomingConnectionInfo *info = malloc(sizeof(struct IncomingConnectionInfo));
+    info->handle = handle;
+    return info;
 }
 
 
