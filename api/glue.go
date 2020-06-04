@@ -193,6 +193,9 @@ func OutputUpdateProgress(connection *ConnectionInterfaceStruct, percent float64
 // Engine methods
 
 func OutputMessage(toolId int, status MessageStatus, message string) {
+	if engine == nil {
+		return
+	}
 	cMessage, err := convert_strings.StringToWideC(message)
 	if err != nil {
 		return
@@ -205,6 +208,9 @@ func OutputMessage(toolId int, status MessageStatus, message string) {
 }
 
 func OutputToolProgress(toolId int, percent float64) bool {
+	if engine == nil {
+		return true
+	}
 	if C.callEngineOutputToolProgress(C.int(toolId), C.double(percent)) == C.long(1) {
 		return true
 	}
@@ -212,18 +218,16 @@ func OutputToolProgress(toolId int, percent float64) bool {
 }
 
 func BrowseEverywhereReserveAnchor(toolId int) uint {
-	//printLogf(`start reserving browse everywhere anchor ID`)
+	if engine == nil {
+		return 0
+	}
 	anchorId := C.callEngineBrowseEverywhereReserveAnchor(C.int(toolId))
-	//printLogf(`done reserving browse everywhere anchor ID`)
-	//printLogf(`returned browse everywhere anchor ID: %v`, anchorId)
 	return uint(anchorId)
 }
 
 func BrowseEverywhereGetII(browseEverywhereReservationId uint, toolId int, name string) *ConnectionInterfaceStruct {
-	//printLogf(`start getting browse everywhere II`)
 	cName, _ := convert_strings.StringToWideC(name)
 	ii := C.callEngineBrowseEverywhereGetII(C.unsigned(browseEverywhereReservationId), C.int(toolId), cName)
-	//printLogf(`done getting browse everywhere II`)
 	return &ConnectionInterfaceStruct{connection: ii}
 }
 

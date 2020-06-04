@@ -9,20 +9,14 @@ import (
 	"goalteryx/output_connection"
 	"goalteryx/presort"
 	"goalteryx/recordinfo"
-	"io"
-	"runtime/pprof"
 	"unsafe"
 )
 
 func main() {}
 
-var f io.Writer
-
 //export AlteryxGoPlugin
 func AlteryxGoPlugin(toolId C.int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) C.long {
-	myPlugin := &MyNewPlugin{
-		Output1: output_connection.New(int(toolId), `Output1`),
-	}
+	myPlugin := &MyNewPlugin{}
 	return C.long(api.ConfigurePlugin(myPlugin, int(toolId), xmlProperties, engineInterface, pluginInterface))
 }
 
@@ -37,9 +31,8 @@ type ConfigXml struct {
 }
 
 func (plugin *MyNewPlugin) Init(toolId int, config string) bool {
-	initVar := api.GetInitVar(toolId, api.UpdateOnly)
-	api.OutputMessage(toolId, api.Info, initVar)
 	plugin.ToolId = toolId
+	plugin.Output1 = output_connection.New(toolId, `Output1`)
 	return true
 }
 
@@ -48,7 +41,6 @@ func (plugin *MyNewPlugin) PushAllRecords(recordLimit int) bool {
 }
 
 func (plugin *MyNewPlugin) Close(hasErrors bool) {
-	pprof.StopCPUProfile()
 }
 
 func (plugin *MyNewPlugin) AddIncomingConnection(connectionType string, connectionName string) (api.IncomingInterface, *presort.PresortInfo) {

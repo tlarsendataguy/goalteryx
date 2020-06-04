@@ -18,8 +18,7 @@ type OutputConnection interface {
 }
 
 func New(toolId int, name string) OutputConnection {
-	browseEverywhereAnchorId := uint(0) // TODO fix this with api.BrowseEverywhereReserveAnchor(toolId)
-	//browseEverywhereAnchorId = api.BrowseEverywhereReserveAnchor(toolId)
+	browseEverywhereAnchorId := api.BrowseEverywhereReserveAnchor(toolId)
 	return &outputConnection{
 		toolId:                   toolId,
 		name:                     name,
