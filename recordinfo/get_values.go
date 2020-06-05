@@ -192,6 +192,13 @@ func (info *recordInfo) GetRawBytesFrom(fieldName string, record unsafe.Pointer)
 	return info.getRawBytes(field, record), nil
 }
 
+func (info *recordInfo) GetRawBytesFromIndex(index int, record unsafe.Pointer) (value []byte, err error) {
+	if index < 0 || index > info.numFields {
+		return nil, fmt.Errorf(`error getting raw bytes: index was not between 0 and %v`, info.numFields)
+	}
+	return info.getRawBytes(info.fields[index], record), nil
+}
+
 func (info *recordInfo) getRawBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
 	switch field.Type {
 	case V_String, V_WString:

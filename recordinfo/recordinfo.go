@@ -31,6 +31,7 @@ type RecordInfo interface {
 	GetStringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error)
 	GetDateValueFrom(fieldName string, record unsafe.Pointer) (value time.Time, isNull bool, err error)
 	GetRawBytesFrom(fieldName string, record unsafe.Pointer) (value []byte, err error)
+	GetRawBytesFromIndex(index int, record unsafe.Pointer) (value []byte, err error)
 
 	SetIntField(fieldName string, value int) error
 	SetBoolField(fieldName string, value bool) error
@@ -39,6 +40,7 @@ type RecordInfo interface {
 	SetDateField(fieldName string, value time.Time) error
 	SetFieldNull(fieldName string) error
 	SetFromRawBytes(fieldName string, value []byte) error
+	SetIndexFromRawBytes(index int, value []byte) error
 
 	GenerateRecord() (unsafe.Pointer, error)
 	ToXml(connection string) (string, error)

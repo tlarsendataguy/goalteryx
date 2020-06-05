@@ -187,7 +187,18 @@ func (info *recordInfo) SetFromRawBytes(fieldName string, value []byte) error {
 	if err != nil {
 		return err
 	}
+	return info.setFieldFromRawBytes(field, value)
+}
 
+func (info *recordInfo) SetIndexFromRawBytes(index int, value []byte) error {
+	if index < 0 || index > info.numFields {
+		return fmt.Errorf(`error setting raw bytes: index was not between 0 and %v`, info.numFields)
+	}
+	field := info.fields[index]
+	return info.setFieldFromRawBytes(field, value)
+}
+
+func (info *recordInfo) setFieldFromRawBytes(field *fieldInfoEditor, value []byte) error {
 	switch field.Type {
 	case V_String, V_WString:
 		if value == nil {

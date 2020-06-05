@@ -8,6 +8,7 @@ import (
 	"goalteryx/api"
 	"goalteryx/output_connection"
 	"goalteryx/presort"
+	"goalteryx/recordcopier"
 	"goalteryx/recordinfo"
 	"unsafe"
 )
@@ -44,12 +45,7 @@ func (plugin *MyNewPlugin) Close(hasErrors bool) {
 }
 
 func (plugin *MyNewPlugin) AddIncomingConnection(connectionType string, connectionName string) (api.IncomingInterface, *presort.PresortInfo) {
-	return &MyPluginIncomingInterface{Parent: plugin}, &presort.PresortInfo{
-		SortInfo: []presort.SortInfo{
-			{Field: `RowCount`, Order: presort.Desc},
-		},
-		FieldFilterList: nil,
-	}
+	return &MyPluginIncomingInterface{Parent: plugin}, nil
 }
 
 func (plugin *MyNewPlugin) AddOutgoingConnection(connectionName string, connectionInterface *api.ConnectionInterfaceStruct) bool {
@@ -64,6 +60,7 @@ func (plugin *MyNewPlugin) GetToolId() int {
 type MyPluginIncomingInterface struct {
 	Parent *MyNewPlugin
 	inInfo recordinfo.RecordInfo
+	copier *recordcopier.RecordCopier
 }
 
 func (ii *MyPluginIncomingInterface) Init(recordInfoIn string) bool {
@@ -79,26 +76,23 @@ func (ii *MyPluginIncomingInterface) Init(recordInfoIn string) bool {
 		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
 		return false
 	}
+
+	indexMaps := make([]recordcopier.IndexMap, ii.inInfo.NumFields())
+	for index := range indexMaps {
+		indexMaps[index] = recordcopier.IndexMap{
+			DestinationIndex: index,
+			SourceIndex:      index,
+		}
+	}
+	ii.copier, _ = recordcopier.New(ii.inInfo, ii.inInfo, indexMaps)
 	return true
 }
 
 func (ii *MyPluginIncomingInterface) PushRecord(record unsafe.Pointer) bool {
-	for index := 0; index < ii.inInfo.NumFields(); index++ {
-		field, err := ii.inInfo.GetFieldByIndex(index)
-		if err != nil {
-			api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
-			return false
-		}
-		value, err := ii.inInfo.GetRawBytesFrom(field.Name, record)
-		if err != nil {
-			api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
-			return false
-		}
-		err = ii.inInfo.SetFromRawBytes(field.Name, value)
-		if err != nil {
-			api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
-			return false
-		}
+	err := ii.copier.Copy(record)
+	if err != nil {
+		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
+		return false
 	}
 
 	outputRecord, err := ii.inInfo.GenerateRecord()
