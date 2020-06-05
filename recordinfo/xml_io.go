@@ -81,6 +81,18 @@ func FromXml(recordInfoXml string) (RecordInfo, error) {
 			recordInfo.AddDateField(field.Name, field.Source)
 		case dateTimeType:
 			recordInfo.AddDateTimeField(field.Name, field.Source)
+		case blobType:
+			size, err := strconv.Atoi(field.Size)
+			if err != nil {
+				return nil, fmt.Errorf(`error converting field %v size to an int.  Provided size was %v`, index, field.Size)
+			}
+			recordInfo.AddBlobField(field.Name, field.Source, size)
+		case spatialType:
+			size, err := strconv.Atoi(field.Size)
+			if err != nil {
+				return nil, fmt.Errorf(`error converting field %v size to an int.  Provided size was %v`, index, field.Size)
+			}
+			recordInfo.AddSpatialField(field.Name, field.Source, size)
 		default:
 			continue
 		}

@@ -201,7 +201,7 @@ func (info *recordInfo) GetRawBytesFromIndex(index int, record unsafe.Pointer) (
 
 func (info *recordInfo) getRawBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
 	switch field.Type {
-	case V_String, V_WString:
+	case V_String, V_WString, Blob, Spatial:
 		return getVarBytes(field, record)
 	default:
 		return getFixedBytes(field, record)

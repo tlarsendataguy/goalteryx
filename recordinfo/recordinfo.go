@@ -24,6 +24,8 @@ type RecordInfo interface {
 	AddV_WStringField(name string, source string, size int) string
 	AddDateField(name string, source string) string
 	AddDateTimeField(name string, source string) string
+	AddBlobField(name string, source string, size int) string
+	AddSpatialField(name string, source string, size int) string
 
 	GetIntValueFrom(fieldName string, record unsafe.Pointer) (value int, isNull bool, err error)
 	GetBoolValueFrom(fieldName string, record unsafe.Pointer) (value bool, isNull bool, err error)

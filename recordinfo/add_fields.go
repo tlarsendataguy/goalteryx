@@ -56,6 +56,14 @@ func (info *recordInfo) AddDateTimeField(name string, source string) string {
 	return info.addField(name, source, 19, 0, DateTime, 19, 1)
 }
 
+func (info *recordInfo) AddBlobField(name string, source string, size int) string {
+	return info.addField(name, source, size, 0, Blob, 4, 0)
+}
+
+func (info *recordInfo) AddSpatialField(name string, source string, size int) string {
+	return info.addField(name, source, size, 0, Spatial, 4, 0)
+}
+
 func (info *recordInfo) addField(name string, source string, size int, scale int, fieldType FieldType, fixedLen uintptr, nullByteLen uintptr) string {
 	actualName := info.checkFieldName(name)
 	info.fields = append(info.fields, &fieldInfoEditor{

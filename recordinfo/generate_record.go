@@ -22,7 +22,7 @@ func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 	varWriteIndex := fixed + 4
 	for _, field := range info.fields {
 		switch field.Type {
-		case V_String, V_WString:
+		case V_String, V_WString, Blob, Spatial:
 			if field.isNull {
 				binary.LittleEndian.PutUint32(info.blob[fixedWriteIndex:fixedWriteIndex+4], 1)
 				fixedWriteIndex += 4

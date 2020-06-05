@@ -200,7 +200,7 @@ func (info *recordInfo) SetIndexFromRawBytes(index int, value []byte) error {
 
 func (info *recordInfo) setFieldFromRawBytes(field *fieldInfoEditor, value []byte) error {
 	switch field.Type {
-	case V_String, V_WString:
+	case V_String, V_WString, Blob, Spatial:
 		if value == nil {
 			field.isNull = true
 			return nil

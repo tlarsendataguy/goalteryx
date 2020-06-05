@@ -22,6 +22,8 @@ const (
 	V_WString    FieldType = 12
 	Date         FieldType = 13
 	DateTime     FieldType = 14
+	Blob         FieldType = 15
+	Spatial      FieldType = 16
 
 	byteType         = `Byte`
 	boolType         = `Bool`
@@ -37,6 +39,8 @@ const (
 	v_WStringType    = `V_WString`
 	dateType         = `Date`
 	dateTimeType     = `DateTime`
+	blobType         = `Blob`
+	spatialType      = `SpatialObj`
 )
 
 var fieldTypeMap = []string{
@@ -55,6 +59,8 @@ var fieldTypeMap = []string{
 	V_WString:    v_WStringType,
 	Date:         dateType,
 	DateTime:     dateTimeType,
+	Blob:         blobType,
+	Spatial:      spatialType,
 }
 
 var zeroDate = time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC)
