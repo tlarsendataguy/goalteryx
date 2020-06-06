@@ -25,12 +25,19 @@ type xmlField struct {
 
 // FromXml converts record info XML strings into a RecordInfo object.
 func FromXml(recordInfoXml string) (RecordInfo, error) {
+	return recordInfoFromXml(recordInfoXml)
+}
+
+func recordInfoFromXml(recordInfoXml string) (*recordInfo, error) {
 	var metaInfo xmlMetaInfo
 	err := xml.Unmarshal([]byte(recordInfoXml), &metaInfo)
 	if err != nil {
 		return nil, fmt.Errorf(`error creating RecordInfo from xml: %v`, err.Error())
 	}
-	recordInfo := New()
+	recordInfo := &recordInfo{
+		fieldNames: map[string]int{},
+		blobLen:    0,
+	}
 	for index, field := range metaInfo.Fields {
 		switch field.Type {
 		case byteType:

@@ -19,9 +19,10 @@ func (plugin *PluginInput) Init(toolId int, config string) bool {
 }
 
 func (plugin *PluginInput) PushAllRecords(recordLimit int) bool {
-	info := recordinfo.New()
-	field := info.AddInt64Field(`RecordCount`, `Go Input`)
-	plugin.Output.Init(info)
+	generator := recordinfo.NewGenerator()
+	field := generator.AddInt64Field(`RecordCount`, `Go Input`)
+	info := generator.GenerateRecordInfo()
+	_ = plugin.Output.Init(info)
 
 	if api.GetInitVar(plugin.ToolId, api.UpdateOnly) == `True` {
 		return true
