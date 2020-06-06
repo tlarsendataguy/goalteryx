@@ -6,6 +6,8 @@ import (
 
 type FieldType byte
 
+// The integer constants let us use a list-based lookup rather than a map-based lookup.  List index
+// lookups are faster than maps, which can make a difference over large datasets.
 const (
 	Invalid      FieldType = 0
 	Bool         FieldType = 1
@@ -43,6 +45,7 @@ const (
 	spatialType      = `SpatialObj`
 )
 
+// Convert the integer constants to their string counterparts
 var fieldTypeMap = []string{
 	Invalid:      `invalid`,
 	Bool:         boolType,

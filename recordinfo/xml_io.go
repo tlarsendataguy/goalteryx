@@ -6,12 +6,15 @@ import (
 	"strconv"
 )
 
+// xmlMetaInfo is a non-exported struct used to convert the incoming record info XML into a usable data structure.
 type xmlMetaInfo struct {
 	XMLName    string      `xml:"MetaInfo"`
 	Connection string      `xml:"connection,attr"`
 	Fields     []*xmlField `xml:"RecordInfo>Field"`
 }
 
+// xmlField is a non-exported struct used to convert the incoming record info XML field tags into a usable
+// data structure.
 type xmlField struct {
 	Name   string `xml:"name,attr"`
 	Source string `xml:"source,attr"`
@@ -20,6 +23,7 @@ type xmlField struct {
 	Type   string `xml:"type,attr"`
 }
 
+// FromXml converts record info XML strings into a RecordInfo object.
 func FromXml(recordInfoXml string) (RecordInfo, error) {
 	var metaInfo xmlMetaInfo
 	err := xml.Unmarshal([]byte(recordInfoXml), &metaInfo)
@@ -100,6 +104,7 @@ func FromXml(recordInfoXml string) (RecordInfo, error) {
 	return recordInfo, nil
 }
 
+// ToXml generates an XML string of the RecordInfo object.
 func (info *recordInfo) ToXml(connection string) (string, error) {
 	fields := make([]*xmlField, 0)
 	for _, field := range info.fields {

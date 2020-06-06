@@ -1,3 +1,4 @@
+// Package output_connection provides a helper interface that manages output connections.
 package output_connection
 
 import "C"
@@ -9,6 +10,7 @@ import (
 	"unsafe"
 )
 
+// OutputConnection defines the lifecycle methods needed to manage output connections.
 type OutputConnection interface {
 	Add(connection *api.ConnectionInterfaceStruct)
 	Init(info recordinfo.RecordInfo) error
@@ -17,6 +19,8 @@ type OutputConnection interface {
 	Close()
 }
 
+// New generates a new OutputConnection for the specified tool ID and connection name.  It also reserves a
+// BrowseEverywhere anchor to allow for that capability in Designer.
 func New(toolId int, name string) OutputConnection {
 	browseEverywhereAnchorId := api.BrowseEverywhereReserveAnchor(toolId)
 	return &outputConnection{
@@ -28,6 +32,7 @@ func New(toolId int, name string) OutputConnection {
 	}
 }
 
+// outputConnection is the struct which implements OutputConnection.
 type outputConnection struct {
 	toolId                   int
 	name                     string
@@ -40,10 +45,13 @@ type outputConnection struct {
 	lastCountOutput          time.Time
 }
 
+// Add adds a connection to the list of connections.
 func (output *outputConnection) Add(connection *api.ConnectionInterfaceStruct) {
 	output.connections = append(output.connections, connection)
 }
 
+// Init initializes all output connection with the specified RecordInfo.  Any connections that fail to initialize
+// are removed and no longer managed.  BrowseEverywhere connections are also added using the anchor ID obtained in Init.
 func (output *outputConnection) Init(info recordinfo.RecordInfo) error {
 	output.recordInfo = info
 	output.lastCountOutput = time.Now()
@@ -73,6 +81,8 @@ func (output *outputConnection) Init(info recordinfo.RecordInfo) error {
 	return nil
 }
 
+// PushRecord pushes a record blob to all output connections.  Any output connections that return an error
+// are removed from the connections list and added to the finished connections list.
 func (output *outputConnection) PushRecord(record unsafe.Pointer) {
 	output.recordCount++
 	output.recordSize += output.recordInfo.TotalSize(record)
@@ -87,6 +97,7 @@ func (output *outputConnection) PushRecord(record unsafe.Pointer) {
 	}
 }
 
+// OutputRecordCount updates the engine with the number of records sent downstream.
 func (output *outputConnection) OutputRecordCount(final bool) {
 	if output.recordCount < 256 || output.recordCount%256 == 0 || final {
 		now := time.Now()
@@ -97,12 +108,15 @@ func (output *outputConnection) OutputRecordCount(final bool) {
 	}
 }
 
+// UpdateProgress calls UpdateProgress on all connections.
 func (output *outputConnection) UpdateProgress(percent float64) {
 	for _, connection := range output.connections {
 		api.OutputUpdateProgress(connection, percent)
 	}
 }
 
+// Close closes all open and finished connections, outputs the final record count, and tells the engine that this
+// tool is complete.
 func (output *outputConnection) Close() {
 	output.OutputRecordCount(true)
 	for _, connection := range append(output.connections, output.finishedConnections...) {

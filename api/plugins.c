@@ -1,12 +1,13 @@
 #include <stdlib.h>
-#include <stdio.h>
 #include "plugins.h"
 
 
 // Plugin methods
 
+// a reference to the engine provided to our plugins.
 struct EngineInterface *engine;
 
+// wires up the PluginInterface struct with the C functions below.  The C functions call into the Go layer.
 void c_configurePlugin(void * handle, struct PluginInterface * pluginInterface) {
     pluginInterface->handle = handle;
     pluginInterface->pPI_PushAllRecords = c_piPushAllRecords;
@@ -15,14 +16,18 @@ void c_configurePlugin(void * handle, struct PluginInterface * pluginInterface) 
     pluginInterface->pPI_Close = c_piClose;
 }
 
+// C entry point for PI_PushAllRecords.  Calls into Go.
 long c_piPushAllRecords(void * handle, __int64 nRecordLimit) {
     return go_piPushAllRecords(handle, nRecordLimit);
 }
 
+// C entry point for PI_Close.  Calls into Go.
 void c_piClose(void * handle, bool bHasErrors) {
     go_piClose(handle, bHasErrors);
 }
 
+// C entry point for PI_AddIncomingConnection.  Calls into Go.  If Go returns a PreSort XML string, call PreSort on
+// the engine.  Wire up the appropriate IncomingInterface struct with the relevant C II functions.
 long c_piAddIncomingConnection(void * handle, void * connectionType, void * connectionName, struct IncomingConnectionInterface * incomingInterface) {
     struct IncomingConnectionInfo *info = go_piAddIncomingConnection(handle, connectionType, connectionName);
 
@@ -44,10 +49,14 @@ long c_piAddIncomingConnection(void * handle, void * connectionType, void * conn
     return 1;
 }
 
+// C entry point for PI_AddOutgoingConnection.  Calls into Go.
 long c_piAddOutgoingConnection(void * handle, void * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt){
     return go_piAddOutgoingConnection(handle, pOutgoingConnectionName, pIncConnInt);
 }
 
+// Create the IncomingConnectionInfo struct which contains an IncomingInterface handle and a PreSort string.  Go calls
+// this function from go_piAddIncomingConnection and populates this struct.  This struct is then returned back to
+// c_piAddIncomingConnection.
 struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, void * presortString){
     struct IncomingConnectionInfo *info = malloc(sizeof(struct IncomingConnectionInfo));
     info->handle = handle;
@@ -55,6 +64,9 @@ struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, vo
     return info;
 }
 
+// Create the IncomingConnectionInfo struct which contains an IncomingInterface handle with no PreSort.  Go calls
+// this function from go_piAddIncomingConnection and populates this struct.  This struct is then returned back to
+// c_piAddIncomingConnection.
 struct IncomingConnectionInfo *newUnsortedIncomingConnectionInfo(void * handle){
     struct IncomingConnectionInfo *info = malloc(sizeof(struct IncomingConnectionInfo));
     info->handle = handle;
@@ -64,10 +76,14 @@ struct IncomingConnectionInfo *newUnsortedIncomingConnectionInfo(void * handle){
 
 // Incoming interface methods
 
+// We can have up to 1,000 incoming interfaces.  We store information about those interfaces in these variables.
+// buffers contains the 10-record buffer for each incoming interface we add.  iiFixedSizes contains the fixed size
+// of each incoming interface.  Both are accessed using the index-based handle defined in go_piAddIncomingConnection.
 int currentIiIndex = 0;
 struct IncomingRecordCache* buffers[1000];
 int iiFixedSizes[1000];
 
+// Used to generate an IncomingInterface struct for testing outside of Alteryx.
 struct IncomingConnectionInterface* newIi(void * iiHandle) {
     struct IncomingConnectionInterface *ptr;
     ptr = malloc(sizeof(struct IncomingConnectionInterface));
@@ -80,6 +96,7 @@ struct IncomingConnectionInterface* newIi(void * iiHandle) {
     return ptr;
 }
 
+// Generate a pointer to our incoming interface index handle.
 void * getIiIndex(){
     int* iiIndex = malloc(sizeof(int));
     *iiIndex = currentIiIndex++;
@@ -93,10 +110,13 @@ void saveIncomingInterfaceFixedSize(void * handle, int fixedSize) {
     iiFixedSizes[iiIndex] = fixedSize;
 }
 
+// C entry point for II_Init.  Calls into Go.
 long c_iiInit(void * handle, void * recordInfoIn) {
     return go_iiInit(handle, recordInfoIn);
 }
 
+// C entry point for II_PushRecord.  This function buffers records and only calls into Go when the buffer has filled.
+// Right now the buffer is fixed to 10 records.
 long c_iiPushRecord(void * handle, void * record) {
     int iiIndex = *((int*)handle);
     int fixedSize = iiFixedSizes[iiIndex];
@@ -122,10 +142,12 @@ long c_iiPushRecord(void * handle, void * record) {
     return 1;
 }
 
+// C entry point for II_UpdateProgress.  Calls into Go.
 void c_iiUpdateProgress(void * handle, double percent){
     go_iiUpdateProgress(handle, percent);
 }
 
+// C entry point for II_Close.  Calls into Go.
 void c_iiClose(void * handle){
     int iiIndex = *((int*)handle);
     struct IncomingRecordCache *buffer = buffers[iiIndex];
@@ -134,6 +156,7 @@ void c_iiClose(void * handle){
     go_iiClose(handle);
 }
 
+// C entry point for II_Free.  This frees the buffer.  We do not call into Go; Go should cleanup when Close is called.
 void c_iiFree(void * handle){
     int iiIndex = *((int*)handle);
     struct IncomingRecordCache *buffer = buffers[iiIndex];

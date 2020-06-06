@@ -264,6 +264,9 @@ func (info *recordInfo) getFieldInfo(fieldName string) (*fieldInfoEditor, error)
 	return info.fields[index], nil
 }
 
+// checkFieldName checks whether the provided field name already exists in the RecordInfo.  If it does,
+// the function appends the fieldname with '2' and checks again.  This happens until an unused name is found,
+// which is then returned to the caller.
 func (info *recordInfo) checkFieldName(name string) string {
 	_, exists := info.fieldNames[name]
 	for exists {
@@ -273,6 +276,7 @@ func (info *recordInfo) checkFieldName(name string) string {
 	return name
 }
 
+// Total size of a record blob is the fixed size plus 4 bytes for the variable length plus the variable length
 func (info *recordInfo) TotalSize(record unsafe.Pointer) int {
 	variable := int(*((*uint32)(unsafe.Pointer(uintptr(record) + info.fixedLen))))
 	return int(info.fixedLen) + 4 + variable
