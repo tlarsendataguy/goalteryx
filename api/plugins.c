@@ -30,6 +30,9 @@ void c_piClose(void * handle, bool bHasErrors) {
 // the engine.  Wire up the appropriate IncomingInterface struct with the relevant C II functions.
 long c_piAddIncomingConnection(void * handle, void * connectionType, void * connectionName, struct IncomingConnectionInterface * incomingInterface) {
     struct IncomingConnectionInfo *info = go_piAddIncomingConnection(handle, connectionType, connectionName);
+    if (!info) {
+        return 0;
+    }
 
     struct IncomingConnectionInterface *actualIncomingInterface;
     if (info->presortString) {

@@ -1,9 +1,14 @@
-long __declspec(dllexport) AlteryxGoPlugin(int nToolID,
+long __declspec(dllexport) PluginEntry(int nToolID,
 	void * pXmlProperties,
 	void *pEngineInterface,
 	void *r_pluginInterface);
 
-long __declspec(dllexport) AlteryxGoPluginInput(int nToolID,
+long __declspec(dllexport) PluginPresortEntry(int nToolID,
+	void * pXmlProperties,
+	void *pEngineInterface,
+	void *r_pluginInterface);
+
+long __declspec(dllexport) PluginInputEntry(int nToolID,
 	void * pXmlProperties,
 	void *pEngineInterface,
 	void *r_pluginInterface);

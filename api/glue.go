@@ -133,6 +133,9 @@ func go_piAddIncomingConnection(handle unsafe.Pointer, connectionType unsafe.Poi
 	goName := convert_strings.WideCToString(connectionName)
 	goType := convert_strings.WideCToString(connectionType)
 	goIncomingInterface, presortInfo := alteryxPlugin.AddIncomingConnection(goType, goName)
+	if goIncomingInterface == nil {
+		return nil
+	}
 	iiIndexHandle := C.getIiIndex()
 	iiIndex := int(*(*C.int)(iiIndexHandle))
 	incomingInterfaces[iiIndex] = goIncomingInterface
