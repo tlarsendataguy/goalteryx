@@ -24,6 +24,10 @@ func (plugin *PluginPresort) Init(toolId int, config string) bool {
 		api.OutputMessage(toolId, api.Error, err.Error())
 		return false
 	}
+	if c.Field == `` {
+		api.OutputMessage(toolId, api.Error, `'Field' was not provided.`)
+		return false
+	}
 	plugin.Field = c.Field
 	plugin.Output = output_connection.New(toolId, `Output`)
 	return true
