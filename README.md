@@ -45,7 +45,7 @@ package main
 */
 import "C"
 import (
-	"goalteryx/api"
+	"github.com/tlarsen7572/goalteryx/api"
 	"unsafe"
 )
 
