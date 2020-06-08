@@ -4,8 +4,8 @@ package output_connection
 import "C"
 import (
 	"fmt"
-	"goalteryx/api"
-	"goalteryx/recordinfo"
+	"github.com/tlarsen7572/goalteryx/api"
+	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"time"
 	"unsafe"
 )

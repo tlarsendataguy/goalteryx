@@ -1,10 +1,10 @@
 package main
 
 import (
-	"goalteryx/api"
-	"goalteryx/output_connection"
-	"goalteryx/presort"
-	"goalteryx/recordinfo"
+	"github.com/tlarsen7572/goalteryx/api"
+	"github.com/tlarsen7572/goalteryx/output_connection"
+	"github.com/tlarsen7572/goalteryx/presort"
+	"github.com/tlarsen7572/goalteryx/recordinfo"
 )
 
 type PluginInput struct {

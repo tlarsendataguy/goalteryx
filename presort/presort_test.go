@@ -1,7 +1,7 @@
 package presort_test
 
 import (
-	"goalteryx/presort"
+	"github.com/tlarsen7572/goalteryx/presort"
 	"testing"
 )
 

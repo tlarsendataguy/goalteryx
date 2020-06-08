@@ -3,7 +3,7 @@ package recordcopier
 
 import (
 	"fmt"
-	"goalteryx/recordinfo"
+	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"unsafe"
 )
 

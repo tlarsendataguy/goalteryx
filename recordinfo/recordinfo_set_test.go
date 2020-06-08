@@ -1,7 +1,7 @@
 package recordinfo_test
 
 import (
-	"goalteryx/recordinfo"
+	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"strings"
 	"testing"
 	"time"
@@ -67,10 +67,11 @@ func TestCachedRecords(t *testing.T) {
 }
 
 func TestSetLongVarDataFieldsAndGenerateRecord(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 
 	_ = recordInfo.SetIntField(`ByteField`, 1)
 	_ = recordInfo.SetStringField(`V_StringField`, strings.Repeat(`B`, 200))
@@ -88,10 +89,11 @@ func TestSetLongVarDataFieldsAndGenerateRecord(t *testing.T) {
 }
 
 func TestSetShortVarDataFieldsAndGenerateRecord(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 
 	_ = recordInfo.SetIntField(`ByteField`, 1)
 	_ = recordInfo.SetStringField(`V_StringField`, strings.Repeat(`B`, 100))
@@ -109,10 +111,11 @@ func TestSetShortVarDataFieldsAndGenerateRecord(t *testing.T) {
 }
 
 func TestSetTinyVarDataFieldsAndGenerateRecord(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 
 	_ = recordInfo.SetIntField(`ByteField`, 1)
 	_ = recordInfo.SetStringField(`V_StringField`, `B`)
@@ -130,10 +133,11 @@ func TestSetTinyVarDataFieldsAndGenerateRecord(t *testing.T) {
 }
 
 func TestSetEmptyVarDataFieldsAndGenerateRecord(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 
 	_ = recordInfo.SetIntField(`ByteField`, 1)
 	_ = recordInfo.SetStringField(`V_StringField`, ``)
@@ -151,10 +155,11 @@ func TestSetEmptyVarDataFieldsAndGenerateRecord(t *testing.T) {
 }
 
 func TestSetNullVarDataFieldsAndGenerateRecord(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 
 	_ = recordInfo.SetIntField(`ByteField`, 1)
 	_ = recordInfo.SetFieldNull(`V_StringField`)
@@ -172,8 +177,9 @@ func TestSetNullVarDataFieldsAndGenerateRecord(t *testing.T) {
 }
 
 func TestSetFixedLenFromRawBytes(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	recordInfo := generator.GenerateRecordInfo()
 
 	err := recordInfo.SetFromRawBytes(`ByteField`, []byte{4, 0})
 	if err != nil {
@@ -189,8 +195,9 @@ func TestSetFixedLenFromRawBytes(t *testing.T) {
 }
 
 func TestSetVarLenFromRawBytes(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 
 	err := recordInfo.SetFromRawBytes(`V_StringField`, []byte(`Hello world, how are you?`))
 	if err != nil {
@@ -206,20 +213,20 @@ func TestSetVarLenFromRawBytes(t *testing.T) {
 }
 
 func generateTestRecordInfo() recordinfo.RecordInfo {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddBoolField(`BoolField`, ``)
-	recordInfo.AddInt16Field(`Int16Field`, ``)
-	recordInfo.AddInt32Field(`Int32Field`, ``)
-	recordInfo.AddInt64Field(`Int64Field`, ``)
-	recordInfo.AddFixedDecimalField(`FixedDecimalField`, ``, 19, 2)
-	recordInfo.AddFloatField(`FloatField`, ``)
-	recordInfo.AddDoubleField(`DoubleField`, ``)
-	recordInfo.AddStringField(`StringField`, ``, 10)
-	recordInfo.AddWStringField(`WStringField`, ``, 5)
-	recordInfo.AddDateField(`DateField`, ``)
-	recordInfo.AddDateTimeField(`DateTimeField`, ``)
-	return recordInfo
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddBoolField(`BoolField`, ``)
+	generator.AddInt16Field(`Int16Field`, ``)
+	generator.AddInt32Field(`Int32Field`, ``)
+	generator.AddInt64Field(`Int64Field`, ``)
+	generator.AddFixedDecimalField(`FixedDecimalField`, ``, 19, 2)
+	generator.AddFloatField(`FloatField`, ``)
+	generator.AddDoubleField(`DoubleField`, ``)
+	generator.AddStringField(`StringField`, ``, 10)
+	generator.AddWStringField(`WStringField`, ``, 5)
+	generator.AddDateField(`DateField`, ``)
+	generator.AddDateTimeField(`DateTimeField`, ``)
+	return generator.GenerateRecordInfo()
 }
 
 func setRecordInfoTestData(recordInfo recordinfo.RecordInfo) {

@@ -1,7 +1,7 @@
 package recordinfo_test
 
 import (
-	"goalteryx/recordinfo"
+	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"strings"
 	"testing"
 	"time"
@@ -230,10 +230,11 @@ func TestCorrectlyRetrieveDateTimeValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveV_StringLongValue(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, varFieldLongRecord)
 	if err != nil {
@@ -248,10 +249,11 @@ func TestCorrectlyRetrieveV_StringLongValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveV_WStringLongValue(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_WStringField`, varFieldLongRecord)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
@@ -265,10 +267,11 @@ func TestCorrectlyRetrieveV_WStringLongValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveVarStringsNull(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_WStringField`, varFieldNullRecord)
 	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil, `error retrieving null v_wstring:`)
@@ -278,10 +281,11 @@ func TestCorrectlyRetrieveVarStringsNull(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveVarStringsEmpty(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_WStringField`, varFieldEmptyStrings)
 	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil, `error retrieving empty v_wstring:`)
@@ -291,10 +295,11 @@ func TestCorrectlyRetrieveVarStringsEmpty(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveV_StringShortValue(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, varFieldShortRecord)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
@@ -308,10 +313,11 @@ func TestCorrectlyRetrieveV_StringShortValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveV_WStringShortValue(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_WStringField`, varFieldShortRecord)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
@@ -325,10 +331,11 @@ func TestCorrectlyRetrieveV_WStringShortValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveVarTinyValue(t *testing.T) {
-	recordInfo := recordinfo.New()
-	recordInfo.AddByteField(`ByteField`, ``)
-	recordInfo.AddV_WStringField(`V_WStringField`, ``, 250)
-	recordInfo.AddV_StringField(`V_StringField`, ``, 250)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`ByteField`, ``)
+	generator.AddV_WStringField(`V_WStringField`, ``, 250)
+	generator.AddV_StringField(`V_StringField`, ``, 250)
+	recordInfo := generator.GenerateRecordInfo()
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, varFieldTinyRecord)
 	checkExpectedGetValueFrom(t, value, `B`, isNull, false, err, nil, `error retrieving tiny v_string:`)

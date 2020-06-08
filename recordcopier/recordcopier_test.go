@@ -1,8 +1,8 @@
 package recordcopier_test
 
 import (
-	"goalteryx/recordcopier"
-	"goalteryx/recordinfo"
+	"github.com/tlarsen7572/goalteryx/recordcopier"
+	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"testing"
 )
 
@@ -79,13 +79,13 @@ func TestRecordCopierInvalidIndices(t *testing.T) {
 }
 
 func generateRecordInfos() (recordinfo.RecordInfo, recordinfo.RecordInfo) {
-	info1 := recordinfo.New()
+	info1 := recordinfo.NewGenerator()
 	info1.AddV_WStringField(`Some String`, ``, 1000)
 	info1.AddDoubleField(`Some Number`, ``)
 
-	info2 := recordinfo.New()
+	info2 := recordinfo.NewGenerator()
 	info2.AddDoubleField(`Number`, ``)
 	info2.AddV_WStringField(`String`, ``, 1000)
 
-	return info1, info2
+	return info1.GenerateRecordInfo(), info2.GenerateRecordInfo()
 }

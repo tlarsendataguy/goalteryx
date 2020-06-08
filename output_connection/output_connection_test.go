@@ -1,9 +1,9 @@
 package output_connection_test
 
 import (
-	"goalteryx/api"
-	"goalteryx/output_connection"
-	"goalteryx/recordinfo"
+	"github.com/tlarsen7572/goalteryx/api"
+	"github.com/tlarsen7572/goalteryx/output_connection"
+	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"testing"
 	"unsafe"
 )
@@ -20,8 +20,9 @@ func TestPassAndFailInit(t *testing.T) {
 	connection.Add(api.NewConnectionInterfaceStruct(iiInitOk))
 	connection.Add(api.NewConnectionInterfaceStruct(iiInitFail))
 
-	info := recordinfo.New()
-	info.AddByteField(`SomeByte`, ``)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`SomeByte`, ``)
+	info := generator.GenerateRecordInfo()
 	err := connection.Init(info)
 	if err == nil {
 		t.Fatalf(`expected error but got none`)
@@ -56,8 +57,9 @@ func TestPassAndFailPushRecord(t *testing.T) {
 	connection.Add(api.NewConnectionInterfaceStruct(iiPushOk))
 	connection.Add(api.NewConnectionInterfaceStruct(iiPushFail))
 
-	info := recordinfo.New()
-	info.AddByteField(`SomeByte`, ``)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`SomeByte`, ``)
+	info := generator.GenerateRecordInfo()
 	err := connection.Init(info)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
@@ -88,8 +90,9 @@ func TestUpdateProgress(t *testing.T) {
 	connection.Add(api.NewConnectionInterfaceStruct(iiPush1))
 	connection.Add(api.NewConnectionInterfaceStruct(iiPush2))
 
-	info := recordinfo.New()
-	info.AddByteField(`SomeByte`, ``)
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`SomeByte`, ``)
+	info := generator.GenerateRecordInfo()
 	err := connection.Init(info)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())

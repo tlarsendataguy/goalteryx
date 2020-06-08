@@ -1,13 +1,14 @@
 package recordinfo_test
 
 import (
-	"goalteryx/recordinfo"
+	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"testing"
 )
 
 func TestTotalSizeVarField(t *testing.T) {
-	info := recordinfo.New()
-	info.AddV_StringField(`TestVarField`, ``, 100)
+	generator := recordinfo.NewGenerator()
+	generator.AddV_StringField(`TestVarField`, ``, 100)
+	info := generator.GenerateRecordInfo()
 	_ = info.SetStringField(`TestVarField`, `Hello world`)
 	record, _ := info.GenerateRecord()
 
@@ -18,8 +19,9 @@ func TestTotalSizeVarField(t *testing.T) {
 }
 
 func TestTotalSizeFixedField(t *testing.T) {
-	info := recordinfo.New()
-	info.AddStringField(`TestFixedField`, ``, 14)
+	generator := recordinfo.NewGenerator()
+	generator.AddStringField(`TestFixedField`, ``, 14)
+	info := generator.GenerateRecordInfo()
 	_ = info.SetStringField(`TestFixedField`, `Hello world`)
 	record, _ := info.GenerateRecord()
 

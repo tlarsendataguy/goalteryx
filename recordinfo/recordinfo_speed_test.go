@@ -2,7 +2,7 @@ package recordinfo_test
 
 import (
 	"encoding/json"
-	"goalteryx/recordinfo"
+	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"strings"
 	"testing"
 	"time"

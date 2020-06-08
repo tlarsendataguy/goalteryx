@@ -10,6 +10,10 @@ type RecordInfo interface {
 	// NumFields return the number of fields contained in the RecordInfo.
 	NumFields() int
 
+	// GetFieldByIndex returns field information at the specified index.  If an out-of-range index is specified,
+	// an error is returned with an empty FieldInfo struct.
+	GetFieldByIndex(index int) (FieldInfo, error)
+
 	// GetIntValueFrom obtains a value from the specific integer field in the record.  It can only be called on
 	// Byte, Int16, Int32, and Int64 fields.  All other fields will return an error.
 	GetIntValueFrom(fieldName string, record unsafe.Pointer) (value int, isNull bool, err error)

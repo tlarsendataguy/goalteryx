@@ -2,7 +2,7 @@ package main_test
 
 import (
 	"encoding/xml"
-	implementation "goalteryx/implementation_example"
+	implementation "github.com/tlarsen7572/goalteryx/implementation_example"
 	"testing"
 )
 
