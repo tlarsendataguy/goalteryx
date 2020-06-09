@@ -4,6 +4,13 @@
 
 // Plugin methods
 
+// We can have up to 1,000 incoming interfaces.  We store information about those interfaces in these variables.
+// buffers contains the 10-record buffer for each incoming interface we add.  iiFixedSizes contains the fixed size
+// of each incoming interface.  Both are accessed using the index-based handle defined in go_piAddIncomingConnection.
+int currentIiIndex = 0;
+struct IncomingRecordCache* buffers[1000];
+int iiFixedSizes[1000];
+
 // a reference to the engine provided to our plugins.
 struct EngineInterface *engine;
 
@@ -44,7 +51,21 @@ long c_piAddIncomingConnection(void * handle, void * connectionType, void * conn
 
     actualIncomingInterface->handle = info->handle;
     actualIncomingInterface->pII_Init = c_iiInit;
-    actualIncomingInterface->pII_PushRecord = c_iiPushRecord;
+
+    int cacheSize = info->cacheSize;
+    if (cacheSize == 0) {
+        actualIncomingInterface->pII_PushRecord = c_iiPushRecord;
+    } else {
+        actualIncomingInterface->pII_PushRecord = c_iiPushRecordCache;
+        struct IncomingRecordCache* cache = malloc(sizeof(struct IncomingRecordCache));
+        cache->recordsInBuffer = cacheSize;
+        cache->buffer = malloc(sizeof(void*)*cacheSize);
+        cache->bufferSizes = malloc(sizeof(int)*cacheSize);
+
+        int iiIndex = *((int*)info->handle);
+        buffers[iiIndex] = cache;
+    }
+
     actualIncomingInterface->pII_UpdateProgress = c_iiUpdateProgress;
     actualIncomingInterface->pII_Close = c_iiClose;
     actualIncomingInterface->pII_Free = c_iiFree;
@@ -60,7 +81,7 @@ long c_piAddOutgoingConnection(void * handle, void * pOutgoingConnectionName, st
 // Create the IncomingConnectionInfo struct which contains an IncomingInterface handle and a PreSort string.  Go calls
 // this function from go_piAddIncomingConnection and populates this struct.  This struct is then returned back to
 // c_piAddIncomingConnection.
-struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, void * presortString){
+struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, void * presortString, int cacheSize){
     struct IncomingConnectionInfo *info = malloc(sizeof(struct IncomingConnectionInfo));
     info->handle = handle;
     info->presortString = presortString;
@@ -70,7 +91,7 @@ struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, vo
 // Create the IncomingConnectionInfo struct which contains an IncomingInterface handle with no PreSort.  Go calls
 // this function from go_piAddIncomingConnection and populates this struct.  This struct is then returned back to
 // c_piAddIncomingConnection.
-struct IncomingConnectionInfo *newUnsortedIncomingConnectionInfo(void * handle){
+struct IncomingConnectionInfo *newUnsortedIncomingConnectionInfo(void * handle, int cacheSize){
     struct IncomingConnectionInfo *info = malloc(sizeof(struct IncomingConnectionInfo));
     info->handle = handle;
     return info;
@@ -78,13 +99,6 @@ struct IncomingConnectionInfo *newUnsortedIncomingConnectionInfo(void * handle){
 
 
 // Incoming interface methods
-
-// We can have up to 1,000 incoming interfaces.  We store information about those interfaces in these variables.
-// buffers contains the 10-record buffer for each incoming interface we add.  iiFixedSizes contains the fixed size
-// of each incoming interface.  Both are accessed using the index-based handle defined in go_piAddIncomingConnection.
-int currentIiIndex = 0;
-struct IncomingRecordCache* buffers[1000];
-int iiFixedSizes[1000];
 
 // Used to generate an IncomingInterface struct for testing outside of Alteryx.
 struct IncomingConnectionInterface* newIi(void * iiHandle) {
@@ -108,8 +122,6 @@ void * getIiIndex(){
 
 void saveIncomingInterfaceFixedSize(void * handle, int fixedSize) {
     int iiIndex = *((int*)handle);
-    struct IncomingRecordCache* cache = malloc(sizeof(struct IncomingRecordCache));
-    buffers[iiIndex] = cache;
     iiFixedSizes[iiIndex] = fixedSize;
 }
 
@@ -119,30 +131,35 @@ long c_iiInit(void * handle, void * recordInfoIn) {
 }
 
 // C entry point for II_PushRecord.  This function buffers records and only calls into Go when the buffer has filled.
-// Right now the buffer is fixed to 10 records.
-long c_iiPushRecord(void * handle, void * record) {
+long c_iiPushRecordCache(void * handle, void * record) {
     int iiIndex = *((int*)handle);
     int fixedSize = iiFixedSizes[iiIndex];
     struct IncomingRecordCache *buffer = buffers[iiIndex];
-    if (buffer->currentBufferIndex == 10) {
-        go_iiPushRecordCache(handle, &(buffer->buffer), buffer->currentBufferIndex);
+    if (buffer->currentBufferIndex == buffer->recordsInBuffer) {
+        go_iiPushRecordCache(handle, buffer->buffer, buffer->currentBufferIndex);
         buffer->currentBufferIndex = 0;
     }
 
     int varSize = *(int*)(record+fixedSize);
     int totalSize = fixedSize + 4 + varSize;
-    int bufferSize = buffer->bufferSizes[buffer->currentBufferIndex];
+    int bufferSize = (*buffer->bufferSizes)[buffer->currentBufferIndex];
     if (totalSize > bufferSize) {
         if (bufferSize > 0) {
-            free(buffer->buffer[buffer->currentBufferIndex]);
+            free((*buffer->buffer)[buffer->currentBufferIndex]);
         }
-        buffer->buffer[buffer->currentBufferIndex] = malloc(totalSize);
-        buffer->bufferSizes[buffer->currentBufferIndex] = totalSize;
+        (*buffer->buffer)[buffer->currentBufferIndex] = malloc(totalSize);
+        (*buffer->bufferSizes)[buffer->currentBufferIndex] = totalSize;
     }
-    memcpy(buffer->buffer[buffer->currentBufferIndex], record, totalSize);
+    memcpy((*buffer->buffer)[buffer->currentBufferIndex], record, totalSize);
     buffer->currentBufferIndex++;
     buffer->recordCount++;
     return 1;
+}
+
+// C entry point for directly pushing records to Go, without a buffer.  Certain classes of tools must receive records
+// immediately rather than wait for the cache to fill.
+long c_iiPushRecord(void * handle, void * record) {
+    return go_iiPushRecord(handle, record);
 }
 
 // C entry point for II_UpdateProgress.  Calls into Go.
@@ -154,8 +171,10 @@ void c_iiUpdateProgress(void * handle, double percent){
 void c_iiClose(void * handle){
     int iiIndex = *((int*)handle);
     struct IncomingRecordCache *buffer = buffers[iiIndex];
-    go_iiPushRecordCache(handle, &(buffer->buffer), buffer->currentBufferIndex);
-    buffer->currentBufferIndex = 0;
+    if (buffer) {
+        go_iiPushRecordCache(handle, buffer->buffer, buffer->currentBufferIndex);
+        buffer->currentBufferIndex = 0;
+    }
     go_iiClose(handle);
 }
 
@@ -164,16 +183,20 @@ void c_iiFree(void * handle){
     int iiIndex = *((int*)handle);
     struct IncomingRecordCache *buffer = buffers[iiIndex];
 
-    int ceiling = 10;
-    if (buffer->recordCount < 10) {
-        ceiling = buffer->recordCount;
-    }
+    if (buffer){
+        int ceiling = buffer->recordsInBuffer;
+        if (buffer->recordCount < ceiling) {
+            ceiling = buffer->recordCount;
+        }
 
-    for (int i = 0; i < ceiling; i++) {
-        free(buffer->buffer[i]);
-    }
+        for (int i = 0; i < ceiling; i++) {
+            free((*buffer->buffer)[i]);
+        }
 
-    free(buffer);
+        free(buffer->buffer);
+        free(buffer->bufferSizes);
+        free(buffer);
+    }
     free(handle);
 }
 

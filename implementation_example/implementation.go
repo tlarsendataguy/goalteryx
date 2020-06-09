@@ -29,6 +29,12 @@ func PluginInputEntry(toolId C.int, xmlProperties unsafe.Pointer, engineInterfac
 	return C.long(api.ConfigurePlugin(plugin, int(toolId), xmlProperties, engineInterface, pluginInterface))
 }
 
+//export PluginNoCacheEntry
+func PluginNoCacheEntry(toolId C.int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) C.long {
+	plugin := &PluginNoCache{}
+	return C.long(api.ConfigurePlugin(plugin, int(toolId), xmlProperties, engineInterface, pluginInterface))
+}
+
 type ConfigXml struct {
 	Field string `xml:"Field"`
 }

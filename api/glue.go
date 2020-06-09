@@ -37,7 +37,9 @@ type Plugin interface {
 	// Close is called when the upstream tools are done sending our plugin data.
 	Close(hasErrors bool)
 
-	// AddIncomingConnection is called when an upstream tool is being connected to our tool.
+	// AddIncomingConnection is called when an upstream tool is being connected to our tool.  The plugin should
+	// return an IncomingInterface, optional presort info, and the desired cache size.  If presorting should not
+	// be done, return a nil PresortInfo pointer.
 	AddIncomingConnection(connectionType string, connectionName string) (IncomingInterface, *presort.PresortInfo)
 
 	// AddOutgoingConnection is called when our tool is being connected to a downstream tool.
@@ -60,6 +62,14 @@ type IncomingInterface interface {
 
 	// Close is called when an upstream tool is finished sending us data.
 	Close()
+
+	// CacheSize is called when determining how to set up the cache of incoming records.  A good default value of 10
+	// provides a decent compromise between performance and memory consumption.  A cache size of 0 disables the cache
+	// and allows records to pass to the tool as soon as they are received.  Disabling the cache should only be done
+	// for special tools that must receive every record as it arrives (such as realtime or streaming analytic tools).
+	// There is a significant performance penalty for disabling the cache (up to 5 microseconds per record) as of
+	// Go 1.14.3.
+	CacheSize() int
 }
 
 // ConnectionInterfaceStruct is a wrapper around the C function pointer struct for Incoming Interfaces.
@@ -136,15 +146,18 @@ func go_piAddIncomingConnection(handle unsafe.Pointer, connectionType unsafe.Poi
 	if goIncomingInterface == nil {
 		return nil
 	}
+
 	iiIndexHandle := C.getIiIndex()
 	iiIndex := int(*(*C.int)(iiIndexHandle))
+	OutputMessage(alteryxPlugin.GetToolId(), Info, fmt.Sprintf(`iiIndex: %v`, iiIndex))
 	incomingInterfaces[iiIndex] = goIncomingInterface
+	cacheSize := goIncomingInterface.CacheSize()
 	if presortInfo == nil {
-		return C.newUnsortedIncomingConnectionInfo(iiIndexHandle)
+		return C.newUnsortedIncomingConnectionInfo(iiIndexHandle, C.int(cacheSize))
 	}
 	presortInfoXml, _ := presortInfo.ToXml()
 	cPresortInfoXml, _ := convert_strings.StringToWideC(presortInfoXml)
-	return C.newSortedIncomingConnectionInfo(iiIndexHandle, cPresortInfoXml)
+	return C.newSortedIncomingConnectionInfo(iiIndexHandle, cPresortInfoXml, C.int(cacheSize))
 }
 
 //export go_piAddOutgoingConnection
@@ -191,6 +204,21 @@ func go_iiPushRecordCache(handle unsafe.Pointer, cache unsafe.Pointer, cacheSize
 		}
 	}
 	return C.long(1)
+}
+
+//export go_iiPushRecord
+// go_iiPushRecord pushes records directly to a tool, without going through a cache.  This method is used for tools
+// that declare a buffer size of 0.  There is a significant overhead (about 5 microseconds per call, as of Go 1.14)
+// on this call, so it should not be used for most tools.  Only tools that must process realtime data or otherwise
+// must handle every record as it arrives should use this endpoint.  If the overhead of the go runtime drops to a
+// more reasonable level (a few hundred nanoseconds, max) in the future, the cache can be removed and this can
+// become the only push record call.
+func go_iiPushRecord(handle unsafe.Pointer, record unsafe.Pointer) C.long {
+	incomingInterface := getIncomingInterfaceFromHandle(handle)
+	if incomingInterface.PushRecord(record) {
+		return C.long(1)
+	}
+	return C.long(0)
 }
 
 //export go_iiUpdateProgress

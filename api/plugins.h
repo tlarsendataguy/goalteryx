@@ -99,6 +99,7 @@ struct PreSortConnectionInterface;
 struct IncomingConnectionInfo {
     void *handle;
     void *presortString;
+    int  cacheSize;
 };
 void c_configurePlugin(void * handle, struct PluginInterface * pluginInterface);
 long c_piPushAllRecords(void * handle, __int64 nRecordLimit);
@@ -109,24 +110,27 @@ long c_piAddIncomingConnection(void * handle, void * connectionType, void * conn
 struct IncomingConnectionInfo *go_piAddIncomingConnection(void * handle, void * connectionType, void * connectionName);
 long c_piAddOutgoingConnection(void * handle, void * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt);
 long go_piAddOutgoingConnection(void * handle, void * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt);
-struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, void * presortString);
-struct IncomingConnectionInfo *newUnsortedIncomingConnectionInfo(void * handle);
+struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, void * presortString, int cacheSize);
+struct IncomingConnectionInfo *newUnsortedIncomingConnectionInfo(void * handle, int cacheSize);
 
 // Incoming interface methods
 struct IncomingRecordCache
 {
-    void*      buffer[10];
-    int        bufferSizes[10];
+    void*      (*buffer)[];
+    int        (*bufferSizes)[];
     int        currentBufferIndex;
     int        recordCount;
+    int        recordsInBuffer;
 };
 struct IncomingConnectionInterface* newIi(void * iiHandle);
 void * getIiIndex();
 void saveIncomingInterfaceFixedSize(void * handle, int fixedSize);
 long c_iiInit(void * handle, void * recordInfoIn);
 long go_iiInit(void * handle, void * recordInfoIn);
+long c_iiPushRecordCache(void * handle, void * record);
 long c_iiPushRecord(void * handle, void * record);
 long go_iiPushRecordCache(void * handle, void * cache, int cacheSize);
+long go_iiPushRecord(void * handle, void * record);
 void c_iiUpdateProgress(void * handle, double percent);
 void go_iiUpdateProgress(void * handle, double percent);
 void c_iiClose(void * handle);

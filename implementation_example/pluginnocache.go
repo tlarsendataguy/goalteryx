@@ -9,44 +9,44 @@ import (
 	"unsafe"
 )
 
-type Plugin struct {
+type PluginNoCache struct {
 	ToolId int
 	Output output_connection.OutputConnection
 }
 
-func (plugin *Plugin) Init(toolId int, config string) bool {
+func (plugin *PluginNoCache) Init(toolId int, config string) bool {
 	plugin.ToolId = toolId
 	plugin.Output = output_connection.New(toolId, `Output`)
 	return true
 }
 
-func (plugin *Plugin) PushAllRecords(recordLimit int) bool {
+func (plugin *PluginNoCache) PushAllRecords(recordLimit int) bool {
 	return false
 }
 
-func (plugin *Plugin) Close(hasErrors bool) {
+func (plugin *PluginNoCache) Close(hasErrors bool) {
 }
 
-func (plugin *Plugin) AddIncomingConnection(connectionType string, connectionName string) (api.IncomingInterface, *presort.PresortInfo) {
-	return &PluginIncomingInterface{Parent: plugin}, nil
+func (plugin *PluginNoCache) AddIncomingConnection(connectionType string, connectionName string) (api.IncomingInterface, *presort.PresortInfo) {
+	return &PluginNoCacheIncomingInterface{Parent: plugin}, nil
 }
 
-func (plugin *Plugin) AddOutgoingConnection(connectionName string, connectionInterface *api.ConnectionInterfaceStruct) bool {
+func (plugin *PluginNoCache) AddOutgoingConnection(connectionName string, connectionInterface *api.ConnectionInterfaceStruct) bool {
 	plugin.Output.Add(connectionInterface)
 	return true
 }
 
-func (plugin *Plugin) GetToolId() int {
+func (plugin *PluginNoCache) GetToolId() int {
 	return plugin.ToolId
 }
 
-type PluginIncomingInterface struct {
-	Parent *Plugin
+type PluginNoCacheIncomingInterface struct {
+	Parent *PluginNoCache
 	inInfo recordinfo.RecordInfo
 	copier *recordcopier.RecordCopier
 }
 
-func (ii *PluginIncomingInterface) Init(recordInfoIn string) bool {
+func (ii *PluginNoCacheIncomingInterface) Init(recordInfoIn string) bool {
 	var err error
 	ii.inInfo, err = recordinfo.FromXml(recordInfoIn)
 	if err != nil {
@@ -71,7 +71,7 @@ func (ii *PluginIncomingInterface) Init(recordInfoIn string) bool {
 	return true
 }
 
-func (ii *PluginIncomingInterface) PushRecord(record unsafe.Pointer) bool {
+func (ii *PluginNoCacheIncomingInterface) PushRecord(record unsafe.Pointer) bool {
 	err := ii.copier.Copy(record)
 	if err != nil {
 		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
@@ -87,15 +87,15 @@ func (ii *PluginIncomingInterface) PushRecord(record unsafe.Pointer) bool {
 	return true
 }
 
-func (ii *PluginIncomingInterface) UpdateProgress(percent float64) {
+func (ii *PluginNoCacheIncomingInterface) UpdateProgress(percent float64) {
 	api.OutputToolProgress(ii.Parent.ToolId, percent)
 	ii.Parent.Output.UpdateProgress(percent)
 }
 
-func (ii *PluginIncomingInterface) Close() {
+func (ii *PluginNoCacheIncomingInterface) Close() {
 	ii.Parent.Output.Close()
 }
 
-func (ii *PluginIncomingInterface) CacheSize() int {
-	return 10
+func (ii *PluginNoCacheIncomingInterface) CacheSize() int {
+	return 0
 }

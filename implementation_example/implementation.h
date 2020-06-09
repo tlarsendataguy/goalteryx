@@ -12,3 +12,8 @@ long __declspec(dllexport) PluginInputEntry(int nToolID,
 	void * pXmlProperties,
 	void *pEngineInterface,
 	void *r_pluginInterface);
+
+long __declspec(dllexport) PluginNoCacheEntry(int nToolID,
+	void * pXmlProperties,
+	void *pEngineInterface,
+	void *r_pluginInterface);

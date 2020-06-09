@@ -117,3 +117,7 @@ func (ii *PluginPresortIncomingInterface) UpdateProgress(percent float64) {
 func (ii *PluginPresortIncomingInterface) Close() {
 	ii.Parent.Output.Close()
 }
+
+func (ii *PluginPresortIncomingInterface) CacheSize() int {
+	return 10
+}
