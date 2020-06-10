@@ -1,11 +1,10 @@
 #include <stdlib.h>
 #include "plugins.h"
 
-
 // Plugin methods
 
 // We can have up to 1,000 incoming interfaces.  We store information about those interfaces in these variables.
-// buffers contains the 10-record buffer for each incoming interface we add.  iiFixedSizes contains the fixed size
+// buffers contains the buffer for each incoming interface we add.  iiFixedSizes contains the fixed size
 // of each incoming interface.  Both are accessed using the index-based handle defined in go_piAddIncomingConnection.
 int currentIiIndex = 0;
 struct IncomingRecordCache* buffers[1000];
@@ -61,6 +60,10 @@ long c_piAddIncomingConnection(void * handle, void * connectionType, void * conn
         cache->recordsInBuffer = cacheSize;
         cache->buffer = malloc(sizeof(void*)*cacheSize);
         cache->bufferSizes = malloc(sizeof(int)*cacheSize);
+        for (int i = 0; i < cacheSize; i++) {
+            (*cache->bufferSizes)[i] = 0;
+            (*cache->buffer)[i] = 0;
+        }
 
         int iiIndex = *((int*)info->handle);
         buffers[iiIndex] = cache;
@@ -70,6 +73,7 @@ long c_piAddIncomingConnection(void * handle, void * connectionType, void * conn
     actualIncomingInterface->pII_Close = c_iiClose;
     actualIncomingInterface->pII_Free = c_iiFree;
     free(info);
+
     return 1;
 }
 
@@ -85,6 +89,7 @@ struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, vo
     struct IncomingConnectionInfo *info = malloc(sizeof(struct IncomingConnectionInfo));
     info->handle = handle;
     info->presortString = presortString;
+    info->cacheSize = cacheSize;
     return info;
 }
 
@@ -94,6 +99,7 @@ struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, vo
 struct IncomingConnectionInfo *newUnsortedIncomingConnectionInfo(void * handle, int cacheSize){
     struct IncomingConnectionInfo *info = malloc(sizeof(struct IncomingConnectionInfo));
     info->handle = handle;
+    info->cacheSize = cacheSize;
     return info;
 }
 
@@ -143,6 +149,7 @@ long c_iiPushRecordCache(void * handle, void * record) {
     int varSize = *(int*)(record+fixedSize);
     int totalSize = fixedSize + 4 + varSize;
     int bufferSize = (*buffer->bufferSizes)[buffer->currentBufferIndex];
+
     if (totalSize > bufferSize) {
         if (bufferSize > 0) {
             free((*buffer->buffer)[buffer->currentBufferIndex]);
@@ -153,6 +160,7 @@ long c_iiPushRecordCache(void * handle, void * record) {
     memcpy((*buffer->buffer)[buffer->currentBufferIndex], record, totalSize);
     buffer->currentBufferIndex++;
     buffer->recordCount++;
+
     return 1;
 }
 

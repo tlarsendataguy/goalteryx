@@ -128,6 +128,12 @@ Close()
 
 Close is called when an upstream tool is finished sending us data.
 
+```go
+CacheSize() int
+```
+
+CacheSize is called when determining how to set up the cache of incoming records.  A good default value of 10 provides a decent compromise between performance and memory consumption.  A cache size of 0 disables the cache and allows records to pass to the tool as soon as they are received.  Disabling the cache should only be done for special tools that must receive every record as it arrives (such as realtime or streaming analytic tools). There is a significant performance penalty for disabling the cache (up to 5 microseconds per record) as of Go 1.14.3.
+
 #### recordinfo.RecordInfo and recordinfo.Generator
 
 Use `recordinfo.Generator` to build up recordinfo objects.  Generators can be created empty:
