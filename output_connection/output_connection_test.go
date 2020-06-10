@@ -146,6 +146,6 @@ func (i *IiTestStruct) Close() {
 	i.IsClosed = true
 }
 
-func (i *IiTestStruct) Free() {
-	return
+func (i *IiTestStruct) CacheSize() int {
+	return 10
 }
