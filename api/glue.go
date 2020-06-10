@@ -149,7 +149,6 @@ func go_piAddIncomingConnection(handle unsafe.Pointer, connectionType unsafe.Poi
 
 	iiIndexHandle := C.getIiIndex()
 	iiIndex := int(*(*C.int)(iiIndexHandle))
-	OutputMessage(alteryxPlugin.GetToolId(), Info, fmt.Sprintf(`iiIndex: %v`, iiIndex))
 	incomingInterfaces[iiIndex] = goIncomingInterface
 	cacheSize := goIncomingInterface.CacheSize()
 	if presortInfo == nil {
