@@ -212,6 +212,150 @@ func TestSetVarLenFromRawBytes(t *testing.T) {
 	checkExpectedGetValueFrom(t, value, `Hello world, how are you?`, isNull, false, err, nil, `error setting raw bytes:`)
 }
 
+func TestSetStringOfSmallerLength(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddStringField(`StringField`, ``, 100)
+	recordInfo := generator.GenerateRecordInfo()
+
+	_ = recordInfo.SetStringField(`StringField`, `Start`)
+	record, _ := recordInfo.GenerateRecord()
+
+	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `Start` {
+		t.Fatalf(`expected 'Start' but got '%v'`, value)
+	}
+
+	_ = recordInfo.SetStringField(`StringField`, `End`)
+	record, _ = recordInfo.GenerateRecord()
+
+	value, _, _ = recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `End` {
+		t.Fatalf(`expected 'End' but got '%v'`, value)
+	}
+}
+
+func TestSetV_StringOfSmallerLength(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddV_StringField(`StringField`, ``, 100)
+	recordInfo := generator.GenerateRecordInfo()
+
+	_ = recordInfo.SetStringField(`StringField`, `Start`)
+	record, _ := recordInfo.GenerateRecord()
+
+	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `Start` {
+		t.Fatalf(`expected 'Start' but got '%v'`, value)
+	}
+
+	_ = recordInfo.SetStringField(`StringField`, `End`)
+	record, _ = recordInfo.GenerateRecord()
+
+	value, _, _ = recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `End` {
+		t.Fatalf(`expected 'End' but got '%v'`, value)
+	}
+}
+
+func TestSetWStringOfSmallerLength(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddWStringField(`StringField`, ``, 100)
+	recordInfo := generator.GenerateRecordInfo()
+
+	_ = recordInfo.SetStringField(`StringField`, `Start`)
+	record, _ := recordInfo.GenerateRecord()
+
+	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `Start` {
+		t.Fatalf(`expected 'Start' but got '%v'`, value)
+	}
+
+	_ = recordInfo.SetStringField(`StringField`, `End`)
+	record, _ = recordInfo.GenerateRecord()
+
+	value, _, _ = recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `End` {
+		t.Fatalf(`expected 'End' but got '%v'`, value)
+	}
+}
+
+func TestSetV_WStringOfSmallerLength(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddV_WStringField(`StringField`, ``, 100)
+	recordInfo := generator.GenerateRecordInfo()
+
+	_ = recordInfo.SetStringField(`StringField`, `Start`)
+	record, _ := recordInfo.GenerateRecord()
+
+	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `Start` {
+		t.Fatalf(`expected 'Start' but got '%v'`, value)
+	}
+
+	_ = recordInfo.SetStringField(`StringField`, `End`)
+	record, _ = recordInfo.GenerateRecord()
+
+	value, _, _ = recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `End` {
+		t.Fatalf(`expected 'End' but got '%v'`, value)
+	}
+}
+
+func TestSetTruncatedString(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddStringField(`StringField`, ``, 2)
+	recordInfo := generator.GenerateRecordInfo()
+
+	_ = recordInfo.SetStringField(`StringField`, `Start`)
+	record, _ := recordInfo.GenerateRecord()
+
+	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `St` {
+		t.Fatalf(`expected 'St' but got '%v'`, value)
+	}
+}
+
+func TestSetTruncatedV_String(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddV_StringField(`StringField`, ``, 2)
+	recordInfo := generator.GenerateRecordInfo()
+
+	_ = recordInfo.SetStringField(`StringField`, `Start`)
+	record, _ := recordInfo.GenerateRecord()
+
+	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `St` {
+		t.Fatalf(`expected 'St' but got '%v'`, value)
+	}
+}
+
+func TestSetTruncatedWString(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddWStringField(`StringField`, ``, 2)
+	recordInfo := generator.GenerateRecordInfo()
+
+	_ = recordInfo.SetStringField(`StringField`, `Start`)
+	record, _ := recordInfo.GenerateRecord()
+
+	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `St` {
+		t.Fatalf(`expected 'St' but got '%v'`, value)
+	}
+}
+
+func TestSetTruncatedV_WString(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddV_WStringField(`StringField`, ``, 2)
+	recordInfo := generator.GenerateRecordInfo()
+
+	_ = recordInfo.SetStringField(`StringField`, `Start`)
+	record, _ := recordInfo.GenerateRecord()
+
+	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	if value != `St` {
+		t.Fatalf(`expected 'St' but got '%v'`, value)
+	}
+}
+
 func generateTestRecordInfo() recordinfo.RecordInfo {
 	generator := recordinfo.NewGenerator()
 	generator.AddByteField(`ByteField`, ``)

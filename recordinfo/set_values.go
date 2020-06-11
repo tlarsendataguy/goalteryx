@@ -106,19 +106,25 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 	case String:
 		clearNullFlag(field)
 		valueBytes := []byte(value)
-		size := int(field.fixedLen)
-		copy(field.value, valueBytes)
+		size := len(valueBytes)
+		copy(field.value[:field.Size], valueBytes)
 		if size < int(field.fixedLen) {
 			field.value[size] = 0
 		}
 
 	case V_String:
 		valueBytes := []byte(value)
-		field.varLen = len(valueBytes)
-		if field.varLen >= len(field.value) {
-			field.value = make([]byte, len(valueBytes)+20) // arbitrary padding to try and minimize memory allocation
+		actualLen := len(valueBytes)
+		maxLen := field.Size
+		if actualLen > maxLen {
+			actualLen = maxLen
 		}
-		copy(field.value, valueBytes)
+
+		field.varLen = actualLen
+		if actualLen > len(field.value) {
+			field.value = make([]byte, actualLen)
+		}
+		copy(field.value, valueBytes[:actualLen])
 
 	case WString:
 		clearNullFlag(field)
@@ -127,7 +133,7 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 			return err
 		}
 		for index, char := range chars {
-			if index*2 > int(field.fixedLen) {
+			if index >= field.Size {
 				break
 			}
 			binary.LittleEndian.PutUint16(field.value[index*2:index*2+2], char)
@@ -138,23 +144,22 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 		if err != nil {
 			return err
 		}
-		requiredLen := len(chars) * 2
-		if requiredLen >= len(field.value) {
-			field.value = make([]byte, requiredLen+20) // arbitrary padding to try and minimize memory allocation
+
+		charsLen := len(chars)
+		if charsLen > field.Size {
+			chars = chars[:field.Size]
+			charsLen = field.Size
 		}
-		varLenIsUnset := true
-		size := len(field.value) / 2
-		for index := 0; index < size; index++ {
-			if index >= len(chars) {
-				if varLenIsUnset {
-					field.varLen = index * 2
-					varLenIsUnset = false
-				}
-				field.value[index*2] = 0
-				field.value[index*2+1] = 0
-			} else {
-				binary.LittleEndian.PutUint16(field.value[index*2:index*2+2], chars[index])
-			}
+
+		requiredLen := charsLen * 2
+		fieldValueLen := len(field.value)
+
+		if requiredLen > fieldValueLen {
+			field.value = make([]byte, requiredLen)
+		}
+		field.varLen = requiredLen
+		for index := 0; index < charsLen; index++ {
+			binary.LittleEndian.PutUint16(field.value[index*2:index*2+2], chars[index])
 		}
 
 	default:
@@ -230,8 +235,8 @@ func (info *recordInfo) setFieldFromRawBytes(field *fieldInfoEditor, value []byt
 			return nil
 		}
 		valueLen := len(value)
-		if valueLen >= len(field.value) {
-			field.value = make([]byte, valueLen+20)
+		if valueLen > len(field.value) {
+			field.value = make([]byte, valueLen)
 		}
 		field.varLen = valueLen
 		copy(field.value, value)

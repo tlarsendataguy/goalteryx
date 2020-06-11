@@ -37,7 +37,7 @@ func (info *recordInfo) AddStringField(name string, source string, size int) str
 }
 
 func (info *recordInfo) AddWStringField(name string, source string, size int) string {
-	return info.addField(name, source, size, 0, WString, uintptr(size)*2, 1)
+	return info.addField(name, source, size, 0, WString, uintptr(size*2), 1)
 }
 
 func (info *recordInfo) AddV_StringField(name string, source string, size int) string {
