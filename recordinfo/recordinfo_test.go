@@ -30,3 +30,24 @@ func TestTotalSizeFixedField(t *testing.T) {
 		t.Fatalf(`expected total size %v but got %v`, expectedSize, actualSize)
 	}
 }
+
+func TestAddFromFieldInfo(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddInt64Field(`Field1`, ``)
+	generator.AddStringField(`Field2`, ``, 10)
+	generator.AddFixedDecimalField(`Field3`, ``, 19, 6)
+	sourceInfo := generator.GenerateRecordInfo()
+
+	generator = recordinfo.NewGenerator()
+	for index := 0; index < sourceInfo.NumFields(); index++ {
+		field, _ := sourceInfo.GetFieldByIndex(index)
+		generator.AddField(field, ``)
+	}
+	newInfo := generator.GenerateRecordInfo()
+
+	sourceXml, _ := sourceInfo.ToXml(`Test`)
+	newXml, _ := newInfo.ToXml(`Test`)
+	if sourceXml != newXml {
+		t.Fatalf("expected\n%v\nbut got\n%v", sourceXml, newXml)
+	}
+}

@@ -64,6 +64,44 @@ func (info *recordInfo) AddSpatialField(name string, source string, size int) st
 	return info.addField(name, source, size, 0, Spatial, 4, 0)
 }
 
+func (info *recordInfo) AddField(field FieldInfo, source string) string {
+	switch field.Type {
+	case Bool:
+		return info.AddBoolField(field.Name, source)
+	case Byte:
+		return info.AddByteField(field.Name, source)
+	case Int16:
+		return info.AddInt16Field(field.Name, source)
+	case Int32:
+		return info.AddInt32Field(field.Name, source)
+	case Int64:
+		return info.AddInt64Field(field.Name, source)
+	case String:
+		return info.AddStringField(field.Name, source, field.Size)
+	case V_String:
+		return info.AddV_StringField(field.Name, source, field.Size)
+	case WString:
+		return info.AddWStringField(field.Name, source, field.Size)
+	case V_WString:
+		return info.AddV_WStringField(field.Name, source, field.Size)
+	case FixedDecimal:
+		return info.AddFixedDecimalField(field.Name, source, field.Size, field.Precision)
+	case Float:
+		return info.AddFloatField(field.Name, source)
+	case Double:
+		return info.AddDoubleField(field.Name, source)
+	case Date:
+		return info.AddDateField(field.Name, source)
+	case DateTime:
+		return info.AddDateTimeField(field.Name, source)
+	case Blob:
+		return info.AddBlobField(field.Name, source, field.Size)
+	case Spatial:
+		return info.AddSpatialField(field.Name, source, field.Size)
+	}
+	return ``
+}
+
 func (info *recordInfo) addField(name string, source string, size int, scale int, fieldType FieldType, fixedLen uintptr, nullByteLen uintptr) string {
 	actualName := info.checkFieldName(name)
 	info.fields = append(info.fields, &fieldInfoEditor{
