@@ -5,9 +5,9 @@ import (
 	"github.com/tlarsen7572/goalteryx/api"
 	"github.com/tlarsen7572/goalteryx/output_connection"
 	"github.com/tlarsen7572/goalteryx/presort"
+	"github.com/tlarsen7572/goalteryx/recordblob"
 	"github.com/tlarsen7572/goalteryx/recordcopier"
 	"github.com/tlarsen7572/goalteryx/recordinfo"
-	"unsafe"
 )
 
 type PluginPresort struct {
@@ -93,7 +93,7 @@ func (ii *PluginPresortIncomingInterface) Init(recordInfoIn string) bool {
 	return true
 }
 
-func (ii *PluginPresortIncomingInterface) PushRecord(record unsafe.Pointer) bool {
+func (ii *PluginPresortIncomingInterface) PushRecord(record *recordblob.RecordBlob) bool {
 	err := ii.copier.Copy(record)
 	if err != nil {
 		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())

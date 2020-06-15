@@ -3,9 +3,9 @@ package output_connection_test
 import (
 	"github.com/tlarsen7572/goalteryx/api"
 	"github.com/tlarsen7572/goalteryx/output_connection"
+	"github.com/tlarsen7572/goalteryx/recordblob"
 	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"testing"
-	"unsafe"
 )
 
 /*
@@ -132,7 +132,7 @@ func (i *IiTestStruct) Init(recordInfoIn string) bool {
 	return i.InitReturnValue
 }
 
-func (i *IiTestStruct) PushRecord(record unsafe.Pointer) bool {
+func (i *IiTestStruct) PushRecord(record *recordblob.RecordBlob) bool {
 	i.PushRecordCalls++
 	return i.PushRecordReturnValue
 }

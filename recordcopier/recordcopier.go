@@ -3,8 +3,8 @@ package recordcopier
 
 import (
 	"fmt"
+	"github.com/tlarsen7572/goalteryx/recordblob"
 	"github.com/tlarsen7572/goalteryx/recordinfo"
-	"unsafe"
 )
 
 // RecordCopier is used to easily and quickly copy data between RecordInfo objects.
@@ -42,7 +42,7 @@ func New(destination recordinfo.RecordInfo, source recordinfo.RecordInfo, indexM
 }
 
 // Copy copies the contents of the record blob into the destination RecordInfo.
-func (copier *RecordCopier) Copy(record unsafe.Pointer) error {
+func (copier *RecordCopier) Copy(record *recordblob.RecordBlob) error {
 	for _, indexMap := range copier.indexMaps {
 		value, err := copier.source.GetRawBytesFromIndex(indexMap.SourceIndex, record)
 		if err != nil {

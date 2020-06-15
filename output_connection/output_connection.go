@@ -5,16 +5,16 @@ import "C"
 import (
 	"fmt"
 	"github.com/tlarsen7572/goalteryx/api"
+	"github.com/tlarsen7572/goalteryx/recordblob"
 	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"time"
-	"unsafe"
 )
 
 // OutputConnection defines the lifecycle methods needed to manage output connections.
 type OutputConnection interface {
 	Add(connection *api.ConnectionInterfaceStruct)
 	Init(info recordinfo.RecordInfo) error
-	PushRecord(record unsafe.Pointer)
+	PushRecord(record *recordblob.RecordBlob)
 	UpdateProgress(percent float64)
 	Close()
 }
@@ -83,7 +83,7 @@ func (output *outputConnection) Init(info recordinfo.RecordInfo) error {
 
 // PushRecord pushes a record blob to all output connections.  Any output connections that return an error
 // are removed from the connections list and added to the finished connections list.
-func (output *outputConnection) PushRecord(record unsafe.Pointer) {
+func (output *outputConnection) PushRecord(record *recordblob.RecordBlob) {
 	output.recordCount++
 	output.recordSize += output.recordInfo.TotalSize(record)
 	output.OutputRecordCount(false)

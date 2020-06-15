@@ -6,6 +6,7 @@ package recordinfo
 import "C"
 import (
 	"encoding/binary"
+	"github.com/tlarsen7572/goalteryx/recordblob"
 	"reflect"
 	"unsafe"
 )
@@ -16,7 +17,7 @@ import (
 // buffer each time GenerateRecord is called.  Allocations only occur when the record being generated would exceed
 // the size of the buffer.  In these cases, a new buffer is allocated with a bit of extra padding.  Buffers will
 // only grow; we do not shrink them.
-func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
+func (info *recordInfo) GenerateRecord() (*recordblob.RecordBlob, error) {
 	fixed, variable := info.getRecordSizes()
 	totalSize := fixed + 4 + variable
 	if totalSize >= info.blobLen {
@@ -50,7 +51,7 @@ func (info *recordInfo) GenerateRecord() (unsafe.Pointer, error) {
 			fixedWriteIndex += fixedLen
 		}
 	}
-	return info.blobHandle, nil
+	return recordblob.NewRecordBlob(info.blobHandle), nil
 }
 
 // allocateNewBuffer performs the actual allocation, as well as frees the old buffer.  These buffers are

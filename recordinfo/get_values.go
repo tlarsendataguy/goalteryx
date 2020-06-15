@@ -3,6 +3,7 @@ package recordinfo
 import (
 	"encoding/binary"
 	"fmt"
+	"github.com/tlarsen7572/goalteryx/recordblob"
 	"math"
 	"reflect"
 	"strconv"
@@ -15,7 +16,7 @@ import (
 // length, and so we must treat each separately.  The storage size for each integer field is the number of bytes
 // needed to store each integer, plus 1.  The last byte is used as a null flag: 0 means the field has a value and 1
 // means the field is null.
-func (info *recordInfo) GetIntValueFrom(fieldName string, record unsafe.Pointer) (value int, isNull bool, err error) {
+func (info *recordInfo) GetIntValueFrom(fieldName string, record *recordblob.RecordBlob) (value int, isNull bool, err error) {
 	field, err := info.getFieldInfo(fieldName)
 	if err != nil {
 		return 0, false, err
@@ -23,28 +24,28 @@ func (info *recordInfo) GetIntValueFrom(fieldName string, record unsafe.Pointer)
 
 	switch field.Type {
 	case Byte:
-		raw := *((*[2]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		raw := *((*[2]byte)(unsafe.Pointer(uintptr(record.Blob) + field.location)))
 		if raw[1] == 1 {
 			return 0, true, nil
 		}
 		return int(raw[0]), false, nil
 
 	case Int16:
-		raw := *((*[3]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		raw := *((*[3]byte)(unsafe.Pointer(uintptr(record.Blob) + field.location)))
 		if raw[2] == 1 {
 			return 0, true, nil
 		}
 		return int(binary.LittleEndian.Uint16(raw[:2])), false, nil
 
 	case Int32:
-		raw := *((*[5]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		raw := *((*[5]byte)(unsafe.Pointer(uintptr(record.Blob) + field.location)))
 		if raw[4] == 1 {
 			return 0, true, nil
 		}
 		return int(binary.LittleEndian.Uint32(raw[:4])), false, nil
 
 	case Int64:
-		raw := *((*[9]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		raw := *((*[9]byte)(unsafe.Pointer(uintptr(record.Blob) + field.location)))
 		if raw[8] == 1 {
 			return 0, true, nil
 		}
@@ -57,7 +58,7 @@ func (info *recordInfo) GetIntValueFrom(fieldName string, record unsafe.Pointer)
 
 // GetBoolValueFrom extracts a boolean value from a boolean field.  Bool fields are the only fields without
 // a byte for the null flag.  Bool fields can either be 0 (false), 1 (true), or 2 (null).
-func (info *recordInfo) GetBoolValueFrom(fieldName string, record unsafe.Pointer) (value bool, isNull bool, err error) {
+func (info *recordInfo) GetBoolValueFrom(fieldName string, record *recordblob.RecordBlob) (value bool, isNull bool, err error) {
 	field, err := info.getFieldInfo(fieldName)
 	if err != nil {
 		return false, false, err
@@ -67,7 +68,7 @@ func (info *recordInfo) GetBoolValueFrom(fieldName string, record unsafe.Pointer
 		return false, false, invalidTypeError(field, `bool`)
 	}
 
-	raw := *((*byte)(unsafe.Pointer(uintptr(record) + field.location)))
+	raw := *((*byte)(unsafe.Pointer(uintptr(record.Blob) + field.location)))
 	if raw == 2 {
 		return false, true, nil
 	}
@@ -81,7 +82,7 @@ func (info *recordInfo) GetBoolValueFrom(fieldName string, record unsafe.Pointer
 // (4 bytes and 8 bytes, respectively).  The size of FixedDecimal fields is specified in the field definition.  All
 // decimal fields have an additional byte at the end for a null flag: 0 means the field has a value and 1
 // means the field is null.
-func (info *recordInfo) GetFloatValueFrom(fieldName string, record unsafe.Pointer) (value float64, isNull bool, err error) {
+func (info *recordInfo) GetFloatValueFrom(fieldName string, record *recordblob.RecordBlob) (value float64, isNull bool, err error) {
 	field, err := info.getFieldInfo(fieldName)
 	if err != nil {
 		return 0, false, err
@@ -89,13 +90,13 @@ func (info *recordInfo) GetFloatValueFrom(fieldName string, record unsafe.Pointe
 
 	switch field.Type {
 	case Float:
-		raw := *((*[5]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		raw := *((*[5]byte)(unsafe.Pointer(uintptr(record.Blob) + field.location)))
 		if raw[4] == 1 {
 			return 0, true, nil
 		}
 		return float64(math.Float32frombits(binary.LittleEndian.Uint32(raw[:4]))), false, nil
 	case Double:
-		raw := *((*[9]byte)(unsafe.Pointer(uintptr(record) + field.location)))
+		raw := *((*[9]byte)(unsafe.Pointer(uintptr(record.Blob) + field.location)))
 		if raw[8] == 1 {
 			return 0, true, nil
 		}
@@ -124,7 +125,7 @@ func (info *recordInfo) GetFloatValueFrom(fieldName string, record unsafe.Pointe
 //
 // String and V_String are narrow strings (such as ASCII) whereas WString and V_WString are wide strings.  Wide
 // strings are encoded in little-endian UTF16.
-func (info *recordInfo) GetStringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error) {
+func (info *recordInfo) GetStringValueFrom(fieldName string, record *recordblob.RecordBlob) (value string, isNull bool, err error) {
 	field, err := info.getFieldInfo(fieldName)
 	if err != nil {
 		return ``, false, err
@@ -185,7 +186,7 @@ func (info *recordInfo) GetStringValueFrom(fieldName string, record unsafe.Point
 // representing a date string formatted as yyyy-MM-dd.  DateTime fields are 19 bytes long, representing a datetime
 // string formatted as yyyy-MM-dd hh:mm:ss.  There is an extra byte at the end of both types of fields for a
 // null flag: 0 means the field has a value and 1 means the field is null.
-func (info *recordInfo) GetDateValueFrom(fieldName string, record unsafe.Pointer) (value time.Time, isNull bool, err error) {
+func (info *recordInfo) GetDateValueFrom(fieldName string, record *recordblob.RecordBlob) (value time.Time, isNull bool, err error) {
 	field, err := info.getFieldInfo(fieldName)
 	if err != nil {
 		return zeroDate, false, err
@@ -215,7 +216,7 @@ func (info *recordInfo) GetDateValueFrom(fieldName string, record unsafe.Pointer
 // of the record blob, including the trailing byte used for the null flag.  For variable-length fields, the
 // return value is either nil (if the field is null), a zero-length byte array (if the field is empty), or
 // the bytes containing the actual stored data.
-func (info *recordInfo) GetRawBytesFrom(fieldName string, record unsafe.Pointer) (value []byte, err error) {
+func (info *recordInfo) GetRawBytesFrom(fieldName string, record *recordblob.RecordBlob) (value []byte, err error) {
 	field, err := info.getFieldInfo(fieldName)
 	if err != nil {
 		return nil, fmt.Errorf(`error getting raw bytes: %v`, err.Error())
@@ -228,7 +229,7 @@ func (info *recordInfo) GetRawBytesFrom(fieldName string, record unsafe.Pointer)
 // of the record blob, including the trailing byte used for the null flag.  For variable-length fields, the
 // return value is either nil (if the field is null), a zero-length byte array (if the field is empty), or
 // the bytes containing the actual stored data.
-func (info *recordInfo) GetRawBytesFromIndex(index int, record unsafe.Pointer) (value []byte, err error) {
+func (info *recordInfo) GetRawBytesFromIndex(index int, record *recordblob.RecordBlob) (value []byte, err error) {
 	if index < 0 || index > info.numFields {
 		return nil, fmt.Errorf(`error getting raw bytes: index was not between 0 and %v`, info.numFields)
 	}
@@ -239,7 +240,7 @@ func (info *recordInfo) GetRawBytesFromIndex(index int, record unsafe.Pointer) (
 // of the record blob, including the trailing byte used for the null flag.  For variable-length fields, the
 // return value is either nil (if the field is null), a zero-length byte array (if the field is empty), or
 // the bytes containing the actual stored data.
-func (info *recordInfo) getRawBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
+func (info *recordInfo) getRawBytes(field *fieldInfoEditor, record *recordblob.RecordBlob) []byte {
 	switch field.Type {
 	case V_String, V_WString, Blob, Spatial:
 		return getVarBytes(field, record)
@@ -250,11 +251,11 @@ func (info *recordInfo) getRawBytes(field *fieldInfoEditor, record unsafe.Pointe
 
 // getFixedBytes gets the bytes for a field from the fixed portion of the record blob.  This includes any trailing
 // null flag byte.
-func getFixedBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
+func getFixedBytes(field *fieldInfoEditor, record *recordblob.RecordBlob) []byte {
 	totalLen := int(field.fixedLen + field.nullByteLen)
 	var raw []byte
 	rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&raw))
-	rawHeader.Data = uintptr(record) + field.location
+	rawHeader.Data = uintptr(record.Blob) + field.location
 	rawHeader.Len = totalLen
 	rawHeader.Cap = totalLen
 	return raw
@@ -262,8 +263,8 @@ func getFixedBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
 
 // getVarBytes gets the data bytes of variable-length fields.  The return value is either nil (if the field is null),
 // a zero-length byte array (if the field is empty), or the bytes containing the actual stored data.
-func getVarBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
-	varStart := *((*uint32)(unsafe.Pointer(uintptr(record) + field.location)))
+func getVarBytes(field *fieldInfoEditor, record *recordblob.RecordBlob) []byte {
+	varStart := *((*uint32)(unsafe.Pointer(uintptr(record.Blob) + field.location)))
 	if varStart == 0 {
 		return []byte{}
 	}
@@ -284,20 +285,20 @@ func getVarBytes(field *fieldInfoEditor, record unsafe.Pointer) []byte {
 		// at this point we have determined there is no small string optimization and so we can strip it away
 		varStart &= 0x7fffffff
 
-		varLenFirstByte := *((*byte)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart))))
+		varLenFirstByte := *((*byte)(unsafe.Pointer(uintptr(record.Blob) + field.location + uintptr(varStart))))
 		offset += uintptr(varStart)
 		if varLenFirstByte&byte(1) == 1 {
 			varLen = uint32(varLenFirstByte >> 1)
 			offset += 1
 		} else {
-			varLen = *((*uint32)(unsafe.Pointer(uintptr(record) + field.location + uintptr(varStart)))) / 2
+			varLen = *((*uint32)(unsafe.Pointer(uintptr(record.Blob) + field.location + uintptr(varStart)))) / 2
 			offset += 4
 		}
 	}
 
 	var raw []byte
 	rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&raw))
-	rawHeader.Data = uintptr(record) + offset
+	rawHeader.Data = uintptr(record.Blob) + offset
 	rawHeader.Len = int(varLen)
 	rawHeader.Cap = int(varLen)
 	return raw

@@ -4,6 +4,7 @@ package recordinfo
 import "C"
 import (
 	"fmt"
+	"github.com/tlarsen7572/goalteryx/recordblob"
 	"unsafe"
 )
 
@@ -87,8 +88,8 @@ func (info *recordInfo) checkFieldName(name string) string {
 }
 
 // Total size of a record blob is the fixed size plus 4 bytes for the variable length plus the variable length
-func (info *recordInfo) TotalSize(record unsafe.Pointer) int {
-	variable := int(*((*uint32)(unsafe.Pointer(uintptr(record) + info.fixedLen))))
+func (info *recordInfo) TotalSize(record *recordblob.RecordBlob) int {
+	variable := int(*((*uint32)(unsafe.Pointer(uintptr(record.Blob) + info.fixedLen))))
 	return int(info.fixedLen) + 4 + variable
 }
 

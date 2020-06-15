@@ -10,6 +10,7 @@ import (
 	"github.com/mattn/go-pointer"
 	"github.com/tlarsen7572/goalteryx/convert_strings"
 	"github.com/tlarsen7572/goalteryx/presort"
+	"github.com/tlarsen7572/goalteryx/recordblob"
 	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"os"
 	"time"
@@ -55,7 +56,7 @@ type IncomingInterface interface {
 	Init(recordInfoIn string) bool
 
 	// PushRecord is called when an upstream tool is pushing a record blob to our tool.
-	PushRecord(record unsafe.Pointer) bool
+	PushRecord(record *recordblob.RecordBlob) bool
 
 	// UpdateProgress is called when an upstream tool is updating our tool with its progress.
 	UpdateProgress(percent float64)
@@ -197,7 +198,7 @@ func go_iiPushRecordCache(handle unsafe.Pointer, cache unsafe.Pointer, cacheSize
 	incomingInterface := getIncomingInterfaceFromHandle(handle)
 	cacheArray := *((*[10]unsafe.Pointer)(cache))
 	for i := 0; i < int(cacheSize); i++ {
-		ok := incomingInterface.PushRecord(cacheArray[i])
+		ok := incomingInterface.PushRecord(recordblob.NewRecordBlob(cacheArray[i]))
 		if !ok {
 			return C.long(0)
 		}
@@ -214,7 +215,7 @@ func go_iiPushRecordCache(handle unsafe.Pointer, cache unsafe.Pointer, cacheSize
 // become the only push record call.
 func go_iiPushRecord(handle unsafe.Pointer, record unsafe.Pointer) C.long {
 	incomingInterface := getIncomingInterfaceFromHandle(handle)
-	if incomingInterface.PushRecord(record) {
+	if incomingInterface.PushRecord(recordblob.NewRecordBlob(record)) {
 		return C.long(1)
 	}
 	return C.long(0)
@@ -262,8 +263,8 @@ func OutputInit(connection *ConnectionInterfaceStruct, name string, recordInfo r
 
 // OutputPushRecord pushes a record to an output connection.  Usually you would use an OutputConnection rather
 // than call this function directly.
-func OutputPushRecord(connection *ConnectionInterfaceStruct, record unsafe.Pointer) error {
-	result := C.c_outputPushRecord(connection.connection, record)
+func OutputPushRecord(connection *ConnectionInterfaceStruct, record *recordblob.RecordBlob) error {
+	result := C.c_outputPushRecord(connection.connection, record.Blob)
 	if result == C.long(0) {
 		return fmt.Errorf(`error calling pII_PushRecord`)
 	}

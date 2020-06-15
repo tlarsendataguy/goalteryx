@@ -1,8 +1,8 @@
 package recordinfo
 
 import (
+	"github.com/tlarsen7572/goalteryx/recordblob"
 	"time"
-	"unsafe"
 )
 
 // RecordInfo is the interface which defines all of the behaviors needed to read and generate Alteryx records.
@@ -16,31 +16,31 @@ type RecordInfo interface {
 
 	// GetIntValueFrom obtains a value from the specific integer field in the record.  It can only be called on
 	// Byte, Int16, Int32, and Int64 fields.  All other fields will return an error.
-	GetIntValueFrom(fieldName string, record unsafe.Pointer) (value int, isNull bool, err error)
+	GetIntValueFrom(fieldName string, record *recordblob.RecordBlob) (value int, isNull bool, err error)
 
 	// GetBoolValueFrom obtains a value from the specific bool field in the record.  It can only be called on
 	// Bool fields.  All other fields will return an error.
-	GetBoolValueFrom(fieldName string, record unsafe.Pointer) (value bool, isNull bool, err error)
+	GetBoolValueFrom(fieldName string, record *recordblob.RecordBlob) (value bool, isNull bool, err error)
 
 	// GetFloatValueFrom obtains a value from the specific decimal field in the record.  It can only be called on
 	// Float, Double, and FixedDecimal fields.  All other fields will return an error.
-	GetFloatValueFrom(fieldName string, record unsafe.Pointer) (value float64, isNull bool, err error)
+	GetFloatValueFrom(fieldName string, record *recordblob.RecordBlob) (value float64, isNull bool, err error)
 
 	// GetStringValueFrom obtains a value from the specific text field in the record.  It can only be called on
 	// String, WString, V_String, and V_WString fields.  All other fields will return an error.
-	GetStringValueFrom(fieldName string, record unsafe.Pointer) (value string, isNull bool, err error)
+	GetStringValueFrom(fieldName string, record *recordblob.RecordBlob) (value string, isNull bool, err error)
 
 	// GetDateValueFrom obtains a value from the specific date/datetime field in the record.  It can only be called on
 	// Date and DateTime fields.  All other fields will return an error.
-	GetDateValueFrom(fieldName string, record unsafe.Pointer) (value time.Time, isNull bool, err error)
+	GetDateValueFrom(fieldName string, record *recordblob.RecordBlob) (value time.Time, isNull bool, err error)
 
 	// GetRawBytesFrom obtains a value from the specific field in the record.  It can
 	// be called on any field type.
-	GetRawBytesFrom(fieldName string, record unsafe.Pointer) (value []byte, err error)
+	GetRawBytesFrom(fieldName string, record *recordblob.RecordBlob) (value []byte, err error)
 
 	// GetRawBytesFromIndex obtains a value from the specific position in the record.  It can
 	// be called on any field type and is the fastest way to obtain a value from a field.
-	GetRawBytesFromIndex(index int, record unsafe.Pointer) (value []byte, err error)
+	GetRawBytesFromIndex(index int, record *recordblob.RecordBlob) (value []byte, err error)
 
 	// SetIntField sets the specified integer field with a value.  It can only be called on
 	// Byte, Int16, Int32, and Int64 fields.  All other fields will return an error.
@@ -75,7 +75,7 @@ type RecordInfo interface {
 	SetIndexFromRawBytes(index int, value []byte) error
 
 	// GenerateRecord creates a record blob from the current field values that can be passed to downstream tools.
-	GenerateRecord() (unsafe.Pointer, error)
+	GenerateRecord() (*recordblob.RecordBlob, error)
 
 	// ToXml outputs a string XML representation of the RecordInfo object.  This allows passing the RecordInfo
 	// metadata to downstream tools.
@@ -86,7 +86,7 @@ type RecordInfo interface {
 	FixedSize() int
 
 	// TotalSize returns the total length of the specified record blob.
-	TotalSize(unsafe.Pointer) int
+	TotalSize(*recordblob.RecordBlob) int
 }
 
 // Generator is an interface for an object that creates RecordInfo objects.
