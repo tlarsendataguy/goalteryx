@@ -56,7 +56,7 @@ type IncomingInterface interface {
 	Init(recordInfoIn string) bool
 
 	// PushRecord is called when an upstream tool is pushing a record blob to our tool.
-	PushRecord(record *recordblob.RecordBlob) bool
+	PushRecord(record recordblob.RecordBlob) bool
 
 	// UpdateProgress is called when an upstream tool is updating our tool with its progress.
 	UpdateProgress(percent float64)
@@ -263,8 +263,8 @@ func OutputInit(connection *ConnectionInterfaceStruct, name string, recordInfo r
 
 // OutputPushRecord pushes a record to an output connection.  Usually you would use an OutputConnection rather
 // than call this function directly.
-func OutputPushRecord(connection *ConnectionInterfaceStruct, record *recordblob.RecordBlob) error {
-	result := C.c_outputPushRecord(connection.connection, record.Blob)
+func OutputPushRecord(connection *ConnectionInterfaceStruct, record recordblob.RecordBlob) error {
+	result := C.c_outputPushRecord(connection.connection, record.Blob())
 	if result == C.long(0) {
 		return fmt.Errorf(`error calling pII_PushRecord`)
 	}

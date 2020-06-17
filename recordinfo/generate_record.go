@@ -17,7 +17,7 @@ import (
 // buffer each time GenerateRecord is called.  Allocations only occur when the record being generated would exceed
 // the size of the buffer.  In these cases, a new buffer is allocated with a bit of extra padding.  Buffers will
 // only grow; we do not shrink them.
-func (info *recordInfo) GenerateRecord() (*recordblob.RecordBlob, error) {
+func (info *recordInfo) GenerateRecord() (recordblob.RecordBlob, error) {
 	fixed, variable := info.getRecordSizes()
 	totalSize := fixed + 4 + variable
 	if totalSize >= info.blobLen {

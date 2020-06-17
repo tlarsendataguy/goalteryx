@@ -42,7 +42,7 @@ func New(destination recordinfo.RecordInfo, source recordinfo.RecordInfo, indexM
 }
 
 // Copy copies the contents of the record blob into the destination RecordInfo.
-func (copier *RecordCopier) Copy(record *recordblob.RecordBlob) error {
+func (copier *RecordCopier) Copy(record recordblob.RecordBlob) error {
 	for _, indexMap := range copier.indexMaps {
 		value, err := copier.source.GetRawBytesFromIndex(indexMap.SourceIndex, record)
 		if err != nil {

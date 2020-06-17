@@ -71,7 +71,7 @@ func (ii *PluginIncomingInterface) Init(recordInfoIn string) bool {
 	return true
 }
 
-func (ii *PluginIncomingInterface) PushRecord(record *recordblob.RecordBlob) bool {
+func (ii *PluginIncomingInterface) PushRecord(record recordblob.RecordBlob) bool {
 	err := ii.copier.Copy(record)
 	if err != nil {
 		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())

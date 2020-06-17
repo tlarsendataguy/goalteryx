@@ -61,7 +61,7 @@ func TestCachedRecords(t *testing.T) {
 
 	record1, _ := recordInfo.GenerateRecord()
 	record2, _ := recordInfo.GenerateRecord()
-	if record1.Blob != record2.Blob {
+	if record1.Blob() != record2.Blob() {
 		t.Fatalf(`record1 and record2 are 2 different pointers`)
 	}
 }

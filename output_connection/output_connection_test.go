@@ -132,7 +132,7 @@ func (i *IiTestStruct) Init(recordInfoIn string) bool {
 	return i.InitReturnValue
 }
 
-func (i *IiTestStruct) PushRecord(record *recordblob.RecordBlob) bool {
+func (i *IiTestStruct) PushRecord(record recordblob.RecordBlob) bool {
 	i.PushRecordCalls++
 	return i.PushRecordReturnValue
 }

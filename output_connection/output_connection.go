@@ -14,7 +14,7 @@ import (
 type OutputConnection interface {
 	Add(connection *api.ConnectionInterfaceStruct)
 	Init(info recordinfo.RecordInfo) error
-	PushRecord(record *recordblob.RecordBlob)
+	PushRecord(record recordblob.RecordBlob)
 	UpdateProgress(percent float64)
 	Close()
 }
@@ -83,7 +83,7 @@ func (output *outputConnection) Init(info recordinfo.RecordInfo) error {
 
 // PushRecord pushes a record blob to all output connections.  Any output connections that return an error
 // are removed from the connections list and added to the finished connections list.
-func (output *outputConnection) PushRecord(record *recordblob.RecordBlob) {
+func (output *outputConnection) PushRecord(record recordblob.RecordBlob) {
 	output.recordCount++
 	output.recordSize += output.recordInfo.TotalSize(record)
 	output.OutputRecordCount(false)
