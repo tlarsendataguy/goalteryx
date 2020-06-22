@@ -60,6 +60,8 @@ long c_piAddIncomingConnection(void * handle, void * connectionType, void * conn
         cache->recordsInBuffer = cacheSize;
         cache->buffer = malloc(sizeof(void*)*cacheSize);
         cache->bufferSizes = malloc(sizeof(int)*cacheSize);
+        cache->recordCount = 0;
+        cache->currentBufferIndex = 0;
         for (int i = 0; i < cacheSize; i++) {
             (*cache->bufferSizes)[i] = 0;
             (*cache->buffer)[i] = 0;
@@ -99,6 +101,7 @@ struct IncomingConnectionInfo *newSortedIncomingConnectionInfo(void * handle, vo
 struct IncomingConnectionInfo *newUnsortedIncomingConnectionInfo(void * handle, int cacheSize){
     struct IncomingConnectionInfo *info = malloc(sizeof(struct IncomingConnectionInfo));
     info->handle = handle;
+    info->presortString = NULL;
     info->cacheSize = cacheSize;
     return info;
 }
