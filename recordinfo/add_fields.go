@@ -64,42 +64,46 @@ func (info *recordInfo) AddSpatialField(name string, source string, size int) st
 	return info.addField(name, source, size, 0, Spatial, 4, 0)
 }
 
-func (info *recordInfo) AddField(field FieldInfo, source string) string {
+func (info *recordInfo) AddFieldUsingName(field FieldInfo, newName string, source string) string {
 	switch field.Type {
 	case Bool:
-		return info.AddBoolField(field.Name, source)
+		return info.AddBoolField(newName, source)
 	case Byte:
-		return info.AddByteField(field.Name, source)
+		return info.AddByteField(newName, source)
 	case Int16:
-		return info.AddInt16Field(field.Name, source)
+		return info.AddInt16Field(newName, source)
 	case Int32:
-		return info.AddInt32Field(field.Name, source)
+		return info.AddInt32Field(newName, source)
 	case Int64:
-		return info.AddInt64Field(field.Name, source)
+		return info.AddInt64Field(newName, source)
 	case String:
-		return info.AddStringField(field.Name, source, field.Size)
+		return info.AddStringField(newName, source, field.Size)
 	case V_String:
-		return info.AddV_StringField(field.Name, source, field.Size)
+		return info.AddV_StringField(newName, source, field.Size)
 	case WString:
-		return info.AddWStringField(field.Name, source, field.Size)
+		return info.AddWStringField(newName, source, field.Size)
 	case V_WString:
-		return info.AddV_WStringField(field.Name, source, field.Size)
+		return info.AddV_WStringField(newName, source, field.Size)
 	case FixedDecimal:
-		return info.AddFixedDecimalField(field.Name, source, field.Size, field.Precision)
+		return info.AddFixedDecimalField(newName, source, field.Size, field.Precision)
 	case Float:
-		return info.AddFloatField(field.Name, source)
+		return info.AddFloatField(newName, source)
 	case Double:
-		return info.AddDoubleField(field.Name, source)
+		return info.AddDoubleField(newName, source)
 	case Date:
-		return info.AddDateField(field.Name, source)
+		return info.AddDateField(newName, source)
 	case DateTime:
-		return info.AddDateTimeField(field.Name, source)
+		return info.AddDateTimeField(newName, source)
 	case Blob:
-		return info.AddBlobField(field.Name, source, field.Size)
+		return info.AddBlobField(newName, source, field.Size)
 	case Spatial:
-		return info.AddSpatialField(field.Name, source, field.Size)
+		return info.AddSpatialField(newName, source, field.Size)
 	}
 	return ``
+}
+
+func (info *recordInfo) AddField(field FieldInfo, source string) string {
+	return info.AddFieldUsingName(field, field.Name, source)
 }
 
 func (info *recordInfo) addField(name string, source string, size int, scale int, fieldType FieldType, fixedLen uintptr, nullByteLen uintptr) string {

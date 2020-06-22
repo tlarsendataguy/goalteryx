@@ -193,6 +193,13 @@ type Generator interface {
 	// in the data and let's the calling code know the actual name of the field that was added.
 	AddField(field FieldInfo, source string) string
 
+	// AddFieldUsingName appends the specified field to the end of the RecordInfo using the specified name.
+	// It returns a string with the actual field name that was added.  If a field with the specified name already
+	// exists in the RecordInfo, this function will add '2' to the end of the name until it finds a unique name.
+	// This prevents duplicate fields from occurring in the data and let's the calling code know the actual name of
+	// the field that was added.
+	AddFieldUsingName(field FieldInfo, newName string, source string) string
+
 	// GenerateRecordInfo generates a RecordInfo object from the current fieldset.
 	GenerateRecordInfo() RecordInfo
 }
