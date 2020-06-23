@@ -14,6 +14,10 @@ type RecordInfo interface {
 	// an error is returned with an empty FieldInfo struct.
 	GetFieldByIndex(index int) (FieldInfo, error)
 
+	// GetFieldByName returns field information of the field with the specified name.  If RecordInfo does not
+	// contains a field with the specified name, an error is returned with an empty FieldInfo struct.
+	GetFieldByName(name string) (FieldInfo, error)
+
 	// GetIntValueFrom obtains a value from the specific integer field in the record.  It can only be called on
 	// Byte, Int16, Int32, and Int64 fields.  All other fields will return an error.
 	GetIntValueFrom(fieldName string, record recordblob.RecordBlob) (value int, isNull bool, err error)

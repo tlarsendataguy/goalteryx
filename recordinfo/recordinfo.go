@@ -63,6 +63,21 @@ func (info *recordInfo) GetFieldByIndex(index int) (FieldInfo, error) {
 	}, nil
 }
 
+func (info *recordInfo) GetFieldByName(name string) (FieldInfo, error) {
+	index, ok := info.fieldNames[name]
+	if !ok {
+		return FieldInfo{}, fmt.Errorf(`field '%v' does not exist in the RecordInfo`, name)
+	}
+	field := info.fields[index]
+	return FieldInfo{
+		Name:      field.Name,
+		Source:    field.Source,
+		Size:      field.Size,
+		Precision: field.Precision,
+		Type:      field.Type,
+	}, nil
+}
+
 func (info *recordInfo) FixedSize() int {
 	return int(info.fixedLen)
 }
