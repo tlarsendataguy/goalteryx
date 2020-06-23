@@ -47,7 +47,15 @@ func (info *recordInfo) GenerateRecord() (recordblob.RecordBlob, error) {
 			}
 		default:
 			fixedLen := len(field.value)
-			copy(info.blob[fixedWriteIndex:fixedWriteIndex+fixedLen], field.value)
+			if field.isNull {
+				if field.Type == Bool {
+					info.blob[fixedWriteIndex] = 2
+				} else {
+					info.blob[fixedWriteIndex+fixedLen-1] = 1
+				}
+			} else {
+				copy(info.blob[fixedWriteIndex:fixedWriteIndex+fixedLen], field.value)
+			}
 			fixedWriteIndex += fixedLen
 		}
 	}

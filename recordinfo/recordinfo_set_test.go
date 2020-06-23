@@ -55,6 +55,52 @@ func TestSetValuesAndGenerateRecord(t *testing.T) {
 	checkExpectedGetValueFrom(t, dateTimeVal, expectedDate, isNull, false, err, nil, `error setting datetime:`)
 }
 
+func TestSetNullValuesAndGenerateRecord(t *testing.T) {
+	recordInfo := generateTestRecordInfo()
+	setNullTestData(recordInfo)
+
+	record, err := recordInfo.GenerateRecord()
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+
+	_, isNull, err := recordInfo.GetIntValueFrom(`ByteField`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting byte:`)
+
+	_, isNull, err = recordInfo.GetBoolValueFrom(`BoolField`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting bool:`)
+
+	_, isNull, err = recordInfo.GetIntValueFrom(`Int16Field`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting int16:`)
+
+	_, isNull, err = recordInfo.GetIntValueFrom(`Int32Field`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting int32:`)
+
+	_, isNull, err = recordInfo.GetIntValueFrom(`Int64Field`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting int64:`)
+
+	_, isNull, err = recordInfo.GetFloatValueFrom(`FixedDecimalField`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting fixeddecimal:`)
+
+	_, isNull, err = recordInfo.GetFloatValueFrom(`FloatField`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting float:`)
+
+	_, isNull, err = recordInfo.GetFloatValueFrom(`DoubleField`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting double:`)
+
+	_, isNull, err = recordInfo.GetStringValueFrom(`StringField`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting string:`)
+
+	_, isNull, err = recordInfo.GetStringValueFrom(`WStringField`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting wstring:`)
+
+	_, isNull, err = recordInfo.GetDateValueFrom(`DateField`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting date:`)
+
+	_, isNull, err = recordInfo.GetDateValueFrom(`DateTimeField`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting datetime:`)
+}
+
 func TestCachedRecords(t *testing.T) {
 	recordInfo := generateTestRecordInfo()
 	setRecordInfoTestData(recordInfo)
@@ -356,6 +402,30 @@ func TestSetTruncatedV_WString(t *testing.T) {
 	}
 }
 
+func TestSetValueNullValue(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddInt64Field(`Field`, ``)
+	recordInfo := generator.GenerateRecordInfo()
+
+	_ = recordInfo.SetIntField(`Field`, 10)
+	record, _ := recordInfo.GenerateRecord()
+
+	value, isNull, err := recordInfo.GetIntValueFrom(`Field`, record)
+	checkExpectedGetValueFrom(t, value, 10, isNull, false, err, nil, `error setting 10`)
+
+	_ = recordInfo.SetFieldNull(`Field`)
+	record, _ = recordInfo.GenerateRecord()
+
+	_, isNull, err = recordInfo.GetIntValueFrom(`Field`, record)
+	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting null`)
+
+	_ = recordInfo.SetIntField(`Field`, 20)
+	record, _ = recordInfo.GenerateRecord()
+
+	value, isNull, err = recordInfo.GetIntValueFrom(`Field`, record)
+	checkExpectedGetValueFrom(t, value, 20, isNull, false, err, nil, `error setting 20`)
+}
+
 func generateTestRecordInfo() recordinfo.RecordInfo {
 	generator := recordinfo.NewGenerator()
 	generator.AddByteField(`ByteField`, ``)
@@ -386,4 +456,28 @@ func setRecordInfoTestData(recordInfo recordinfo.RecordInfo) {
 	_ = recordInfo.SetStringField(`WStringField`, `CXVY`)
 	_ = recordInfo.SetDateField(`DateField`, time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC))
 	_ = recordInfo.SetDateField(`DateTimeField`, time.Date(2021, 3, 4, 5, 6, 7, 0, time.UTC))
+}
+
+func setNullTestData(recordInfo recordinfo.RecordInfo) {
+	_ = recordInfo.SetFieldNull(`ByteField`)
+	_ = recordInfo.SetFieldNull(`BoolField`)
+	_ = recordInfo.SetFieldNull(`Int16Field`)
+	_ = recordInfo.SetFieldNull(`Int32Field`)
+	_ = recordInfo.SetFieldNull(`Int64Field`)
+	_ = recordInfo.SetFieldNull(`FixedDecimalField`)
+	_ = recordInfo.SetFieldNull(`FloatField`)
+	_ = recordInfo.SetFieldNull(`DoubleField`)
+	_ = recordInfo.SetFieldNull(`StringField`)
+	_ = recordInfo.SetFieldNull(`WStringField`)
+	_ = recordInfo.SetFieldNull(`DateField`)
+	_ = recordInfo.SetFieldNull(`DateTimeField`)
+}
+
+func checkExpectedGetNullFrom(t *testing.T, isNull bool, expectedIsNull bool, err error, expectedErr error, msg string) {
+	if err != expectedErr {
+		t.Fatalf("%v expected error: %v\ngot: %v", msg, expectedErr, err)
+	}
+	if isNull != expectedIsNull {
+		t.Fatalf(`%v expected isNull=%v but got isNull=%v`, msg, expectedIsNull, isNull)
+	}
 }
