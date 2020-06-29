@@ -16,7 +16,7 @@ type PluginNoCache struct {
 
 func (plugin *PluginNoCache) Init(toolId int, config string) bool {
 	plugin.ToolId = toolId
-	plugin.Output = output_connection.New(toolId, `Output`)
+	plugin.Output = output_connection.New(toolId, `Output`, 0)
 	return true
 }
 

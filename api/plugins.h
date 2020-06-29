@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include <string.h>
+#include <stdlib.h>
 
 // Plugin definitions
 
@@ -140,6 +141,7 @@ void c_iiFree(void * handle);
 // Output connection methods
 long c_outputInit(struct IncomingConnectionInterface * connection, void * recordMetaInfoXml);
 long c_outputPushRecord(struct IncomingConnectionInterface * connection, void * record);
+void * c_outputPushBuffer(void * connections, int connectionCount, void * records, int recordCount);
 long c_outputClose(struct IncomingConnectionInterface * connection);
 void c_outputUpdateProgress(struct IncomingConnectionInterface * connection, double percent);
 

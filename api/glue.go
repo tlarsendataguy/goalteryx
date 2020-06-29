@@ -271,6 +271,31 @@ func OutputPushRecord(connection *ConnectionInterfaceStruct, record recordblob.R
 	return nil
 }
 
+func OutputPushBuffer(connections []*ConnectionInterfaceStruct, records []unsafe.Pointer, recordCount int) []error {
+	var cConns []*C.struct_IncomingConnectionInterface
+	cConnCount := 0
+	for index := range connections {
+		cConns = append(cConns, connections[index].connection)
+		cConnCount += 1
+	}
+
+	if cConnCount == 0 {
+		return nil
+	}
+
+	result := C.c_outputPushBuffer(unsafe.Pointer(&cConns[0]), C.int(cConnCount), unsafe.Pointer(&records[0]), C.int(recordCount))
+	returnErrs := make([]error, cConnCount)
+
+	for i := 0; i < cConnCount; i++ {
+		l := *(*C.long)(unsafe.Pointer(uintptr(unsafe.Pointer(result)) + uintptr(C.sizeof_long*i)))
+		if l == C.long(0) {
+			returnErrs[i] = fmt.Errorf(`error calling pII_PushRecord`)
+		}
+	}
+	C.free(result)
+	return returnErrs
+}
+
 // OutputClose closes an output connection.  Usually you would use an OutputConnection rather than call this
 // function directly.
 func OutputClose(connection *ConnectionInterfaceStruct) {

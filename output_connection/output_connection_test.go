@@ -8,15 +8,10 @@ import (
 	"testing"
 )
 
-/*
-NOTE: Running output_connection_test as a Directory test results in failures.  I don't know why.  Run
-as a File test for correct results.
-*/
-
 func TestPassAndFailInit(t *testing.T) {
 	iiInitOk := &IiTestStruct{InitReturnValue: true, PushRecordReturnValue: true}
 	iiInitFail := &IiTestStruct{InitReturnValue: false, PushRecordReturnValue: true}
-	connection := output_connection.New(1, `Test`)
+	connection := output_connection.New(1, `Test`, 0)
 	connection.Add(api.NewConnectionInterfaceStruct(iiInitOk))
 	connection.Add(api.NewConnectionInterfaceStruct(iiInitFail))
 
@@ -53,7 +48,7 @@ func TestPassAndFailInit(t *testing.T) {
 func TestPassAndFailPushRecord(t *testing.T) {
 	iiPushOk := &IiTestStruct{InitReturnValue: true, PushRecordReturnValue: true}
 	iiPushFail := &IiTestStruct{InitReturnValue: true, PushRecordReturnValue: false}
-	connection := output_connection.New(1, `Test`)
+	connection := output_connection.New(1, `Test`, 0)
 	connection.Add(api.NewConnectionInterfaceStruct(iiPushOk))
 	connection.Add(api.NewConnectionInterfaceStruct(iiPushFail))
 
@@ -86,7 +81,7 @@ func TestPassAndFailPushRecord(t *testing.T) {
 func TestUpdateProgress(t *testing.T) {
 	iiPush1 := &IiTestStruct{InitReturnValue: true, PushRecordReturnValue: true}
 	iiPush2 := &IiTestStruct{InitReturnValue: true, PushRecordReturnValue: true}
-	connection := output_connection.New(1, `Test`)
+	connection := output_connection.New(1, `Test`, 0)
 	connection.Add(api.NewConnectionInterfaceStruct(iiPush1))
 	connection.Add(api.NewConnectionInterfaceStruct(iiPush2))
 
@@ -115,6 +110,45 @@ func TestUpdateProgress(t *testing.T) {
 	if iiPush2.UpdateProgressResult != 1.0 {
 		t.Fatalf(`expected progress for 2 to be 1.0 but got %v`, iiPush2.UpdateProgressResult)
 	}
+}
+
+func TestOutputCache(t *testing.T) {
+	iiPush := &IiTestStruct{InitReturnValue: true, PushRecordReturnValue: true}
+	connection := output_connection.New(1, `Output`, 10)
+	connection.Add(api.NewConnectionInterfaceStruct(iiPush))
+
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`SomeByte`, ``)
+	info := generator.GenerateRecordInfo()
+	err := connection.Init(info)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+
+	record, _ := info.GenerateRecord()
+	for i := 0; i < 9; i++ {
+		connection.PushRecord(record)
+	}
+
+	if iiPush.PushRecordCalls != 0 {
+		t.Fatalf(`expected 0 push record calls but got %v`, iiPush.PushRecordCalls)
+	}
+
+	connection.PushRecord(record)
+	if iiPush.PushRecordCalls != 10 {
+		t.Fatalf(`expected 10 push record calls but got %v`, iiPush.PushRecordCalls)
+	}
+
+	connection.PushRecord(record)
+	if iiPush.PushRecordCalls != 10 {
+		t.Fatalf(`expected 10 push record calls but got %v`, iiPush.PushRecordCalls)
+	}
+
+	connection.Close()
+	if iiPush.PushRecordCalls != 11 {
+		t.Fatalf(`expected 11 push record calls but got %v`, iiPush.PushRecordCalls)
+	}
+
 }
 
 type IiTestStruct struct {

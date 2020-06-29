@@ -14,7 +14,7 @@ type PluginInput struct {
 
 func (plugin *PluginInput) Init(toolId int, config string) bool {
 	plugin.ToolId = toolId
-	plugin.Output = output_connection.New(toolId, `Output`)
+	plugin.Output = output_connection.New(toolId, `Output`, 10)
 	return true
 }
 

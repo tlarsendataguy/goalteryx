@@ -1,4 +1,3 @@
-#include <stdlib.h>
 #include "plugins.h"
 
 // Plugin methods
@@ -220,6 +219,31 @@ long c_outputInit(struct IncomingConnectionInterface * connection, void * record
 
 long c_outputPushRecord(struct IncomingConnectionInterface * connection, void * record) {
     return connection->pII_PushRecord(connection->handle, record);
+}
+
+void * c_outputPushBuffer(void * connections, int connectionCount, void * records, int recordCount) {
+    long * returnVals = malloc(sizeof(long)*connectionCount);
+    for (int i = 0; i < connectionCount; i++) {
+        returnVals[i] = 1;
+    }
+
+    for (int iRecord = 0; iRecord < recordCount; iRecord++) {
+        for (int iConn = 0; iConn < connectionCount; iConn++) {
+            if (returnVals[iConn] == 0) {
+                continue;
+            }
+
+            struct IncomingConnectionInterface *connection = ((struct IncomingConnectionInterface **)connections)[iConn];
+            void * record = ((void **)records)[iRecord];
+
+            long result = connection->pII_PushRecord(connection->handle, record);
+            if (result == 0) {
+                returnVals[connectionCount] = 0;
+            }
+        }
+    }
+
+    return returnVals;
 }
 
 long c_outputClose(struct IncomingConnectionInterface * connection) {

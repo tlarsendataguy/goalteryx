@@ -29,7 +29,7 @@ func (plugin *PluginPresort) Init(toolId int, config string) bool {
 		return false
 	}
 	plugin.Field = c.Field
-	plugin.Output = output_connection.New(toolId, `Output`)
+	plugin.Output = output_connection.New(toolId, `Output`, 10)
 	return true
 }
 
