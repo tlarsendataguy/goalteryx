@@ -11,6 +11,7 @@ import (
 	"github.com/tlarsen7572/goalteryx/api"
 	"github.com/tlarsen7572/goalteryx/recordblob"
 	"github.com/tlarsen7572/goalteryx/recordinfo"
+	"reflect"
 	"time"
 	"unsafe"
 )
@@ -136,7 +137,20 @@ func (output *outputConnection) pushRecordBuffer(record recordblob.RecordBlob) {
 	}
 
 	output.blobSizes[output.currentBufferIndex] = size
-	C.memcpy(output.buffer[output.currentBufferIndex], record.Blob(), C.ulonglong(size))
+
+	var from []byte
+	fromHeader := (*reflect.SliceHeader)(unsafe.Pointer(&from))
+	fromHeader.Data = uintptr(record.Blob())
+	fromHeader.Len = size
+	fromHeader.Cap = size
+
+	var to []byte
+	toHeader := (*reflect.SliceHeader)(unsafe.Pointer(&to))
+	toHeader.Data = uintptr(output.buffer[output.currentBufferIndex])
+	toHeader.Len = size
+	toHeader.Cap = size
+
+	copy(to, from)
 
 	output.currentBufferIndex += 1
 	if output.currentBufferIndex == output.bufferSize {
