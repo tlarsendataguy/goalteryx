@@ -46,6 +46,8 @@ type RecordInfo interface {
 	// be called on any field type and is the fastest way to obtain a value from a field.
 	GetRawBytesFromIndex(index int, record recordblob.RecordBlob) (value []byte, err error)
 
+	GetCurrentInt(fieldName string) (int, bool, error)
+
 	// SetIntField sets the specified integer field with a value.  It can only be called on
 	// Byte, Int16, Int32, and Int64 fields.  All other fields will return an error.
 	SetIntField(fieldName string, value int) error

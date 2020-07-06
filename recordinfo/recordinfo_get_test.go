@@ -2,6 +2,7 @@ package recordinfo_test
 
 import (
 	"github.com/tlarsen7572/goalteryx/recordblob"
+	"github.com/tlarsen7572/goalteryx/recordcopier"
 	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"strings"
 	"testing"
@@ -343,6 +344,88 @@ func TestCorrectlyRetrieveVarTinyValue(t *testing.T) {
 
 	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, varFieldTinyRecord)
 	checkExpectedGetValueFrom(t, value, `A`, isNull, false, err, nil, `error retrieving tine v_wstring:`)
+}
+
+func TestGetCurrentInt32(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddInt32Field(`MyField`, ``)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetIntField(`MyField`, 12)
+
+	value, isNull, err := recordInfo.GetCurrentInt(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != 12 {
+		t.Fatalf(`expected 12 but got %v`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentInt(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetCurrentInt64(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddInt64Field(`MyField`, ``)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetIntField(`MyField`, 12)
+
+	value, isNull, err := recordInfo.GetCurrentInt(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != 12 {
+		t.Fatalf(`expected 12 but got %v`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentInt(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetNullInt64FromRecordblob(t *testing.T) {
+	generator1 := recordinfo.NewGenerator()
+	generator1.AddInt64Field(`MyField`, ``)
+	recordInfo1 := generator1.GenerateRecordInfo()
+
+	generator2 := recordinfo.NewGenerator()
+	generator2.AddInt64Field(`MyField`, ``)
+	recordInfo2 := generator2.GenerateRecordInfo()
+
+	_ = recordInfo1.SetFieldNull(`MyField`)
+	record, _ := recordInfo1.GenerateRecord()
+
+	copier, _ := recordcopier.New(recordInfo2, recordInfo1, []recordcopier.IndexMap{{
+		DestinationIndex: 0,
+		SourceIndex:      0,
+	}})
+
+	_ = copier.Copy(record)
+
+	_, isNull, err := recordInfo2.GetCurrentInt(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
 }
 
 func checkExpectedGetValueFrom(t *testing.T, value interface{}, expectedValue interface{}, isNull bool, expectedIsNull bool, err error, expectedErr error, msg string) {

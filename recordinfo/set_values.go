@@ -240,11 +240,16 @@ func (info *recordInfo) setFieldFromRawBytes(field *fieldInfoEditor, value []byt
 		}
 		field.varLen = valueLen
 		copy(field.value, value)
+		field.isNull = false
+
+	case Bool:
+		copy(field.value, value)
+		field.isNull = value[0] == 2
 
 	default:
 		copy(field.value, value)
+		field.isNull = value[field.fixedLen] == 1
 	}
-	field.isNull = false
 	return nil
 }
 

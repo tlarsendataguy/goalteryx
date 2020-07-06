@@ -12,6 +12,22 @@ import (
 	"unsafe"
 )
 
+func (info *recordInfo) GetCurrentInt(fieldName string) (int, bool, error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return 0, false, err
+	}
+
+	switch field.Type {
+	case Int64:
+		return int(binary.LittleEndian.Uint64(field.value[:8])), field.isNull, nil
+	case Int32:
+		return int(binary.LittleEndian.Uint32(field.value[:4])), field.isNull, nil
+	default:
+		return 0, false, invalidTypeError(field, `int`)
+	}
+}
+
 // GetIntValueFrom retrieves integers from integer fields.  Each type of integer field uses a different fixed
 // length, and so we must treat each separately.  The storage size for each integer field is the number of bytes
 // needed to store each integer, plus 1.  The last byte is used as a null flag: 0 means the field has a value and 1
