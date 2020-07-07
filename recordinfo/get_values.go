@@ -12,6 +12,24 @@ import (
 	"unsafe"
 )
 
+func (info *recordInfo) GetCurrentBool(fieldName string) (bool, bool, error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return false, false, err
+	}
+
+	switch field.Type {
+	case Bool:
+		if field.value[0] == 2 {
+			return false, true, nil
+		}
+		return field.value[0] != 0, field.isNull, nil
+	default:
+		return false, false, invalidTypeError(field, `int`)
+	}
+}
+
+// GetCurrentInt retrieves the integer value currently stored in the specified field.
 func (info *recordInfo) GetCurrentInt(fieldName string) (int, bool, error) {
 	field, err := info.getFieldInfo(fieldName)
 	if err != nil {
@@ -19,12 +37,71 @@ func (info *recordInfo) GetCurrentInt(fieldName string) (int, bool, error) {
 	}
 
 	switch field.Type {
-	case Int64:
-		return int(binary.LittleEndian.Uint64(field.value[:8])), field.isNull, nil
+	case Byte:
+		return int(field.value[0]), field.isNull, nil
+	case Int16:
+		return int(binary.LittleEndian.Uint16(field.value[:2])), field.isNull, nil
 	case Int32:
 		return int(binary.LittleEndian.Uint32(field.value[:4])), field.isNull, nil
+	case Int64:
+		return int(binary.LittleEndian.Uint64(field.value[:8])), field.isNull, nil
 	default:
 		return 0, false, invalidTypeError(field, `int`)
+	}
+}
+
+func (info *recordInfo) GetCurrentFloat(fieldName string) (float64, bool, error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return 0, false, err
+	}
+
+	switch field.Type {
+	case FixedDecimal:
+		if field.isNull {
+			// early return because we don't want valid nulls affected by the result of parsing the float.
+			// FixedDecimal may be null but have garbage in the field that does not parse well, so we return early
+			// to prevent unneeded parse errors from bubbling up.
+			return 0, true, nil
+		}
+		value, err := strconv.ParseFloat(string(truncateAtNullByte(field.value[:field.fixedLen])), 64)
+		return value, false, err
+	case Float:
+		return float64(math.Float32frombits(binary.LittleEndian.Uint32(field.value[:4]))), field.isNull, nil
+	case Double:
+		return math.Float64frombits(binary.LittleEndian.Uint64(field.value[:8])), field.isNull, nil
+	default:
+		return 0, false, invalidTypeError(field, `float`)
+	}
+}
+
+func (info *recordInfo) GetCurrentString(fieldName string) (string, bool, error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return ``, false, err
+	}
+
+	switch field.Type {
+	case String:
+		return string(truncateAtNullByte(field.value[:field.fixedLen])), field.isNull, nil
+	case V_String:
+		return string(field.value[:field.varLen]), field.isNull, nil
+	case WString, V_WString:
+		charLen := int(field.fixedLen / 2)
+		if field.Type == V_WString {
+			charLen = field.varLen
+		}
+
+		var chars []uint16
+		rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&chars))
+		rawHeader.Data = uintptr(unsafe.Pointer(&field.value[0]))
+		rawHeader.Len = charLen
+		rawHeader.Cap = charLen
+
+		return syscall.UTF16ToString(chars), field.isNull, nil
+
+	default:
+		return ``, false, invalidTypeError(field, `string`)
 	}
 }
 
@@ -171,10 +248,13 @@ func (info *recordInfo) GetStringValueFrom(fieldName string, record recordblob.R
 			return ``, true, nil
 		}
 		charLen := len(raw) / 2
-		chars := make([]uint16, charLen)
-		for charIndex := 0; charIndex < charLen; charIndex++ {
-			chars[charIndex] = binary.LittleEndian.Uint16(raw[charIndex*2 : charIndex*2+2])
-		}
+
+		var chars []uint16
+		rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&chars))
+		rawHeader.Data = uintptr(record.Blob()) + field.location
+		rawHeader.Len = charLen
+		rawHeader.Cap = charLen
+
 		return syscall.UTF16ToString(chars), false, nil
 
 	case V_WString:

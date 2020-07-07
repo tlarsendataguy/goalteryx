@@ -346,6 +346,87 @@ func TestCorrectlyRetrieveVarTinyValue(t *testing.T) {
 	checkExpectedGetValueFrom(t, value, `A`, isNull, false, err, nil, `error retrieving tine v_wstring:`)
 }
 
+func TestGetCurrentByte(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddByteField(`MyField`, ``)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetIntField(`MyField`, 12)
+
+	value, isNull, err := recordInfo.GetCurrentInt(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != 12 {
+		t.Fatalf(`expected 12 but got %v`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentInt(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetCurrentBool(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddBoolField(`MyField`, ``)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetBoolField(`MyField`, true)
+
+	value, isNull, err := recordInfo.GetCurrentBool(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if !value {
+		t.Fatalf(`expected true but got %v`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentBool(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetCurrentInt16(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddInt16Field(`MyField`, ``)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetIntField(`MyField`, 12)
+
+	value, isNull, err := recordInfo.GetCurrentInt(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != 12 {
+		t.Fatalf(`expected 12 but got %v`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentInt(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
 func TestGetCurrentInt32(t *testing.T) {
 	generator := recordinfo.NewGenerator()
 	generator.AddInt32Field(`MyField`, ``)
@@ -420,6 +501,195 @@ func TestGetNullInt64FromRecordblob(t *testing.T) {
 	_ = copier.Copy(record)
 
 	_, isNull, err := recordInfo2.GetCurrentInt(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetCurrentFixedDecimal(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddFixedDecimalField(`MyField`, ``, 16, 4)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetFloatField(`MyField`, 123.45)
+
+	value, isNull, err := recordInfo.GetCurrentFloat(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != 123.45 {
+		t.Fatalf(`expected 123.45 but got %v`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentFloat(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetCurrentFloat(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddFloatField(`MyField`, ``)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetFloatField(`MyField`, 123.45)
+
+	value, isNull, err := recordInfo.GetCurrentFloat(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != float64(float32(123.45)) {
+		t.Fatalf(`expected 123.45 but got %v`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentFloat(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetCurrentDouble(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddDoubleField(`MyField`, ``)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetFloatField(`MyField`, 123.45)
+
+	value, isNull, err := recordInfo.GetCurrentFloat(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != 123.45 {
+		t.Fatalf(`expected 123.45 but got %v`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentFloat(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetCurrentString(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddStringField(`MyField`, ``, 50)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetStringField(`MyField`, `hello world`)
+
+	value, isNull, err := recordInfo.GetCurrentString(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != `hello world` {
+		t.Fatalf(`expected 'hello world' but got '%v'`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentString(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetCurrentV_String(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddV_StringField(`MyField`, ``, 50)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetStringField(`MyField`, `hello world`)
+
+	value, isNull, err := recordInfo.GetCurrentString(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != `hello world` {
+		t.Fatalf(`expected 'hello world' but got '%v'`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentString(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetCurrentWString(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddWStringField(`MyField`, ``, 50)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetStringField(`MyField`, `hello world`)
+
+	value, isNull, err := recordInfo.GetCurrentString(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != `hello world` {
+		t.Fatalf(`expected 'hello world' but got '%v'`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentString(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetCurrentV_WString(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddV_WStringField(`MyField`, ``, 50)
+	recordInfo := generator.GenerateRecordInfo()
+	_ = recordInfo.SetStringField(`MyField`, `hello world`)
+
+	value, isNull, err := recordInfo.GetCurrentString(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != `hello world` {
+		t.Fatalf(`expected 'hello world' but got '%v'`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentString(`MyField`)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}

@@ -46,7 +46,21 @@ type RecordInfo interface {
 	// be called on any field type and is the fastest way to obtain a value from a field.
 	GetRawBytesFromIndex(index int, record recordblob.RecordBlob) (value []byte, err error)
 
+	// GetCurrentBool obtains the boolean currently stored in the specified field.  It can only be called on Bool
+	// fields.  All other fields will return an error.
+	GetCurrentBool(fieldName string) (bool, bool, error)
+
+	// GetCurrentInt obtains the integer currently stored in the specified field.  It can only be called on Byte,
+	// Int16, Int32, and Int64 fields.  All other fields will return an error.
 	GetCurrentInt(fieldName string) (int, bool, error)
+
+	// GetCurrentFloat obtains the decimal number currently stored in the specified field.  It can only be called on
+	// FixedDecimal, Float, and Double fields.  All other fields will return an error.
+	GetCurrentFloat(fieldName string) (float64, bool, error)
+
+	// GetCurrentString obtains the text currently stored in the specified field.  It can only be called on
+	// String, V_String, WString, and V_WString fields.  All other fields will return an error.
+	GetCurrentString(fieldName string) (string, bool, error)
 
 	// SetIntField sets the specified integer field with a value.  It can only be called on
 	// Byte, Int16, Int32, and Int64 fields.  All other fields will return an error.
