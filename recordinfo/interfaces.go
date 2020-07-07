@@ -62,6 +62,10 @@ type RecordInfo interface {
 	// String, V_String, WString, and V_WString fields.  All other fields will return an error.
 	GetCurrentString(fieldName string) (string, bool, error)
 
+	// GetCurrentDate obtains the date currently stored in the specified field.  It can only be called on
+	// Date fields.  All other fields will return an error.
+	GetCurrentDate(fieldName string) (time.Time, bool, error)
+
 	// SetIntField sets the specified integer field with a value.  It can only be called on
 	// Byte, Int16, Int32, and Int64 fields.  All other fields will return an error.
 	SetIntField(fieldName string, value int) error

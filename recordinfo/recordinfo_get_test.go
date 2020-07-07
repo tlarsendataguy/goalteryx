@@ -698,6 +698,62 @@ func TestGetCurrentV_WString(t *testing.T) {
 	}
 }
 
+func TestGetCurrentDate(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddDateField(`MyField`, ``)
+	recordInfo := generator.GenerateRecordInfo()
+	date := time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
+	_ = recordInfo.SetDateField(`MyField`, date)
+
+	value, isNull, err := recordInfo.GetCurrentDate(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != date {
+		t.Fatalf(`expected '2020-01-02' but got '%v'`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentDate(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
+func TestGetCurrentDateTime(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddDateTimeField(`MyField`, ``)
+	recordInfo := generator.GenerateRecordInfo()
+	date := time.Date(2020, 1, 2, 3, 4, 5, 0, time.UTC)
+	_ = recordInfo.SetDateField(`MyField`, date)
+
+	value, isNull, err := recordInfo.GetCurrentDate(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected non-null but got null`)
+	}
+	if value != date {
+		t.Fatalf(`expected '2020-01-02 03:04:05' but got '%v'`, value)
+	}
+
+	_ = recordInfo.SetFieldNull(`MyField`)
+	value, isNull, err = recordInfo.GetCurrentDate(`MyField`)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got non-null`)
+	}
+}
+
 func checkExpectedGetValueFrom(t *testing.T, value interface{}, expectedValue interface{}, isNull bool, expectedIsNull bool, err error, expectedErr error, msg string) {
 	if err != expectedErr {
 		t.Fatalf("%v expected error: %v\ngot: %v", msg, expectedErr, err)

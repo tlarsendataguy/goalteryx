@@ -105,6 +105,32 @@ func (info *recordInfo) GetCurrentString(fieldName string) (string, bool, error)
 	}
 }
 
+func (info *recordInfo) GetCurrentDate(fieldName string) (time.Time, bool, error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return zeroDate, false, err
+	}
+
+	var parseFmt string
+
+	switch field.Type {
+	case Date:
+		parseFmt = dateFormat
+
+	case DateTime:
+		parseFmt = dateTimeFormat
+
+	default:
+		return zeroDate, false, invalidTypeError(field, `date`)
+	}
+
+	if field.isNull {
+		return zeroDate, true, nil
+	}
+	value, err := time.Parse(parseFmt, string(field.value[:field.fixedLen]))
+	return value, false, err
+}
+
 // GetIntValueFrom retrieves integers from integer fields.  Each type of integer field uses a different fixed
 // length, and so we must treat each separately.  The storage size for each integer field is the number of bytes
 // needed to store each integer, plus 1.  The last byte is used as a null flag: 0 means the field has a value and 1
