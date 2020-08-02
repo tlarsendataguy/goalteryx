@@ -754,6 +754,26 @@ func TestGetCurrentDateTime(t *testing.T) {
 	}
 }
 
+func TestShortWStringBlob(t *testing.T) {
+	blob := []byte{100, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 7, 0, 0, 0, 13, 49, 0, 48, 0, 48, 0, 33, 156, 241, 23, 49, 106, 0, 16, 96, 106, 68, 179, 193, 2, 0, 0, 192, 106, 68, 179, 193, 2, 0, 0, 10, 0}
+	record := recordblob.NewRecordBlob(unsafe.Pointer(&blob[0]))
+
+	generator := recordinfo.NewGenerator()
+	generator.AddInt64Field(`Id`, ``)
+	generator.AddV_WStringField(`IdStr`, ``, 1073741823)
+	info := generator.GenerateRecordInfo()
+	value, isNull, err := info.GetStringValueFrom(`IdStr`, record)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected a value but got Null`)
+	}
+	if value != `100` {
+		t.Fatalf(`expected '100' but got '%v'`, value)
+	}
+}
+
 func checkExpectedGetValueFrom(t *testing.T, value interface{}, expectedValue interface{}, isNull bool, expectedIsNull bool, err error, expectedErr error, msg string) {
 	if err != expectedErr {
 		t.Fatalf("%v expected error: %v\ngot: %v", msg, expectedErr, err)

@@ -1,9 +1,11 @@
 package recordcopier_test
 
 import (
+	"github.com/tlarsen7572/goalteryx/recordblob"
 	"github.com/tlarsen7572/goalteryx/recordcopier"
 	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"testing"
+	"unsafe"
 )
 
 func TestRecordCopier(t *testing.T) {
@@ -75,6 +77,37 @@ func TestRecordCopierInvalidIndices(t *testing.T) {
 	_, err = recordcopier.New(info2, info1, indexMaps)
 	if err == nil {
 		t.Fatalf(`expected an error but got none`)
+	}
+}
+
+func TestCopierShortWString(t *testing.T) {
+	blob := []byte{100, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 7, 0, 0, 0, 13, 49, 0, 48, 0, 48, 0, 33, 156, 241, 23, 49, 106, 0, 16, 96, 106, 68, 179, 193, 2, 0, 0, 192, 106, 68, 179, 193, 2, 0, 0, 10, 0}
+	record := recordblob.NewRecordBlob(unsafe.Pointer(&blob[0]))
+
+	generator := recordinfo.NewGenerator()
+	generator.AddInt64Field(`Id`, ``)
+	generator.AddV_WStringField(`IdStr`, ``, 1073741823)
+	info := generator.GenerateRecordInfo()
+	copier, err := recordcopier.New(info, info, []recordcopier.IndexMap{
+		{0, 0},
+		{1, 1},
+	})
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	err = copier.Copy(record)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	value, isNull, err := info.GetCurrentString(`IdStr`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	if isNull {
+		t.Fatalf(`expected a value but got Null`)
+	}
+	if value != `100` {
+		t.Fatalf(`expected '100' but got '%v'`, value)
 	}
 }
 
