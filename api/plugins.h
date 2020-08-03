@@ -125,7 +125,7 @@ struct IncomingRecordCache
 };
 struct IncomingConnectionInterface* newIi(void * iiHandle);
 void * getIiIndex();
-void saveIncomingInterfaceFixedSize(void * handle, int fixedSize);
+void saveIncomingInterfaceFixedSize(void * handle, int fixedSize, bool hasVarFields);
 long c_iiInit(void * handle, void * recordInfoIn);
 long go_iiInit(void * handle, void * recordInfoIn);
 long c_iiPushRecordCache(void * handle, void * record);

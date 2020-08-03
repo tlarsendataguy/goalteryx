@@ -41,10 +41,12 @@ func (info *recordInfo) AddWStringField(name string, source string, size int) st
 }
 
 func (info *recordInfo) AddV_StringField(name string, source string, size int) string {
+	info.hasVarFields = true
 	return info.addField(name, source, size, 0, V_String, 4, 0)
 }
 
 func (info *recordInfo) AddV_WStringField(name string, source string, size int) string {
+	info.hasVarFields = true
 	return info.addField(name, source, size, 0, V_WString, 4, 0)
 }
 
@@ -57,10 +59,12 @@ func (info *recordInfo) AddDateTimeField(name string, source string) string {
 }
 
 func (info *recordInfo) AddBlobField(name string, source string, size int) string {
+	info.hasVarFields = true
 	return info.addField(name, source, size, 0, Blob, 4, 0)
 }
 
 func (info *recordInfo) AddSpatialField(name string, source string, size int) string {
+	info.hasVarFields = true
 	return info.addField(name, source, size, 0, Spatial, 4, 0)
 }
 

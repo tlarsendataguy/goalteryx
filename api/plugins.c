@@ -8,6 +8,7 @@
 int currentIiIndex = 0;
 struct IncomingRecordCache* buffers[1000];
 int iiFixedSizes[1000];
+bool iiHasVarFields[1000];
 
 // a reference to the engine provided to our plugins.
 struct EngineInterface *engine;
@@ -128,9 +129,10 @@ void * getIiIndex(){
     return iiIndex;
 }
 
-void saveIncomingInterfaceFixedSize(void * handle, int fixedSize) {
+void saveIncomingInterfaceFixedSize(void * handle, int fixedSize, bool hasVarFields) {
     int iiIndex = *((int*)handle);
     iiFixedSizes[iiIndex] = fixedSize;
+    iiHasVarFields[iiIndex] = hasVarFields;
 }
 
 // C entry point for II_Init.  Calls into Go.
@@ -142,14 +144,21 @@ long c_iiInit(void * handle, void * recordInfoIn) {
 long c_iiPushRecordCache(void * handle, void * record) {
     int iiIndex = *((int*)handle);
     int fixedSize = iiFixedSizes[iiIndex];
+    bool hasVarFields = iiHasVarFields[iiIndex];
     struct IncomingRecordCache *buffer = buffers[iiIndex];
+
     if (buffer->currentBufferIndex == buffer->recordsInBuffer) {
         go_iiPushRecordCache(handle, buffer->buffer, buffer->currentBufferIndex);
         buffer->currentBufferIndex = 0;
     }
 
-    int varSize = *(int*)(record+fixedSize);
-    int totalSize = fixedSize + 4 + varSize;
+    int totalSize;
+    if (hasVarFields) {
+        int varSize = *(int*)(record+fixedSize);
+        totalSize = fixedSize + 4 + varSize;
+    } else {
+        totalSize = fixedSize;
+    }
     int bufferSize = (*buffer->bufferSizes)[buffer->currentBufferIndex];
 
     if (totalSize > bufferSize) {
@@ -160,6 +169,7 @@ long c_iiPushRecordCache(void * handle, void * record) {
         (*buffer->bufferSizes)[buffer->currentBufferIndex] = totalSize;
     }
     memcpy((*buffer->buffer)[buffer->currentBufferIndex], record, totalSize);
+
     buffer->currentBufferIndex++;
     buffer->recordCount++;
 

@@ -183,7 +183,8 @@ func go_iiInit(handle unsafe.Pointer, recordInfoIn unsafe.Pointer) C.long {
 	if incomingInterface.Init(goRecordInfoIn) {
 		recordInfo, _ := recordinfo.FromXml(goRecordInfoIn)
 		fixedSize := recordInfo.FixedSize()
-		C.saveIncomingInterfaceFixedSize(handle, C.int(fixedSize))
+		hasVarFields := recordInfo.HasVarFields()
+		C.saveIncomingInterfaceFixedSize(handle, C.int(fixedSize), C.bool(hasVarFields))
 		return C.long(1)
 	}
 	return C.long(0)

@@ -10,6 +10,9 @@ type RecordInfo interface {
 	// NumFields return the number of fields contained in the RecordInfo.
 	NumFields() int
 
+	// HasVarFields returns true if the RecordInfo contains variable-length fields
+	HasVarFields() bool
+
 	// GetFieldByIndex returns field information at the specified index.  If an out-of-range index is specified,
 	// an error is returned with an empty FieldInfo struct.
 	GetFieldByIndex(index int) (FieldInfo, error)

@@ -10,13 +10,14 @@ import (
 
 // recordInfo is the struct which implements the RecordInfo interface
 type recordInfo struct {
-	fixedLen   uintptr
-	numFields  int
-	fields     []*fieldInfoEditor
-	fieldNames map[string]int
-	blob       []byte
-	blobHandle unsafe.Pointer
-	blobLen    int
+	fixedLen     uintptr
+	numFields    int
+	fields       []*fieldInfoEditor
+	fieldNames   map[string]int
+	blob         []byte
+	blobHandle   unsafe.Pointer
+	blobLen      int
+	hasVarFields bool
 }
 
 // FieldInfo is the struct used to provide field information back to calling code.
@@ -47,6 +48,10 @@ type fieldInfoEditor struct {
 
 func (info *recordInfo) NumFields() int {
 	return info.numFields
+}
+
+func (info *recordInfo) HasVarFields() bool {
+	return info.hasVarFields
 }
 
 func (info *recordInfo) GetFieldByIndex(index int) (FieldInfo, error) {
@@ -113,8 +118,11 @@ func (info *recordInfo) checkFieldName(name string) string {
 
 // Total size of a record blob is the fixed size plus 4 bytes for the variable length plus the variable length
 func (info *recordInfo) TotalSize(record recordblob.RecordBlob) int {
-	variable := int(*((*uint32)(unsafe.Pointer(uintptr(record.Blob()) + info.fixedLen))))
-	return int(info.fixedLen) + 4 + variable
+	if info.hasVarFields {
+		variable := int(*((*uint32)(unsafe.Pointer(uintptr(record.Blob()) + info.fixedLen))))
+		return int(info.fixedLen) + 4 + variable
+	}
+	return int(info.fixedLen)
 }
 
 func (info *recordInfo) getRecordSizes() (fixed int, variable int) {

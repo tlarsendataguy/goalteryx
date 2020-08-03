@@ -25,7 +25,7 @@ func TestTotalSizeFixedField(t *testing.T) {
 	_ = info.SetStringField(`TestFixedField`, `Hello world`)
 	record, _ := info.GenerateRecord()
 
-	expectedSize := 15 + 4 // field size 14, plus 1 byte for null indicator, plus 4 bytes for var len
+	expectedSize := 15 // field size 14, plus 1 byte for null indicator, plus 4 bytes for var len
 	if actualSize := info.TotalSize(record); actualSize != expectedSize {
 		t.Fatalf(`expected total size %v but got %v`, expectedSize, actualSize)
 	}
