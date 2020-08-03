@@ -89,7 +89,7 @@ func (info *recordInfo) GetCurrentString(fieldName string) (string, bool, error)
 	case WString, V_WString:
 		charLen := int(field.fixedLen / 2)
 		if field.Type == V_WString {
-			charLen = field.varLen
+			charLen = field.varLen / 2
 		}
 
 		var chars []uint16

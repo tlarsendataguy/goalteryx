@@ -81,7 +81,7 @@ func TestRecordCopierInvalidIndices(t *testing.T) {
 }
 
 func TestCopierShortWString(t *testing.T) {
-	blob := []byte{100, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 7, 0, 0, 0, 13, 49, 0, 48, 0, 48, 0, 33, 156, 241, 23, 49, 106, 0, 16, 96, 106, 68, 179, 193, 2, 0, 0, 192, 106, 68, 179, 193, 2, 0, 0, 10, 0}
+	blob := []byte{101, 0, 0, 0, 0, 0, 0, 0, 0, 8, 0, 0, 0, 7, 0, 0, 0, 13, 49, 0, 48, 0, 49, 0, 250, 146, 213, 150, 20, 143, 0, 15, 96, 0, 0, 0, 0, 0, 0, 0, 0, 12, 0, 0, 0, 13, 0, 0, 0, 28}
 	record := recordblob.NewRecordBlob(unsafe.Pointer(&blob[0]))
 
 	generator := recordinfo.NewGenerator()
@@ -106,7 +106,7 @@ func TestCopierShortWString(t *testing.T) {
 	if isNull {
 		t.Fatalf(`expected a value but got Null`)
 	}
-	if value != `100` {
+	if value != `101` {
 		t.Fatalf(`expected '100' but got '%v'`, value)
 	}
 }
