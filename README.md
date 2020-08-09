@@ -1,3 +1,5 @@
+<img src="https://github.com/tlarsen7572/goalteryx/blob/master/goalteryx_icon_whiteBackground.png?raw=true" width="200">
+
 # GoAlteryx
 
 An unofficial SDK for building custom Alteryx tools with Go.
