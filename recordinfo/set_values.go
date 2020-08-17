@@ -18,7 +18,7 @@ func (info *recordInfo) SetIntField(fieldName string, value int) error {
 		return err
 	}
 
-	clearNullFlag(field)
+	clearNullFlagFromFixedField(field)
 	switch field.Type {
 	case Byte:
 		field.value[0] = byte(value)
@@ -65,7 +65,7 @@ func (info *recordInfo) SetFloatField(fieldName string, value float64) error {
 		return err
 	}
 
-	clearNullFlag(field)
+	clearNullFlagFromFixedField(field)
 
 	switch field.Type {
 	case FixedDecimal:
@@ -104,7 +104,7 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 
 	switch field.Type {
 	case String:
-		clearNullFlag(field)
+		clearNullFlagFromFixedField(field)
 		valueBytes := []byte(value)
 		size := len(valueBytes)
 		copy(field.value[:field.Size], valueBytes)
@@ -113,6 +113,7 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 		}
 
 	case V_String:
+		field.isNull = false
 		valueBytes := []byte(value)
 		actualLen := len(valueBytes)
 		maxLen := field.Size
@@ -127,7 +128,7 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 		copy(field.value, valueBytes[:actualLen])
 
 	case WString:
-		clearNullFlag(field)
+		clearNullFlagFromFixedField(field)
 		chars, err := syscall.UTF16FromString(value)
 		if err != nil {
 			return err
@@ -140,6 +141,7 @@ func (info *recordInfo) SetStringField(fieldName string, value string) error {
 		}
 
 	case V_WString:
+		field.isNull = false
 		chars, err := syscall.UTF16FromString(value)
 		if err != nil {
 			return err
@@ -177,7 +179,7 @@ func (info *recordInfo) SetDateField(fieldName string, value time.Time) error {
 		return err
 	}
 
-	clearNullFlag(field)
+	clearNullFlagFromFixedField(field)
 	var valueStr string
 	switch field.Type {
 	case Date:
@@ -253,9 +255,8 @@ func (info *recordInfo) setFieldFromRawBytes(field *fieldInfoEditor, value []byt
 	return nil
 }
 
-// clearNullFlag clears the null flag from any field type.
-func clearNullFlag(field *fieldInfoEditor) {
-	nullByteLocation := field.fixedLen - 1
-	field.value[nullByteLocation] = 0
+// clearNullFlagFromFixedField clears the null flag from any fixed-length, non-bool field type.
+func clearNullFlagFromFixedField(field *fieldInfoEditor) {
+	field.value[field.fixedLen] = 0
 	field.isNull = false
 }

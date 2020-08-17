@@ -1,6 +1,7 @@
 package recordinfo_test
 
 import (
+	"github.com/tlarsen7572/goalteryx/recordcopier"
 	"github.com/tlarsen7572/goalteryx/recordinfo"
 	"strings"
 	"testing"
@@ -424,6 +425,89 @@ func TestSetValueNullValue(t *testing.T) {
 
 	value, isNull, err = recordInfo.GetIntValueFrom(`Field`, record)
 	checkExpectedGetValueFrom(t, value, 20, isNull, false, err, nil, `error setting 20`)
+}
+
+func TestOverwriteFixedLenFieldWithNull(t *testing.T) {
+	info := generateTestRecordInfo()
+	copierMap := make([]recordcopier.IndexMap, info.NumFields())
+	for i := 0; i < info.NumFields(); i++ {
+		copierMap[i] = recordcopier.IndexMap{
+			DestinationIndex: i,
+			SourceIndex:      i,
+		}
+	}
+	copier, _ := recordcopier.New(info, info, copierMap)
+	setNullTestData(info)
+	blob, _ := info.GenerateRecord()
+	_ = copier.Copy(blob)
+
+	setRecordInfoTestData(info)
+	blob, _ = info.GenerateRecord()
+
+	_, isNull, _ := info.GetIntValueFrom(`ByteField`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `byte field`)
+
+	_, isNull, _ = info.GetBoolValueFrom(`BoolField`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `bool field`)
+
+	_, isNull, _ = info.GetIntValueFrom(`Int16Field`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `int16 field`)
+
+	_, isNull, _ = info.GetIntValueFrom(`Int32Field`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `int32 field`)
+
+	_, isNull, _ = info.GetIntValueFrom(`Int64Field`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `int64 field`)
+
+	_, isNull, _ = info.GetFloatValueFrom(`FixedDecimalField`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `fixed decimal field`)
+
+	_, isNull, _ = info.GetFloatValueFrom(`FloatField`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `float field`)
+
+	_, isNull, _ = info.GetFloatValueFrom(`DoubleField`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `double field`)
+
+	_, isNull, _ = info.GetStringValueFrom(`StringField`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `string field`)
+
+	_, isNull, _ = info.GetStringValueFrom(`WStringField`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `wstring field`)
+
+	_, isNull, _ = info.GetDateValueFrom(`DateField`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `date field`)
+
+	_, isNull, _ = info.GetDateValueFrom(`DateTimeField`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `datetime field`)
+}
+
+func TestOverwriteVarStringFieldWithNull(t *testing.T) {
+	generator := recordinfo.NewGenerator()
+	generator.AddV_WStringField(`V_WStringField`, ``, 100)
+	generator.AddV_StringField(`V_StringField`, ``, 100)
+	info := generator.GenerateRecordInfo()
+	copierMap := make([]recordcopier.IndexMap, info.NumFields())
+	for i := 0; i < info.NumFields(); i++ {
+		copierMap[i] = recordcopier.IndexMap{
+			DestinationIndex: i,
+			SourceIndex:      i,
+		}
+	}
+	copier, _ := recordcopier.New(info, info, copierMap)
+	_ = info.SetFieldNull(`V_WStringField`)
+	_ = info.SetFieldNull(`V_StringField`)
+	blob, _ := info.GenerateRecord()
+	_ = copier.Copy(blob)
+
+	_ = info.SetStringField(`V_WStringField`, `hello world`)
+	_ = info.SetStringField(`V_StringField`, `hello world again`)
+	blob, _ = info.GenerateRecord()
+
+	_, isNull, _ := info.GetStringValueFrom(`V_WStringField`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `V_WStringField field`)
+
+	_, isNull, _ = info.GetStringValueFrom(`V_StringField`, blob)
+	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `V_StringField field`)
 }
 
 func generateTestRecordInfo() recordinfo.RecordInfo {
