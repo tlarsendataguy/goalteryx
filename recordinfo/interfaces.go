@@ -73,6 +73,9 @@ type RecordInfo interface {
 	// Date fields.  All other fields will return an error.
 	GetCurrentDate(fieldName string) (time.Time, bool, error)
 
+	// GetCurrentNull identifies whether the data currently stored in the specified field is null.
+	GetCurrentNull(fildName string) (bool, error)
+
 	// SetIntField sets the specified integer field with a value.  It can only be called on
 	// Byte, Int16, Int32, and Int64 fields.  All other fields will return an error.
 	SetIntField(fieldName string, value int) error

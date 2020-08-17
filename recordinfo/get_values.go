@@ -131,6 +131,14 @@ func (info *recordInfo) GetCurrentDate(fieldName string) (time.Time, bool, error
 	return value, false, err
 }
 
+func (info *recordInfo) GetCurrentNull(fieldName string) (isNull bool, err error) {
+	field, err := info.getFieldInfo(fieldName)
+	if err != nil {
+		return false, err
+	}
+	return field.isNull, nil
+}
+
 // GetIntValueFrom retrieves integers from integer fields.  Each type of integer field uses a different fixed
 // length, and so we must treat each separately.  The storage size for each integer field is the number of bytes
 // needed to store each integer, plus 1.  The last byte is used as a null flag: 0 means the field has a value and 1
