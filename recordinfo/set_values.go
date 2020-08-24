@@ -71,7 +71,7 @@ func (info *recordInfo) SetFloatField(fieldName string, value float64) error {
 	case FixedDecimal:
 		format := `%` + fmt.Sprintf(`%v.%vf`, field.Size, field.Precision)
 		valueStr := []byte(strings.TrimSpace(fmt.Sprintf(format, value)))
-		size := int(field.fixedLen)
+		size := len(valueStr)
 		copy(field.value, valueStr)
 		if size < int(field.fixedLen) {
 			field.value[size] = 0
