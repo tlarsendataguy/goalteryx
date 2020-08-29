@@ -30,6 +30,7 @@ func TestSpeed(t *testing.T) {
 	record, _ := sourceInfo.GenerateRecord()
 
 	info, _ := recordinfo.FromXml(recordInfoXml)
+	reader, _ := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 
 	fieldCount := info.NumFields()
 	totalResults := make(map[string]int64, fieldCount)
@@ -39,7 +40,7 @@ func TestSpeed(t *testing.T) {
 		field, _ := info.GetFieldByIndex(index)
 		start := time.Now()
 		for i := 0; i < 100000; i++ {
-			value, err := sourceInfo.GetRawBytesFrom(field.Name, record)
+			value, err := reader.GetRawBytesFrom(field.Name, record)
 			if err != nil {
 				t.Fatalf(`expected no error getting raw bytes from field %v, but got: %v`, field.Name, err.Error())
 			}

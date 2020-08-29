@@ -48,6 +48,7 @@ func main() {
 	}
 
 	sourceInfo, _ := recordinfo.FromXml(recordInfoXml)
+	reader, _ := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	_ = sourceInfo.SetIntField(`ByteField`, 1)
 	_ = sourceInfo.SetBoolField(`BoolField`, true)
 	_ = sourceInfo.SetIntField(`Int16Field`, 1)
@@ -77,7 +78,7 @@ func main() {
 		field, _ := info.GetFieldByIndex(index)
 		start := time.Now()
 		for i := 0; i < 10000000; i++ {
-			value, err := sourceInfo.GetRawBytesFrom(field.Name, record)
+			value, err := reader.GetRawBytesFrom(field.Name, record)
 			if err != nil {
 				println(fmt.Sprintf(`expected no error getting raw bytes from field %v, but got: %v`, field.Name, err.Error()))
 			}

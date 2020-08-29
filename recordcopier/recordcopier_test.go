@@ -9,14 +9,14 @@ import (
 )
 
 func TestRecordCopier(t *testing.T) {
-	info1, info2 := generateRecordInfos()
+	info1, info2, reader := generateRecordInfos()
 
 	indexMap := []recordcopier.IndexMap{
 		{0, 1},
 		{1, 0},
 	}
 
-	copier, err := recordcopier.New(info2, info1, indexMap)
+	copier, err := recordcopier.New(info2, info1.GenerateRecordBlobReader(), indexMap)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
@@ -36,7 +36,7 @@ func TestRecordCopier(t *testing.T) {
 	}
 
 	expectedValue := `hello world`
-	actualValue, isNull, err := info2.GetStringValueFrom(`String`, record)
+	actualValue, isNull, err := reader.GetStringValueFrom(`String`, record)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
@@ -48,7 +48,7 @@ func TestRecordCopier(t *testing.T) {
 	}
 
 	expectedNumber := 123.45
-	actualNumber, isNull, err := info2.GetFloatValueFrom(`Number`, record)
+	actualNumber, isNull, err := reader.GetFloatValueFrom(`Number`, record)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
@@ -61,12 +61,12 @@ func TestRecordCopier(t *testing.T) {
 }
 
 func TestRecordCopierInvalidIndices(t *testing.T) {
-	info1, info2 := generateRecordInfos()
+	info1, info2, _ := generateRecordInfos()
 
 	indexMaps := []recordcopier.IndexMap{
 		{-1, 0},
 	}
-	_, err := recordcopier.New(info2, info1, indexMaps)
+	_, err := recordcopier.New(info2, info1.GenerateRecordBlobReader(), indexMaps)
 	if err == nil {
 		t.Fatalf(`expected an error but got none`)
 	}
@@ -74,7 +74,7 @@ func TestRecordCopierInvalidIndices(t *testing.T) {
 	indexMaps = []recordcopier.IndexMap{
 		{0, 2},
 	}
-	_, err = recordcopier.New(info2, info1, indexMaps)
+	_, err = recordcopier.New(info2, info1.GenerateRecordBlobReader(), indexMaps)
 	if err == nil {
 		t.Fatalf(`expected an error but got none`)
 	}
@@ -88,7 +88,7 @@ func TestCopierShortWString(t *testing.T) {
 	generator.AddInt64Field(`Id`, ``)
 	generator.AddV_WStringField(`IdStr`, ``, 1073741823)
 	info := generator.GenerateRecordInfo()
-	copier, err := recordcopier.New(info, info, []recordcopier.IndexMap{
+	copier, err := recordcopier.New(info, info.GenerateRecordBlobReader(), []recordcopier.IndexMap{
 		{0, 0},
 		{1, 1},
 	})
@@ -111,7 +111,7 @@ func TestCopierShortWString(t *testing.T) {
 	}
 }
 
-func generateRecordInfos() (recordinfo.RecordInfo, recordinfo.RecordInfo) {
+func generateRecordInfos() (recordinfo.RecordInfo, recordinfo.RecordInfo, recordinfo.RecordBlobReader) {
 	info1 := recordinfo.NewGenerator()
 	info1.AddV_WStringField(`Some String`, ``, 1000)
 	info1.AddDoubleField(`Some Number`, ``)
@@ -120,5 +120,5 @@ func generateRecordInfos() (recordinfo.RecordInfo, recordinfo.RecordInfo) {
 	info2.AddDoubleField(`Number`, ``)
 	info2.AddV_WStringField(`String`, ``, 1000)
 
-	return info1.GenerateRecordInfo(), info2.GenerateRecordInfo()
+	return info1.GenerateRecordInfo(), info2.GenerateRecordInfo(), info2.GenerateRecordBlobReader()
 }

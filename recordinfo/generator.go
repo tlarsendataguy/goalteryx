@@ -14,3 +14,7 @@ func NewGenerator() Generator {
 func (info *recordInfo) GenerateRecordInfo() RecordInfo {
 	return info
 }
+
+func (info *recordInfo) GenerateRecordBlobReader() RecordBlobReader {
+	return info
+}

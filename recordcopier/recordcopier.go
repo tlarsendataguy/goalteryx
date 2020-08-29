@@ -10,7 +10,7 @@ import (
 // RecordCopier is used to easily and quickly copy data between RecordInfo objects.
 type RecordCopier struct {
 	destination recordinfo.RecordInfo
-	source      recordinfo.RecordInfo
+	source      recordinfo.RecordBlobReader
 	indexMaps   []IndexMap
 }
 
@@ -23,7 +23,7 @@ type IndexMap struct {
 // New generates a new RecordCopier from the provided RecordInfo objects and IndexMap slice.  Only a basic validation
 // is performed to check that the indices in the IndexMap slice are in range.
 // TODO: We may want to perform FieldType and size validation here as well.
-func New(destination recordinfo.RecordInfo, source recordinfo.RecordInfo, indexMaps []IndexMap) (*RecordCopier, error) {
+func New(destination recordinfo.RecordInfo, source recordinfo.RecordBlobReader, indexMaps []IndexMap) (*RecordCopier, error) {
 	srcFields := source.NumFields()
 	dstFields := destination.NumFields()
 	for _, indexMap := range indexMaps {

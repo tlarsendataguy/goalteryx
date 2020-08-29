@@ -9,7 +9,7 @@ import (
 )
 
 func TestSetValuesAndGenerateRecord(t *testing.T) {
-	recordInfo := generateTestRecordInfo()
+	recordInfo, reader := generateTestRecordInfo()
 	setRecordInfoTestData(recordInfo)
 
 	record, err := recordInfo.GenerateRecord()
@@ -17,47 +17,47 @@ func TestSetValuesAndGenerateRecord(t *testing.T) {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
 
-	byteVal, isNull, err := recordInfo.GetIntValueFrom(`ByteField`, record)
+	byteVal, isNull, err := reader.GetIntValueFrom(`ByteField`, record)
 	checkExpectedGetValueFrom(t, byteVal, 1, isNull, false, err, nil, `error setting byte:`)
 
-	boolVal, isNull, err := recordInfo.GetBoolValueFrom(`BoolField`, record)
+	boolVal, isNull, err := reader.GetBoolValueFrom(`BoolField`, record)
 	checkExpectedGetValueFrom(t, boolVal, true, isNull, false, err, nil, `error setting bool:`)
 
-	int16Val, isNull, err := recordInfo.GetIntValueFrom(`Int16Field`, record)
+	int16Val, isNull, err := reader.GetIntValueFrom(`Int16Field`, record)
 	checkExpectedGetValueFrom(t, int16Val, 2, isNull, false, err, nil, `error setting int16:`)
 
-	int32Val, isNull, err := recordInfo.GetIntValueFrom(`Int32Field`, record)
+	int32Val, isNull, err := reader.GetIntValueFrom(`Int32Field`, record)
 	checkExpectedGetValueFrom(t, int32Val, 3, isNull, false, err, nil, `error setting int32:`)
 
-	int64Val, isNull, err := recordInfo.GetIntValueFrom(`Int64Field`, record)
+	int64Val, isNull, err := reader.GetIntValueFrom(`Int64Field`, record)
 	checkExpectedGetValueFrom(t, int64Val, 4, isNull, false, err, nil, `error setting int64:`)
 
-	fixedDecimalVal, isNull, err := recordInfo.GetFloatValueFrom(`FixedDecimalField`, record)
+	fixedDecimalVal, isNull, err := reader.GetFloatValueFrom(`FixedDecimalField`, record)
 	checkExpectedGetValueFrom(t, fixedDecimalVal, 123.45, isNull, false, err, nil, `error setting fixeddecimal:`)
 
-	floatVal, isNull, err := recordInfo.GetFloatValueFrom(`FloatField`, record)
+	floatVal, isNull, err := reader.GetFloatValueFrom(`FloatField`, record)
 	checkExpectedGetValueFrom(t, floatVal, float64(float32(654.321)), isNull, false, err, nil, `error setting float:`)
 
-	doubleVal, isNull, err := recordInfo.GetFloatValueFrom(`DoubleField`, record)
+	doubleVal, isNull, err := reader.GetFloatValueFrom(`DoubleField`, record)
 	checkExpectedGetValueFrom(t, doubleVal, 909.33, isNull, false, err, nil, `error setting double:`)
 
-	stringVal, isNull, err := recordInfo.GetStringValueFrom(`StringField`, record)
+	stringVal, isNull, err := reader.GetStringValueFrom(`StringField`, record)
 	checkExpectedGetValueFrom(t, stringVal, `ABCDEFG`, isNull, false, err, nil, `error setting string:`)
 
-	wstringVal, isNull, err := recordInfo.GetStringValueFrom(`WStringField`, record)
+	wstringVal, isNull, err := reader.GetStringValueFrom(`WStringField`, record)
 	checkExpectedGetValueFrom(t, wstringVal, `CXVY`, isNull, false, err, nil, `error setting wstring:`)
 
-	dateVal, isNull, err := recordInfo.GetDateValueFrom(`DateField`, record)
+	dateVal, isNull, err := reader.GetDateValueFrom(`DateField`, record)
 	expectedDate := time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	checkExpectedGetValueFrom(t, dateVal, expectedDate, isNull, false, err, nil, `error setting date:`)
 
-	dateTimeVal, isNull, err := recordInfo.GetDateValueFrom(`DateTimeField`, record)
+	dateTimeVal, isNull, err := reader.GetDateValueFrom(`DateTimeField`, record)
 	expectedDate = time.Date(2021, 3, 4, 5, 6, 7, 0, time.UTC)
 	checkExpectedGetValueFrom(t, dateTimeVal, expectedDate, isNull, false, err, nil, `error setting datetime:`)
 }
 
 func TestSetNullValuesAndGenerateRecord(t *testing.T) {
-	recordInfo := generateTestRecordInfo()
+	recordInfo, reader := generateTestRecordInfo()
 	setNullTestData(recordInfo)
 
 	record, err := recordInfo.GenerateRecord()
@@ -65,45 +65,45 @@ func TestSetNullValuesAndGenerateRecord(t *testing.T) {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
 
-	_, isNull, err := recordInfo.GetIntValueFrom(`ByteField`, record)
+	_, isNull, err := reader.GetIntValueFrom(`ByteField`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting byte:`)
 
-	_, isNull, err = recordInfo.GetBoolValueFrom(`BoolField`, record)
+	_, isNull, err = reader.GetBoolValueFrom(`BoolField`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting bool:`)
 
-	_, isNull, err = recordInfo.GetIntValueFrom(`Int16Field`, record)
+	_, isNull, err = reader.GetIntValueFrom(`Int16Field`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting int16:`)
 
-	_, isNull, err = recordInfo.GetIntValueFrom(`Int32Field`, record)
+	_, isNull, err = reader.GetIntValueFrom(`Int32Field`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting int32:`)
 
-	_, isNull, err = recordInfo.GetIntValueFrom(`Int64Field`, record)
+	_, isNull, err = reader.GetIntValueFrom(`Int64Field`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting int64:`)
 
-	_, isNull, err = recordInfo.GetFloatValueFrom(`FixedDecimalField`, record)
+	_, isNull, err = reader.GetFloatValueFrom(`FixedDecimalField`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting fixeddecimal:`)
 
-	_, isNull, err = recordInfo.GetFloatValueFrom(`FloatField`, record)
+	_, isNull, err = reader.GetFloatValueFrom(`FloatField`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting float:`)
 
-	_, isNull, err = recordInfo.GetFloatValueFrom(`DoubleField`, record)
+	_, isNull, err = reader.GetFloatValueFrom(`DoubleField`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting double:`)
 
-	_, isNull, err = recordInfo.GetStringValueFrom(`StringField`, record)
+	_, isNull, err = reader.GetStringValueFrom(`StringField`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting string:`)
 
-	_, isNull, err = recordInfo.GetStringValueFrom(`WStringField`, record)
+	_, isNull, err = reader.GetStringValueFrom(`WStringField`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting wstring:`)
 
-	_, isNull, err = recordInfo.GetDateValueFrom(`DateField`, record)
+	_, isNull, err = reader.GetDateValueFrom(`DateField`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting date:`)
 
-	_, isNull, err = recordInfo.GetDateValueFrom(`DateTimeField`, record)
+	_, isNull, err = reader.GetDateValueFrom(`DateTimeField`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting datetime:`)
 }
 
 func TestCachedRecords(t *testing.T) {
-	recordInfo := generateTestRecordInfo()
+	recordInfo, _ := generateTestRecordInfo()
 	setRecordInfoTestData(recordInfo)
 
 	record1, _ := recordInfo.GenerateRecord()
@@ -128,10 +128,11 @@ func TestSetLongVarDataFieldsAndGenerateRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
-	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, isNull, err := reader.GetStringValueFrom(`V_StringField`, record)
 	checkExpectedGetValueFrom(t, value, strings.Repeat(`B`, 200), isNull, false, err, nil, `error setting long v_string:`)
 
-	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, record)
+	value, isNull, err = reader.GetStringValueFrom(`V_WStringField`, record)
 	checkExpectedGetValueFrom(t, value, strings.Repeat(`A`, 100), isNull, false, err, nil, `error setting long v_wstring:`)
 }
 
@@ -150,10 +151,11 @@ func TestSetShortVarDataFieldsAndGenerateRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
-	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, isNull, err := reader.GetStringValueFrom(`V_StringField`, record)
 	checkExpectedGetValueFrom(t, value, strings.Repeat(`B`, 100), isNull, false, err, nil, `error setting short v_string:`)
 
-	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, record)
+	value, isNull, err = reader.GetStringValueFrom(`V_WStringField`, record)
 	checkExpectedGetValueFrom(t, value, strings.Repeat(`A`, 50), isNull, false, err, nil, `error setting short v_wstring:`)
 }
 
@@ -172,10 +174,11 @@ func TestSetTinyVarDataFieldsAndGenerateRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
-	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, isNull, err := reader.GetStringValueFrom(`V_StringField`, record)
 	checkExpectedGetValueFrom(t, value, `B`, isNull, false, err, nil, `error setting tiny v_string:`)
 
-	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, record)
+	value, isNull, err = reader.GetStringValueFrom(`V_WStringField`, record)
 	checkExpectedGetValueFrom(t, value, `A`, isNull, false, err, nil, `error setting tiny v_wstring:`)
 }
 
@@ -194,10 +197,11 @@ func TestSetEmptyVarDataFieldsAndGenerateRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
-	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, isNull, err := reader.GetStringValueFrom(`V_StringField`, record)
 	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil, `error setting empty v_string:`)
 
-	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, record)
+	value, isNull, err = reader.GetStringValueFrom(`V_WStringField`, record)
 	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil, `error setting empty v_wstring:`)
 }
 
@@ -216,10 +220,11 @@ func TestSetNullVarDataFieldsAndGenerateRecord(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
-	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, isNull, err := reader.GetStringValueFrom(`V_StringField`, record)
 	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil, `error setting null v_string:`)
 
-	value, isNull, err = recordInfo.GetStringValueFrom(`V_WStringField`, record)
+	value, isNull, err = reader.GetStringValueFrom(`V_WStringField`, record)
 	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil, `error setting null v_wstring:`)
 }
 
@@ -237,7 +242,8 @@ func TestSetFixedLenFromRawBytes(t *testing.T) {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
 
-	value, isNull, err := recordInfo.GetIntValueFrom(`ByteField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, isNull, err := reader.GetIntValueFrom(`ByteField`, record)
 	checkExpectedGetValueFrom(t, value, 4, isNull, false, err, nil, `error setting raw bytes:`)
 }
 
@@ -255,7 +261,8 @@ func TestSetVarLenFromRawBytes(t *testing.T) {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
 	}
 
-	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, isNull, err := reader.GetStringValueFrom(`V_StringField`, record)
 	checkExpectedGetValueFrom(t, value, `Hello world, how are you?`, isNull, false, err, nil, `error setting raw bytes:`)
 }
 
@@ -267,7 +274,8 @@ func TestSetStringOfSmallerLength(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `Start`)
 	record, _ := recordInfo.GenerateRecord()
 
-	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, _, _ := reader.GetStringValueFrom(`StringField`, record)
 	if value != `Start` {
 		t.Fatalf(`expected 'Start' but got '%v'`, value)
 	}
@@ -275,7 +283,7 @@ func TestSetStringOfSmallerLength(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `End`)
 	record, _ = recordInfo.GenerateRecord()
 
-	value, _, _ = recordInfo.GetStringValueFrom(`StringField`, record)
+	value, _, _ = reader.GetStringValueFrom(`StringField`, record)
 	if value != `End` {
 		t.Fatalf(`expected 'End' but got '%v'`, value)
 	}
@@ -289,7 +297,8 @@ func TestSetV_StringOfSmallerLength(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `Start`)
 	record, _ := recordInfo.GenerateRecord()
 
-	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, _, _ := reader.GetStringValueFrom(`StringField`, record)
 	if value != `Start` {
 		t.Fatalf(`expected 'Start' but got '%v'`, value)
 	}
@@ -297,7 +306,7 @@ func TestSetV_StringOfSmallerLength(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `End`)
 	record, _ = recordInfo.GenerateRecord()
 
-	value, _, _ = recordInfo.GetStringValueFrom(`StringField`, record)
+	value, _, _ = reader.GetStringValueFrom(`StringField`, record)
 	if value != `End` {
 		t.Fatalf(`expected 'End' but got '%v'`, value)
 	}
@@ -311,7 +320,8 @@ func TestSetWStringOfSmallerLength(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `Start`)
 	record, _ := recordInfo.GenerateRecord()
 
-	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, _, _ := reader.GetStringValueFrom(`StringField`, record)
 	if value != `Start` {
 		t.Fatalf(`expected 'Start' but got '%v'`, value)
 	}
@@ -319,7 +329,7 @@ func TestSetWStringOfSmallerLength(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `End`)
 	record, _ = recordInfo.GenerateRecord()
 
-	value, _, _ = recordInfo.GetStringValueFrom(`StringField`, record)
+	value, _, _ = reader.GetStringValueFrom(`StringField`, record)
 	if value != `End` {
 		t.Fatalf(`expected 'End' but got '%v'`, value)
 	}
@@ -333,7 +343,8 @@ func TestSetV_WStringOfSmallerLength(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `Start`)
 	record, _ := recordInfo.GenerateRecord()
 
-	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, _, _ := reader.GetStringValueFrom(`StringField`, record)
 	if value != `Start` {
 		t.Fatalf(`expected 'Start' but got '%v'`, value)
 	}
@@ -341,7 +352,7 @@ func TestSetV_WStringOfSmallerLength(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `End`)
 	record, _ = recordInfo.GenerateRecord()
 
-	value, _, _ = recordInfo.GetStringValueFrom(`StringField`, record)
+	value, _, _ = reader.GetStringValueFrom(`StringField`, record)
 	if value != `End` {
 		t.Fatalf(`expected 'End' but got '%v'`, value)
 	}
@@ -355,7 +366,8 @@ func TestSetTruncatedString(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `Start`)
 	record, _ := recordInfo.GenerateRecord()
 
-	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, _, _ := reader.GetStringValueFrom(`StringField`, record)
 	if value != `St` {
 		t.Fatalf(`expected 'St' but got '%v'`, value)
 	}
@@ -369,7 +381,8 @@ func TestSetTruncatedV_String(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `Start`)
 	record, _ := recordInfo.GenerateRecord()
 
-	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, _, _ := reader.GetStringValueFrom(`StringField`, record)
 	if value != `St` {
 		t.Fatalf(`expected 'St' but got '%v'`, value)
 	}
@@ -383,7 +396,8 @@ func TestSetTruncatedWString(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `Start`)
 	record, _ := recordInfo.GenerateRecord()
 
-	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, _, _ := reader.GetStringValueFrom(`StringField`, record)
 	if value != `St` {
 		t.Fatalf(`expected 'St' but got '%v'`, value)
 	}
@@ -397,7 +411,8 @@ func TestSetTruncatedV_WString(t *testing.T) {
 	_ = recordInfo.SetStringField(`StringField`, `Start`)
 	record, _ := recordInfo.GenerateRecord()
 
-	value, _, _ := recordInfo.GetStringValueFrom(`StringField`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, _, _ := reader.GetStringValueFrom(`StringField`, record)
 	if value != `St` {
 		t.Fatalf(`expected 'St' but got '%v'`, value)
 	}
@@ -411,24 +426,25 @@ func TestSetValueNullValue(t *testing.T) {
 	_ = recordInfo.SetIntField(`Field`, 10)
 	record, _ := recordInfo.GenerateRecord()
 
-	value, isNull, err := recordInfo.GetIntValueFrom(`Field`, record)
+	reader := generator.GenerateRecordBlobReader()
+	value, isNull, err := reader.GetIntValueFrom(`Field`, record)
 	checkExpectedGetValueFrom(t, value, 10, isNull, false, err, nil, `error setting 10`)
 
 	_ = recordInfo.SetFieldNull(`Field`)
 	record, _ = recordInfo.GenerateRecord()
 
-	_, isNull, err = recordInfo.GetIntValueFrom(`Field`, record)
+	_, isNull, err = reader.GetIntValueFrom(`Field`, record)
 	checkExpectedGetNullFrom(t, isNull, true, err, nil, `error setting null`)
 
 	_ = recordInfo.SetIntField(`Field`, 20)
 	record, _ = recordInfo.GenerateRecord()
 
-	value, isNull, err = recordInfo.GetIntValueFrom(`Field`, record)
+	value, isNull, err = reader.GetIntValueFrom(`Field`, record)
 	checkExpectedGetValueFrom(t, value, 20, isNull, false, err, nil, `error setting 20`)
 }
 
 func TestOverwriteFixedLenFieldWithNull(t *testing.T) {
-	info := generateTestRecordInfo()
+	info, reader := generateTestRecordInfo()
 	copierMap := make([]recordcopier.IndexMap, info.NumFields())
 	for i := 0; i < info.NumFields(); i++ {
 		copierMap[i] = recordcopier.IndexMap{
@@ -436,7 +452,7 @@ func TestOverwriteFixedLenFieldWithNull(t *testing.T) {
 			SourceIndex:      i,
 		}
 	}
-	copier, _ := recordcopier.New(info, info, copierMap)
+	copier, _ := recordcopier.New(info, info.GenerateRecordBlobReader(), copierMap)
 	setNullTestData(info)
 	blob, _ := info.GenerateRecord()
 	_ = copier.Copy(blob)
@@ -444,40 +460,40 @@ func TestOverwriteFixedLenFieldWithNull(t *testing.T) {
 	setRecordInfoTestData(info)
 	blob, _ = info.GenerateRecord()
 
-	_, isNull, _ := info.GetIntValueFrom(`ByteField`, blob)
+	_, isNull, _ := reader.GetIntValueFrom(`ByteField`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `byte field`)
 
-	_, isNull, _ = info.GetBoolValueFrom(`BoolField`, blob)
+	_, isNull, _ = reader.GetBoolValueFrom(`BoolField`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `bool field`)
 
-	_, isNull, _ = info.GetIntValueFrom(`Int16Field`, blob)
+	_, isNull, _ = reader.GetIntValueFrom(`Int16Field`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `int16 field`)
 
-	_, isNull, _ = info.GetIntValueFrom(`Int32Field`, blob)
+	_, isNull, _ = reader.GetIntValueFrom(`Int32Field`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `int32 field`)
 
-	_, isNull, _ = info.GetIntValueFrom(`Int64Field`, blob)
+	_, isNull, _ = reader.GetIntValueFrom(`Int64Field`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `int64 field`)
 
-	_, isNull, _ = info.GetFloatValueFrom(`FixedDecimalField`, blob)
+	_, isNull, _ = reader.GetFloatValueFrom(`FixedDecimalField`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `fixed decimal field`)
 
-	_, isNull, _ = info.GetFloatValueFrom(`FloatField`, blob)
+	_, isNull, _ = reader.GetFloatValueFrom(`FloatField`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `float field`)
 
-	_, isNull, _ = info.GetFloatValueFrom(`DoubleField`, blob)
+	_, isNull, _ = reader.GetFloatValueFrom(`DoubleField`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `double field`)
 
-	_, isNull, _ = info.GetStringValueFrom(`StringField`, blob)
+	_, isNull, _ = reader.GetStringValueFrom(`StringField`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `string field`)
 
-	_, isNull, _ = info.GetStringValueFrom(`WStringField`, blob)
+	_, isNull, _ = reader.GetStringValueFrom(`WStringField`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `wstring field`)
 
-	_, isNull, _ = info.GetDateValueFrom(`DateField`, blob)
+	_, isNull, _ = reader.GetDateValueFrom(`DateField`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `date field`)
 
-	_, isNull, _ = info.GetDateValueFrom(`DateTimeField`, blob)
+	_, isNull, _ = reader.GetDateValueFrom(`DateTimeField`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `datetime field`)
 }
 
@@ -493,7 +509,7 @@ func TestOverwriteVarStringFieldWithNull(t *testing.T) {
 			SourceIndex:      i,
 		}
 	}
-	copier, _ := recordcopier.New(info, info, copierMap)
+	copier, _ := recordcopier.New(info, info.GenerateRecordBlobReader(), copierMap)
 	_ = info.SetFieldNull(`V_WStringField`)
 	_ = info.SetFieldNull(`V_StringField`)
 	blob, _ := info.GenerateRecord()
@@ -503,14 +519,16 @@ func TestOverwriteVarStringFieldWithNull(t *testing.T) {
 	_ = info.SetStringField(`V_StringField`, `hello world again`)
 	blob, _ = info.GenerateRecord()
 
-	_, isNull, _ := info.GetStringValueFrom(`V_WStringField`, blob)
+	reader := generator.GenerateRecordBlobReader()
+
+	_, isNull, _ := reader.GetStringValueFrom(`V_WStringField`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `V_WStringField field`)
 
-	_, isNull, _ = info.GetStringValueFrom(`V_StringField`, blob)
+	_, isNull, _ = reader.GetStringValueFrom(`V_StringField`, blob)
 	checkExpectedGetNullFrom(t, isNull, false, nil, nil, `V_StringField field`)
 }
 
-func generateTestRecordInfo() recordinfo.RecordInfo {
+func generateTestRecordInfo() (recordinfo.RecordInfo, recordinfo.RecordBlobReader) {
 	generator := recordinfo.NewGenerator()
 	generator.AddByteField(`ByteField`, ``)
 	generator.AddBoolField(`BoolField`, ``)
@@ -524,7 +542,7 @@ func generateTestRecordInfo() recordinfo.RecordInfo {
 	generator.AddWStringField(`WStringField`, ``, 5)
 	generator.AddDateField(`DateField`, ``)
 	generator.AddDateTimeField(`DateTimeField`, ``)
-	return generator.GenerateRecordInfo()
+	return generator.GenerateRecordInfo(), generator.GenerateRecordBlobReader()
 }
 
 func setRecordInfoTestData(recordInfo recordinfo.RecordInfo) {

@@ -67,7 +67,7 @@ func (ii *PluginNoCacheIncomingInterface) Init(recordInfoIn string) bool {
 			SourceIndex:      index,
 		}
 	}
-	ii.copier, _ = recordcopier.New(ii.inInfo, ii.inInfo, indexMaps)
+	ii.copier, _ = recordcopier.New(ii.inInfo, ii.inInfo.GenerateRecordBlobReader(), indexMaps)
 	return true
 }
 

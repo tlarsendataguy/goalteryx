@@ -58,7 +58,7 @@ type outputConnection struct {
 	browseEverywhereAnchorId uint
 	recordCount              int
 	recordSize               int
-	recordInfo               recordinfo.RecordInfo
+	recordInfo               recordinfo.RecordBlobReader
 	lastCountOutput          time.Time
 	pushRecordCallback       func(record recordblob.RecordBlob)
 	bufferSize               int
@@ -75,7 +75,7 @@ func (output *outputConnection) Add(connection *api.ConnectionInterfaceStruct) {
 // Init initializes all output connection with the specified RecordInfo.  Any connections that fail to initialize
 // are removed and no longer managed.  BrowseEverywhere connections are also added using the anchor ID obtained in Init.
 func (output *outputConnection) Init(info recordinfo.RecordInfo) error {
-	output.recordInfo = info
+	output.recordInfo = info.GenerateRecordBlobReader()
 	output.lastCountOutput = time.Now()
 	infoXml, err := info.ToXml(output.name)
 	if err != nil {

@@ -161,12 +161,12 @@ type IiTestStruct struct {
 	CloseCalls            int
 }
 
-func (i *IiTestStruct) Init(recordInfoIn string) bool {
+func (i *IiTestStruct) Init(_ string) bool {
 	i.IsInitialized = i.InitReturnValue
 	return i.InitReturnValue
 }
 
-func (i *IiTestStruct) PushRecord(record recordblob.RecordBlob) bool {
+func (i *IiTestStruct) PushRecord(_ recordblob.RecordBlob) bool {
 	i.PushRecordCalls++
 	return i.PushRecordReturnValue
 }

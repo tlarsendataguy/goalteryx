@@ -28,6 +28,11 @@ func FromXml(recordInfoXml string) (RecordInfo, error) {
 	return recordInfoFromXml(recordInfoXml)
 }
 
+// RecordBlobReaderFromXml converts record info XML strings into a RecordBlobReader object.
+func RecordBlobReaderFromXml(recordInfoXml string) (RecordBlobReader, error) {
+	return recordInfoFromXml(recordInfoXml)
+}
+
 func recordInfoFromXml(recordInfoXml string) (*recordInfo, error) {
 	var metaInfo xmlMetaInfo
 	err := xml.Unmarshal([]byte(recordInfoXml), &metaInfo)

@@ -74,7 +74,7 @@ func TestSaveRecordInfoToXml(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveByteValue(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -87,7 +87,7 @@ func TestCorrectlyRetrieveByteValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveBoolValue(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -100,7 +100,7 @@ func TestCorrectlyRetrieveBoolValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveInt16Value(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -113,7 +113,7 @@ func TestCorrectlyRetrieveInt16Value(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveInt32Value(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -126,7 +126,7 @@ func TestCorrectlyRetrieveInt32Value(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveInt64Value(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -139,7 +139,7 @@ func TestCorrectlyRetrieveInt64Value(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveFixedDecimalValue(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -152,7 +152,7 @@ func TestCorrectlyRetrieveFixedDecimalValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveFloatValue(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -165,7 +165,7 @@ func TestCorrectlyRetrieveFloatValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveDoubleValue(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -178,7 +178,7 @@ func TestCorrectlyRetrieveDoubleValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveStringValue(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -191,7 +191,7 @@ func TestCorrectlyRetrieveStringValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveWStringValue(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -206,7 +206,7 @@ func TestCorrectlyRetrieveWStringValue(t *testing.T) {
 var zeroDate = time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC)
 
 func TestCorrectlyRetrieveDateValue(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -219,7 +219,7 @@ func TestCorrectlyRetrieveDateValue(t *testing.T) {
 }
 
 func TestCorrectlyRetrieveDateTimeValue(t *testing.T) {
-	recordInfo, err := recordinfo.FromXml(recordInfoXml)
+	recordInfo, err := recordinfo.RecordBlobReaderFromXml(recordInfoXml)
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -236,7 +236,7 @@ func TestCorrectlyRetrieveV_StringLongValue(t *testing.T) {
 	generator.AddByteField(`ByteField`, ``)
 	generator.AddV_WStringField(`V_WStringField`, ``, 250)
 	generator.AddV_StringField(`V_StringField`, ``, 250)
-	recordInfo := generator.GenerateRecordInfo()
+	recordInfo := generator.GenerateRecordBlobReader()
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, varFieldLongRecord)
 	if err != nil {
@@ -255,7 +255,7 @@ func TestCorrectlyRetrieveV_WStringLongValue(t *testing.T) {
 	generator.AddByteField(`ByteField`, ``)
 	generator.AddV_WStringField(`V_WStringField`, ``, 250)
 	generator.AddV_StringField(`V_StringField`, ``, 250)
-	recordInfo := generator.GenerateRecordInfo()
+	recordInfo := generator.GenerateRecordBlobReader()
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_WStringField`, varFieldLongRecord)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
@@ -273,7 +273,7 @@ func TestCorrectlyRetrieveVarStringsNull(t *testing.T) {
 	generator.AddByteField(`ByteField`, ``)
 	generator.AddV_WStringField(`V_WStringField`, ``, 250)
 	generator.AddV_StringField(`V_StringField`, ``, 250)
-	recordInfo := generator.GenerateRecordInfo()
+	recordInfo := generator.GenerateRecordBlobReader()
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_WStringField`, varFieldNullRecord)
 	checkExpectedGetValueFrom(t, value, ``, isNull, true, err, nil, `error retrieving null v_wstring:`)
@@ -287,7 +287,7 @@ func TestCorrectlyRetrieveVarStringsEmpty(t *testing.T) {
 	generator.AddByteField(`ByteField`, ``)
 	generator.AddV_WStringField(`V_WStringField`, ``, 250)
 	generator.AddV_StringField(`V_StringField`, ``, 250)
-	recordInfo := generator.GenerateRecordInfo()
+	recordInfo := generator.GenerateRecordBlobReader()
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_WStringField`, varFieldEmptyStrings)
 	checkExpectedGetValueFrom(t, value, ``, isNull, false, err, nil, `error retrieving empty v_wstring:`)
@@ -301,7 +301,7 @@ func TestCorrectlyRetrieveV_StringShortValue(t *testing.T) {
 	generator.AddByteField(`ByteField`, ``)
 	generator.AddV_WStringField(`V_WStringField`, ``, 250)
 	generator.AddV_StringField(`V_StringField`, ``, 250)
-	recordInfo := generator.GenerateRecordInfo()
+	recordInfo := generator.GenerateRecordBlobReader()
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, varFieldShortRecord)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
@@ -319,7 +319,7 @@ func TestCorrectlyRetrieveV_WStringShortValue(t *testing.T) {
 	generator.AddByteField(`ByteField`, ``)
 	generator.AddV_WStringField(`V_WStringField`, ``, 250)
 	generator.AddV_StringField(`V_StringField`, ``, 250)
-	recordInfo := generator.GenerateRecordInfo()
+	recordInfo := generator.GenerateRecordBlobReader()
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_WStringField`, varFieldShortRecord)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
@@ -337,7 +337,7 @@ func TestCorrectlyRetrieveVarTinyValue(t *testing.T) {
 	generator.AddByteField(`ByteField`, ``)
 	generator.AddV_WStringField(`V_WStringField`, ``, 250)
 	generator.AddV_StringField(`V_StringField`, ``, 250)
-	recordInfo := generator.GenerateRecordInfo()
+	recordInfo := generator.GenerateRecordBlobReader()
 
 	value, isNull, err := recordInfo.GetStringValueFrom(`V_StringField`, varFieldTinyRecord)
 	checkExpectedGetValueFrom(t, value, `B`, isNull, false, err, nil, `error retrieving tiny v_string:`)
@@ -493,7 +493,7 @@ func TestGetNullInt64FromRecordblob(t *testing.T) {
 	_ = recordInfo1.SetFieldNull(`MyField`)
 	record, _ := recordInfo1.GenerateRecord()
 
-	copier, _ := recordcopier.New(recordInfo2, recordInfo1, []recordcopier.IndexMap{{
+	copier, _ := recordcopier.New(recordInfo2, recordInfo1.GenerateRecordBlobReader(), []recordcopier.IndexMap{{
 		DestinationIndex: 0,
 		SourceIndex:      0,
 	}})
@@ -761,7 +761,7 @@ func TestShortWStringBlob(t *testing.T) {
 	generator := recordinfo.NewGenerator()
 	generator.AddInt64Field(`Id`, ``)
 	generator.AddV_WStringField(`IdStr`, ``, 1073741823)
-	info := generator.GenerateRecordInfo()
+	info := generator.GenerateRecordBlobReader()
 	value, isNull, err := info.GetStringValueFrom(`IdStr`, record)
 	if err != nil {
 		t.Fatalf(`expected no error but got: %v`, err.Error())
