@@ -47,6 +47,7 @@ type PluginIncomingInterface struct {
 }
 
 func (ii *PluginIncomingInterface) Init(recordInfoIn string) bool {
+	api.OutputMessage(ii.Parent.ToolId, api.Info, recordInfoIn)
 	var err error
 	ii.inInfo, err = recordinfo.FromXml(recordInfoIn)
 	if err != nil {

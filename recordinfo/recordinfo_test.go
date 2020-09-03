@@ -53,3 +53,29 @@ func TestAddFromFieldInfo(t *testing.T) {
 		t.Fatalf("expected\n%v\nbut got\n%v", sourceXml, newXml)
 	}
 }
+
+func TestInstantiateFromXml(t *testing.T) {
+	xml := `<MetaInfo connection="Output">
+<RecordInfo>
+	<Field name="Field1" source="TextInput:" type="Byte"/>
+	<Field name="Field2" size="1" source="TextInput:" type="String"/>
+</RecordInfo>
+</MetaInfo>`
+
+	_, err := recordinfo.FromXml(xml)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+}
+
+func TestInstantiateFromXmlNoMetainfo(t *testing.T) {
+	xml := `<RecordInfo>
+	<Field name="Field1" source="TextInput:" type="Int32"/>
+	<Field name="Field2" size="2147483647" source="TextInput:" type="V_String"/>
+</RecordInfo>`
+
+	_, err := recordinfo.FromXml(xml)
+	if err != nil {
+		t.Fatalf(`expected no error but got: %v`, err.Error())
+	}
+}

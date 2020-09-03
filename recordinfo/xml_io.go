@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 // xmlMetaInfo is a non-exported struct used to convert the incoming record info XML into a usable data structure.
@@ -34,10 +35,14 @@ func RecordBlobReaderFromXml(recordInfoXml string) (RecordBlobReader, error) {
 }
 
 func recordInfoFromXml(recordInfoXml string) (*recordInfo, error) {
+	toParse := recordInfoXml
+	if len(recordInfoXml) < 9 || strings.ToLower(recordInfoXml[:9]) != `<metainfo` {
+		toParse = `<MetaInfo>` + recordInfoXml + `</MetaInfo>`
+	}
 	var metaInfo xmlMetaInfo
-	err := xml.Unmarshal([]byte(recordInfoXml), &metaInfo)
+	err := xml.Unmarshal([]byte(toParse), &metaInfo)
 	if err != nil {
-		return nil, fmt.Errorf(`error creating RecordInfo from xml: %v`, err.Error())
+		return nil, fmt.Errorf("error creating RecordInfo from xml: %v\r\nxml received was:\r\n%v", err.Error(), recordInfoXml)
 	}
 	recordInfo := &recordInfo{
 		fieldNames: map[string]int{},
