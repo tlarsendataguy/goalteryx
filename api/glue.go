@@ -197,7 +197,7 @@ func go_iiInit(handle unsafe.Pointer, recordInfoIn unsafe.Pointer) C.long {
 // keeps the Go SDK consistent with the other SDKs.
 func go_iiPushRecordCache(handle unsafe.Pointer, cache unsafe.Pointer, cacheSize C.int) C.long {
 	incomingInterface := getIncomingInterfaceFromHandle(handle)
-	cacheArray := *((*[10]unsafe.Pointer)(cache))
+	cacheArray := (*((*[100]unsafe.Pointer)(cache)))[:cacheSize]
 	for i := 0; i < int(cacheSize); i++ {
 		ok := incomingInterface.PushRecord(recordblob.NewRecordBlob(cacheArray[i]))
 		if !ok {
