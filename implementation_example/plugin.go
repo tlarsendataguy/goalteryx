@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/tlarsen7572/goalteryx/api"
 	"github.com/tlarsen7572/goalteryx/output_connection"
 	"github.com/tlarsen7572/goalteryx/presort"
@@ -28,7 +29,7 @@ func (plugin *Plugin) Close(hasErrors bool) {
 }
 
 func (plugin *Plugin) AddIncomingConnection(connectionType string, connectionName string) (api.IncomingInterface, *presort.PresortInfo) {
-	return &PluginIncomingInterface{Parent: plugin}, nil
+	return &PluginIncomingInterface{Parent: plugin, records: 0}, nil
 }
 
 func (plugin *Plugin) AddOutgoingConnection(connectionName string, connectionInterface *api.ConnectionInterfaceStruct) bool {
@@ -41,9 +42,10 @@ func (plugin *Plugin) GetToolId() int {
 }
 
 type PluginIncomingInterface struct {
-	Parent *Plugin
-	inInfo recordinfo.RecordInfo
-	copier *recordcopier.RecordCopier
+	Parent  *Plugin
+	inInfo  recordinfo.RecordInfo
+	copier  *recordcopier.RecordCopier
+	records int
 }
 
 func (ii *PluginIncomingInterface) Init(recordInfoIn string) bool {
@@ -73,6 +75,10 @@ func (ii *PluginIncomingInterface) Init(recordInfoIn string) bool {
 }
 
 func (ii *PluginIncomingInterface) PushRecord(record recordblob.RecordBlob) bool {
+	if ii.records == 0 {
+		api.OutputMessage(ii.Parent.ToolId, api.Info, fmt.Sprintf("first record bytes:\r\n%v", *((*[7]byte)(record.Blob()))))
+	}
+	ii.records++
 	err := ii.copier.Copy(record)
 	if err != nil {
 		api.OutputMessage(ii.Parent.ToolId, api.Error, err.Error())
