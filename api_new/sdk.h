@@ -1,7 +1,8 @@
+#include <stdbool.h>
+#include <stdint.h>
 #include "alteryx_api.h"
 
-const int cacheSize = 4194304; //4mb
-
+long configurePlugin(int nToolID, void * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
 void PI_Close(void * handle, bool bHasErrors);
 long PI_PushAllRecords(void * handle, __int64 nRecordLimit);
 long PI_AddIncomingConnection(void * handle,
