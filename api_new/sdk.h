@@ -1,5 +1,7 @@
+#include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <windows.h>
 #include "alteryx_api.h"
 
 long configurePlugin(int nToolID, void * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
