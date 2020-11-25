@@ -11,6 +11,7 @@ const int cacheSize = 4194304; //4mb
 **     engine (struct EngineInterface*)
 **     outputAnchors (struct OutputAnchor*)
 **         name (void *)
+**         metadata (void *)
 **         isOpen (uint32_t)
 **         firstChild (struct OutputConn*)
 **             isOpen (uint32_t)
