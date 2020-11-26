@@ -175,7 +175,7 @@ struct OutputAnchor* appendAnchor(struct PluginSharedMemory* plugin, void * name
     struct OutputAnchor* anchor = malloc(sizeof(struct OutputAnchor));
     anchor->name = name;
     anchor->metadata = NULL;
-    anchor->isOpen = 1;
+    anchor->isOpen = 0;
     anchor->firstChild = NULL;
     anchor->nextAnchor = NULL;
 
