@@ -5,8 +5,8 @@ struct RecordData
 
 };
 
-typedef long ( _stdcall * T_II_Init)(void * handle, volatile void * pXmlRecordMetaInfo);
-typedef long ( _stdcall * T_II_PushRecord)(void * handle, volatile void * pRecord);
+typedef long ( _stdcall * T_II_Init)(void * handle, void * pXmlRecordMetaInfo);
+typedef long ( _stdcall * T_II_PushRecord)(void * handle, void * pRecord);
 typedef void ( _stdcall * T_II_UpdateProgress)(void * handle, double dPercent);
 typedef void ( _stdcall * T_II_Close)(void * handle);
 typedef void ( _stdcall * T_II_Free)(void * handle);

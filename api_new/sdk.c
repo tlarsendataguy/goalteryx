@@ -19,14 +19,10 @@ const int cacheSize = 4194304; //4mb
 **             nextConnection (struct OutputConn*)
 **         nextAnchor (struct OutputAnchor*)
 **         recordCache (char)
-**     totalInputAnchors (uint32_t)
-**     closedInputAnchors (uint32_t)
+**     totalInputConnections (uint32_t)
+**     closedInputConnections (uint32_t)
 **     inputAnchors (struct InputAnchor*)
 **         name (void *)
-**         type (void *)
-**         isOpen (uint32_t)
-**         totalConnections (uint32_t)
-**         closedConnections (uint32_t)
 **         firstChild (struct InputConnection*)
 **             isOpen (uint32_t)
 **             metadata (void *)
@@ -48,10 +44,6 @@ struct InputConnection {
 
 struct InputAnchor {
     void*                   name;
-    void*                   type;
-    uint32_t                isOpen;
-    uint32_t                totalConnections;
-    uint32_t                closedConnections;
     struct InputConnection* firstChild;
     struct InputAnchor*     nextAnchor;
 };
@@ -76,8 +68,8 @@ struct PluginSharedMemory {
     void*                   toolConfig;
     struct EngineInterface* engine;
     struct OutputAnchor*    outputAnchors;
-    uint32_t                totalInputs;
-    uint32_t                closedInputs;
+    uint32_t                totalInputConnections;
+    uint32_t                closedInputConnections;
     struct InputAnchor*     inputAnchors;
 };
 
@@ -87,8 +79,8 @@ long configurePlugin(int nToolID, void * pXmlProperties, struct EngineInterface 
     plugin->toolConfig = pXmlProperties;
     plugin->engine = pEngineInterface;
     plugin->outputAnchors = NULL;
-    plugin->totalInputs = 0;
-    plugin->closedInputs = 0;
+    plugin->totalInputConnections = 0;
+    plugin->closedInputConnections = 0;
     plugin->inputAnchors = NULL;
 
     r_pluginInterface->handle = plugin;
@@ -96,6 +88,8 @@ long configurePlugin(int nToolID, void * pXmlProperties, struct EngineInterface 
     r_pluginInterface->pPI_PushAllRecords = &PI_PushAllRecords;
     r_pluginInterface->pPI_AddIncomingConnection = &PI_AddIncomingConnection;
     r_pluginInterface->pPI_AddOutgoingConnection = &PI_AddOutgoingConnection;
+
+    Init(plugin);
 
     return 1;
 }
@@ -106,16 +100,43 @@ void PI_Close(void * handle, bool bHasErrors) {
 
 long PI_PushAllRecords(void * handle, __int64 nRecordLimit){
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
-    //goOnComplete(plugin->toolId, nRecordLimit);
+    OnComplete(plugin);
 }
 
-struct InputAnchor* getOrCreateAnchor(struct PluginSharedMemory* plugin, const wchar_t* name) {
-    return NULL;
+struct InputAnchor* createInputAnchor(wchar_t* name) {
+    struct InputAnchor* anchor = malloc(sizeof(struct InputAnchor));
+    anchor->name = name;
+    anchor->firstChild = NULL;
+    anchor->nextAnchor = NULL;
+    return anchor;
+}
+
+struct InputAnchor* getOrCreateInputAnchor(struct PluginSharedMemory* plugin, wchar_t* name) {
+    if (NULL == plugin->inputAnchors) {
+        struct InputAnchor* anchor = createInputAnchor(name);
+        plugin->inputAnchors = anchor;
+        return anchor;
+    }
+
+    struct InputAnchor* anchor = plugin->inputAnchors;
+    while (true) {
+        if (wcscmp((const wchar_t*)name, (const wchar_t*)anchor->name) == 0) {
+            return anchor;
+        }
+        if (NULL == anchor->nextAnchor) {
+            break;
+        }
+        anchor = anchor->nextAnchor;
+    }
+
+    struct InputAnchor* child = createInputAnchor(name);
+    anchor->nextAnchor = child;
+    return child;
 }
 
 long PI_AddIncomingConnection(void * handle, void * pIncomingConnectionType, void * pIncomingConnectionName, struct IncomingConnectionInterface *r_IncConnInt) {
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
-    struct InputAnchor *anchor = getOrCreateAnchor(plugin, (const wchar_t*)pIncomingConnectionName);
+    struct InputAnchor *anchor = getOrCreateInputAnchor(plugin, (wchar_t*)pIncomingConnectionName);
     struct InputConnection *connection = malloc(sizeof(struct InputConnection));
     connection->isOpen = 1;
     connection->metadata = NULL;
@@ -123,16 +144,14 @@ long PI_AddIncomingConnection(void * handle, void * pIncomingConnectionType, voi
     connection->nextConnection = NULL;
     connection->plugin = plugin;
 
-    anchor->totalConnections++;
+    plugin->totalInputConnections++;
 
-    /*
-    r_IncConnInt->handle = input;
+    r_IncConnInt->handle = connection;
     r_IncConnInt->pII_Init = &II_Init;
     r_IncConnInt->pII_PushRecord = &II_PushRecord;
     r_IncConnInt->pII_UpdateProgress = &II_UpdateProgress;
     r_IncConnInt->pII_Close = &II_Close;
     r_IncConnInt->pII_Free = &II_Free;
-    */
 
     return 1;
 }
@@ -171,7 +190,7 @@ void appendOutgoingConnection(struct OutputAnchor* anchor, struct IncomingConnec
     }
 }
 
-struct OutputAnchor* appendAnchor(struct PluginSharedMemory* plugin, void * name) {
+struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, void * name) {
     struct OutputAnchor* anchor = malloc(sizeof(struct OutputAnchor));
     anchor->name = name;
     anchor->metadata = NULL;
@@ -196,7 +215,41 @@ long PI_AddOutgoingConnection(void * handle, void * pOutgoingConnectionName, str
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
     struct OutputAnchor* anchor = getOutputAnchorByName(plugin->outputAnchors, pOutgoingConnectionName);
     if (NULL == anchor) {
-        anchor = appendAnchor(plugin, pOutgoingConnectionName);
+        anchor = appendOutgoingAnchor(plugin, pOutgoingConnectionName);
     }
     appendOutgoingConnection(anchor, pIncConnInt);
+}
+
+
+long II_Init(void * handle, void * pXmlRecordMetaInfo) {
+    struct InputConnection *input = (struct InputConnection*)handle;
+    input->metadata = pXmlRecordMetaInfo;
+    OnInputConnectionOpened(input);
+    return 1;
+}
+
+long II_PushRecord(void * handle, void * pRecord) {
+    struct InputConnection *input = (struct InputConnection*)handle;
+    OnRecordPacket(input);
+    return 1;
+}
+
+void II_UpdateProgress(void * handle, double dPercent) {
+    struct InputConnection *input = (struct InputConnection*)handle;
+    input->percent = dPercent;
+}
+
+void II_Close(void * handle) {
+    struct InputConnection *input = (struct InputConnection*)handle;
+    struct PluginSharedMemory *plugin = input->plugin;
+    plugin->closedInputConnections++;
+
+    if (plugin->totalInputConnections != plugin->closedInputConnections) {
+        return;
+    }
+    OnComplete(plugin);
+}
+
+void II_Free(void * handle) {
+
 }

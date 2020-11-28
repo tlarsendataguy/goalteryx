@@ -14,8 +14,12 @@ long PI_AddIncomingConnection(void * handle,
 long PI_AddOutgoingConnection(void * handle,
     void * pOutgoingConnectionName,
     struct IncomingConnectionInterface *pIncConnInt);
-long II_Init(void * handle, volatile void * pXmlRecordMetaInfo);
-long II_PushRecord(void * handle, volatile void * pRecord);
+long II_Init(void * handle, void * pXmlRecordMetaInfo);
+long II_PushRecord(void * handle, void * pRecord);
 void II_UpdateProgress(void * handle, double dPercent);
 void II_Close(void * handle);
 void II_Free(void * handle);
+void Init(void * handle);
+void OnInputConnectionOpened(void * handle);
+void OnRecordPacket(void * handle);
+void OnComplete(void * handle);
