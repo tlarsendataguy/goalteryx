@@ -18,7 +18,7 @@ const int cacheSize = 4194304; //4mb
 **             ii (struct IncomingInterface*)
 **             nextConnection (struct OutputConn*)
 **         nextAnchor (struct OutputAnchor*)
-**         recordCache (char)
+**         recordCache (void *)
 **     totalInputConnections (uint32_t)
 **     closedInputConnections (uint32_t)
 **     inputAnchors (struct InputAnchor*)
@@ -29,7 +29,7 @@ const int cacheSize = 4194304; //4mb
 **             percent (double)
 **             nextConnection (struct InputConnection*)
 **             plugin (struct PluginSharedMemory*)
-**             recordCache (char[])
+**             recordCache (void *)
 **         nextAnchor (struct InputAnchor*)
 */
 
@@ -39,7 +39,7 @@ struct InputConnection {
     double                     percent;
     struct InputConnection*    nextConnection;
     struct PluginSharedMemory* plugin;
-    char                       recordCache[4194304];
+    void*                      recordCache;
 };
 
 struct InputAnchor {
@@ -60,7 +60,7 @@ struct OutputAnchor {
     uint32_t             isOpen;
     struct OutputConn*   firstChild;
     struct OutputAnchor* nextAnchor;
-    char                 recordCache[4194304];
+    void*                recordCache;
 };
 
 struct PluginSharedMemory {
@@ -143,6 +143,7 @@ long PI_AddIncomingConnection(void * handle, void * pIncomingConnectionType, voi
     connection->percent = 0;
     connection->nextConnection = NULL;
     connection->plugin = plugin;
+    connection->recordCache = NULL;
 
     plugin->totalInputConnections++;
 
@@ -197,6 +198,7 @@ struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, voi
     anchor->isOpen = 0;
     anchor->firstChild = NULL;
     anchor->nextAnchor = NULL;
+    anchor->recordCache = NULL;
 
     if (NULL == plugin->outputAnchors) {
         plugin->outputAnchors = anchor;
