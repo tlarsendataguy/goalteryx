@@ -73,7 +73,7 @@ struct PluginSharedMemory {
     struct InputAnchor*     inputAnchors;
 };
 
-long configurePlugin(uint32_t nToolID, void * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
+void* configurePlugin(uint32_t nToolID, void * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
     struct PluginSharedMemory* plugin = malloc(sizeof(struct PluginSharedMemory));
     plugin->toolId = nToolID;
     plugin->toolConfig = pXmlProperties;
@@ -91,7 +91,7 @@ long configurePlugin(uint32_t nToolID, void * pXmlProperties, struct EngineInter
 
     Init(plugin);
 
-    return 1;
+    return plugin;
 }
 
 void PI_Close(void * handle, bool bHasErrors) {

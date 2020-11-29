@@ -11,5 +11,5 @@ import (
 
 //export NewApiEntry
 func NewApiEntry(toolId C.int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) C.long {
-	return C.long(api_new.ConfigureTool(nil, int(toolId), xmlProperties, engineInterface, pluginInterface))
+	return C.long(api_new.RegisterTool(nil, int(toolId), xmlProperties, engineInterface, pluginInterface))
 }
