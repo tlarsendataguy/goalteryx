@@ -48,10 +48,10 @@ type InputConnectionData struct {
 
 var tools = make(map[*PluginSharedMemory]Plugin)
 
-func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) C.long {
+func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) int {
 	data := (*PluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), xmlProperties, (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
 	tools[data] = plugin
-	return C.long(1)
+	return 1
 }
 
 //export Init
