@@ -4,7 +4,7 @@
 #include <windows.h>
 #include "alteryx_api.h"
 
-long configurePlugin(int nToolID, void * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
+long configurePlugin(uint32_t nToolID, void * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
 void PI_Close(void * handle, bool bHasErrors);
 long PI_PushAllRecords(void * handle, __int64 nRecordLimit);
 long PI_AddIncomingConnection(void * handle,

@@ -6,7 +6,7 @@ const int cacheSize = 4194304; //4mb
 ** The structure of a plugin handle looks like this:
 **
 ** (struct PluginSharedMemory)
-**     toolId (int)
+**     toolId (uint32_t)
 **     toolConfig (void *)
 **     engine (struct EngineInterface*)
 **     outputAnchors (struct OutputAnchor*)
@@ -73,7 +73,7 @@ struct PluginSharedMemory {
     struct InputAnchor*     inputAnchors;
 };
 
-long configurePlugin(int nToolID, void * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
+long configurePlugin(uint32_t nToolID, void * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
     struct PluginSharedMemory* plugin = malloc(sizeof(struct PluginSharedMemory));
     plugin->toolId = nToolID;
     plugin->toolConfig = pXmlProperties;
