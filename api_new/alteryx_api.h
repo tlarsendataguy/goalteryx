@@ -5,8 +5,8 @@ struct RecordData
 
 };
 
-typedef long ( _stdcall * T_II_Init)(void * handle, void * pXmlRecordMetaInfo);
-typedef long ( _stdcall * T_II_PushRecord)(void * handle, void * pRecord);
+typedef long ( _stdcall * T_II_Init)(void * handle, wchar_t * pXmlRecordMetaInfo);
+typedef long ( _stdcall * T_II_PushRecord)(void * handle, char * pRecord);
 typedef void ( _stdcall * T_II_UpdateProgress)(void * handle, double dPercent);
 typedef void ( _stdcall * T_II_Close)(void * handle);
 typedef void ( _stdcall * T_II_Free)(void * handle);
@@ -25,11 +25,11 @@ struct IncomingConnectionInterface
 typedef void ( _stdcall * T_PI_Close)(void * handle, bool bHasErrors);
 typedef long ( _stdcall * T_PI_PushAllRecords)(void * handle, __int64 nRecordLimit);
 typedef long ( _stdcall * T_PI_AddIncomingConnection)(void * handle,
-    void * pIncomingConnectionType,
-    void * pIncomingConnectionName,
+    wchar_t * pIncomingConnectionType,
+    wchar_t * pIncomingConnectionName,
     struct IncomingConnectionInterface *r_IncConnInt);
 typedef long ( _stdcall * T_PI_AddOutgoingConnection)(void * handle,
-    void * pOutgoingConnectionName,
+    wchar_t * pOutgoingConnectionName,
     struct IncomingConnectionInterface *pIncConnInt);
 
 struct PluginInterface
@@ -47,7 +47,7 @@ struct PluginInterface
 typedef void AlteryxThreadProc(void *pData);
 struct PreSortConnectionInterface;
 typedef long ( _stdcall * OutputToolProgress)(void * handle, int nToolID, double dPercentProgress);
-typedef long ( _stdcall * OutputMessage)(void * handle, int nToolID, int nStatus, volatile wchar_t *pMessage);
+typedef long ( _stdcall * OutputMessage)(void * handle, int nToolID, int nStatus, wchar_t *pMessage);
 typedef unsigned ( _stdcall * BrowseEverywhereReserveAnchor)(void * handle, int nToolId);
 typedef struct IncomingConnectionInterface* ( _stdcall * BrowseEverywhereGetII)(void * handle, unsigned nReservationId,  int nToolId, wchar_t * strOutputName);
 typedef wchar_t * ( _stdcall * CreateTempFileName)(void * handle, wchar_t * pExt);

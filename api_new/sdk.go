@@ -53,7 +53,7 @@ type InputConnectionData struct {
 var tools = make(map[*PluginSharedMemory]Plugin)
 
 func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) int {
-	data := (*PluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), xmlProperties, (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
+	data := (*PluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
 	tools[data] = plugin
 	return 1
 }
@@ -70,6 +70,11 @@ func OnInputConnectionOpened(handle unsafe.Pointer) {
 
 //export OnRecordPacket
 func OnRecordPacket(handle unsafe.Pointer) {
+
+}
+
+//export OnSingleRecord
+func OnSingleRecord(handle unsafe.Pointer, record unsafe.Pointer) {
 
 }
 

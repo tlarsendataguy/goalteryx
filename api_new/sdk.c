@@ -7,50 +7,50 @@ const int cacheSize = 4194304; //4mb
 **
 ** (struct PluginSharedMemory)
 **     toolId (uint32_t)
-**     toolConfig (void *)
+**     toolConfig (wchar_t *)
 **     engine (struct EngineInterface*)
 **     outputAnchors (struct OutputAnchor*)
-**         name (void *)
-**         metadata (void *)
+**         name (char *)
+**         metadata (wchar_t *)
 **         isOpen (uint32_t)
 **         firstChild (struct OutputConn*)
 **             isOpen (uint32_t)
 **             ii (struct IncomingInterface*)
 **             nextConnection (struct OutputConn*)
 **         nextAnchor (struct OutputAnchor*)
-**         recordCache (void *)
+**         recordCache (char *)
 **         recordCachePosition (uint32_t)
 **     totalInputConnections (uint32_t)
 **     closedInputConnections (uint32_t)
 **     inputAnchors (struct InputAnchor*)
-**         name (void *)
+**         name (wchar_t *)
 **         firstChild (struct InputConnection*)
 **             isOpen (uint32_t)
-**             metadata (void *)
+**             metadata (wchar_t *)
 **             percent (double)
 **             nextConnection (struct InputConnection*)
 **             plugin (struct PluginSharedMemory*)
 **             fixedFieldSize (uint32_t)
 **             varFieldSize (uint32_t)
-**             recordCache (void *)
+**             recordCache (char *)
 **             recordCachePosition (uint32_t)
 **         nextAnchor (struct InputAnchor*)
 */
 
 struct InputConnection {
     uint32_t                   isOpen;
-    void*                      metadata;
+    wchar_t*                   metadata;
     double                     percent;
     struct InputConnection*    nextConnection;
     struct PluginSharedMemory* plugin;
     uint32_t                   fixedFieldSize;
     uint32_t                   varFieldSize;
-    void*                      recordCache;
+    char*                      recordCache;
     uint32_t                   recordCachePosition;
 };
 
 struct InputAnchor {
-    void*                   name;
+    wchar_t*                name;
     struct InputConnection* firstChild;
     struct InputAnchor*     nextAnchor;
 };
@@ -62,18 +62,18 @@ struct OutputConn {
 };
 
 struct OutputAnchor {
-    void*                name;
-    void*                metadata;
+    wchar_t*             name;
+    wchar_t*             metadata;
     uint32_t             isOpen;
     struct OutputConn*   firstChild;
     struct OutputAnchor* nextAnchor;
-    void*                recordCache;
+    char*                recordCache;
     uint32_t             recordCachePosition;
 };
 
 struct PluginSharedMemory {
     uint32_t                toolId;
-    void*                   toolConfig;
+    wchar_t*                toolConfig;
     struct EngineInterface* engine;
     struct OutputAnchor*    outputAnchors;
     uint32_t                totalInputConnections;
@@ -81,7 +81,7 @@ struct PluginSharedMemory {
     struct InputAnchor*     inputAnchors;
 };
 
-void* configurePlugin(uint32_t nToolID, void * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
+void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
     struct PluginSharedMemory* plugin = malloc(sizeof(struct PluginSharedMemory));
     plugin->toolId = nToolID;
     plugin->toolConfig = pXmlProperties;
@@ -128,7 +128,7 @@ struct InputAnchor* getOrCreateInputAnchor(struct PluginSharedMemory* plugin, wc
 
     struct InputAnchor* anchor = plugin->inputAnchors;
     while (true) {
-        if (wcscmp((const wchar_t*)name, (const wchar_t*)anchor->name) == 0) {
+        if (wcscmp(name, anchor->name) == 0) {
             return anchor;
         }
         if (NULL == anchor->nextAnchor) {
@@ -142,9 +142,9 @@ struct InputAnchor* getOrCreateInputAnchor(struct PluginSharedMemory* plugin, wc
     return child;
 }
 
-long PI_AddIncomingConnection(void * handle, void * pIncomingConnectionType, void * pIncomingConnectionName, struct IncomingConnectionInterface *r_IncConnInt) {
+long PI_AddIncomingConnection(void * handle, wchar_t * pIncomingConnectionType, wchar_t * pIncomingConnectionName, struct IncomingConnectionInterface *r_IncConnInt) {
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
-    struct InputAnchor *anchor = getOrCreateInputAnchor(plugin, (wchar_t*)pIncomingConnectionName);
+    struct InputAnchor *anchor = getOrCreateInputAnchor(plugin, pIncomingConnectionName);
     struct InputConnection *connection = malloc(sizeof(struct InputConnection));
     connection->isOpen = 1;
     connection->metadata = NULL;
@@ -154,6 +154,7 @@ long PI_AddIncomingConnection(void * handle, void * pIncomingConnectionType, voi
     connection->fixedFieldSize = 0;
     connection->varFieldSize = 0;
     connection->recordCache = NULL;
+    connection->recordCachePosition = 0;
 
     plugin->totalInputConnections++;
 
@@ -167,11 +168,11 @@ long PI_AddIncomingConnection(void * handle, void * pIncomingConnectionType, voi
     return 1;
 }
 
-struct OutputAnchor* getOutputAnchorByName(struct OutputAnchor* anchor, void* name) {
+struct OutputAnchor* getOutputAnchorByName(struct OutputAnchor* anchor, wchar_t* name) {
     if (NULL == anchor) {
         return NULL;
     }
-    if (wcscmp((const wchar_t*)name, (const wchar_t*)anchor->name) == 0) {
+    if (wcscmp(name, anchor->name) == 0) {
         return anchor;
     }
     return getOutputAnchorByName(anchor->nextAnchor, name);
@@ -201,7 +202,7 @@ void appendOutgoingConnection(struct OutputAnchor* anchor, struct IncomingConnec
     }
 }
 
-struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, void * name) {
+struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wchar_t * name) {
     struct OutputAnchor* anchor = malloc(sizeof(struct OutputAnchor));
     anchor->name = name;
     anchor->metadata = NULL;
@@ -209,6 +210,7 @@ struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, voi
     anchor->firstChild = NULL;
     anchor->nextAnchor = NULL;
     anchor->recordCache = NULL;
+    anchor->recordCachePosition = 0;
 
     if (NULL == plugin->outputAnchors) {
         plugin->outputAnchors = anchor;
@@ -223,7 +225,7 @@ struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, voi
     return anchor;
 }
 
-long PI_AddOutgoingConnection(void * handle, void * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt) {
+long PI_AddOutgoingConnection(void * handle, wchar_t * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt) {
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
     struct OutputAnchor* anchor = getOutputAnchorByName(plugin->outputAnchors, pOutgoingConnectionName);
     if (NULL == anchor) {
@@ -232,16 +234,38 @@ long PI_AddOutgoingConnection(void * handle, void * pOutgoingConnectionName, str
     appendOutgoingConnection(anchor, pIncConnInt);
 }
 
-long II_Init(void * handle, void * pXmlRecordMetaInfo) {
+long II_Init(void * handle, wchar_t * pXmlRecordMetaInfo) {
     struct InputConnection *input = (struct InputConnection*)handle;
     input->metadata = pXmlRecordMetaInfo;
     OnInputConnectionOpened(input);
     return 1;
 }
 
-long II_PushRecord(void * handle, void * pRecord) {
+uint32_t uint32FromRecordPosition(char * record, uint32_t position) {
+    uint32_t* value = (uint32_t*)(&record[position]);
+    return *value;
+}
+
+long II_PushRecord(void * handle, char * pRecord) {
     struct InputConnection *input = (struct InputConnection*)handle;
-    OnRecordPacket(input);
+    uint32_t totalSize = input->fixedFieldSize + input->varFieldSize;
+    if (input->varFieldSize > 0) {
+        uint32_t varSize = uint32FromRecordPosition(pRecord, totalSize);
+        totalSize += varSize;
+    }
+
+    if (input->recordCachePosition + totalSize > cacheSize && input->recordCachePosition > 0) {
+        OnRecordPacket(input);
+        input->recordCachePosition = 0;
+    }
+
+    if (totalSize > cacheSize) {
+        OnSingleRecord(input, pRecord);
+        return 1;
+    }
+
+    memcpy(&input->recordCache[input->recordCachePosition], pRecord, totalSize);
+    input->recordCachePosition += totalSize;
     return 1;
 }
 
