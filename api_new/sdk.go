@@ -17,12 +17,13 @@ type PluginSharedMemory struct {
 }
 
 type OutputAnchorData struct {
-	name        unsafe.Pointer
-	metadata    unsafe.Pointer
-	isOpen      uint32
-	firstChild  *OutputConnectionData
-	nextAnchor  *OutputAnchorData
-	recordCache unsafe.Pointer
+	name                unsafe.Pointer
+	metadata            unsafe.Pointer
+	isOpen              uint32
+	firstChild          *OutputConnectionData
+	nextAnchor          *OutputAnchorData
+	recordCache         unsafe.Pointer
+	recordCachePosition uint32
 }
 
 type OutputConnectionData struct {
@@ -38,12 +39,15 @@ type InputAnchorData struct {
 }
 
 type InputConnectionData struct {
-	isOpen         uint32
-	metadata       unsafe.Pointer
-	percent        float64
-	nextConnection *InputConnectionData
-	plugin         *PluginSharedMemory
-	recordCache    unsafe.Pointer
+	isOpen              uint32
+	metadata            unsafe.Pointer
+	percent             float64
+	nextConnection      *InputConnectionData
+	plugin              *PluginSharedMemory
+	fixedFieldSize      uint32
+	varFieldSize        uint32
+	recordCache         unsafe.Pointer
+	recordCachePosition uint32
 }
 
 var tools = make(map[*PluginSharedMemory]Plugin)

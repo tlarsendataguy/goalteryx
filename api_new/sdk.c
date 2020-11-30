@@ -19,6 +19,7 @@ const int cacheSize = 4194304; //4mb
 **             nextConnection (struct OutputConn*)
 **         nextAnchor (struct OutputAnchor*)
 **         recordCache (void *)
+**         recordCachePosition (uint32_t)
 **     totalInputConnections (uint32_t)
 **     closedInputConnections (uint32_t)
 **     inputAnchors (struct InputAnchor*)
@@ -29,7 +30,10 @@ const int cacheSize = 4194304; //4mb
 **             percent (double)
 **             nextConnection (struct InputConnection*)
 **             plugin (struct PluginSharedMemory*)
+**             fixedFieldSize (uint32_t)
+**             varFieldSize (uint32_t)
 **             recordCache (void *)
+**             recordCachePosition (uint32_t)
 **         nextAnchor (struct InputAnchor*)
 */
 
@@ -39,7 +43,10 @@ struct InputConnection {
     double                     percent;
     struct InputConnection*    nextConnection;
     struct PluginSharedMemory* plugin;
+    uint32_t                   fixedFieldSize;
+    uint32_t                   varFieldSize;
     void*                      recordCache;
+    uint32_t                   recordCachePosition;
 };
 
 struct InputAnchor {
@@ -61,6 +68,7 @@ struct OutputAnchor {
     struct OutputConn*   firstChild;
     struct OutputAnchor* nextAnchor;
     void*                recordCache;
+    uint32_t             recordCachePosition;
 };
 
 struct PluginSharedMemory {
@@ -143,6 +151,8 @@ long PI_AddIncomingConnection(void * handle, void * pIncomingConnectionType, voi
     connection->percent = 0;
     connection->nextConnection = NULL;
     connection->plugin = plugin;
+    connection->fixedFieldSize = 0;
+    connection->varFieldSize = 0;
     connection->recordCache = NULL;
 
     plugin->totalInputConnections++;
@@ -221,7 +231,6 @@ long PI_AddOutgoingConnection(void * handle, void * pOutgoingConnectionName, str
     }
     appendOutgoingConnection(anchor, pIncConnInt);
 }
-
 
 long II_Init(void * handle, void * pXmlRecordMetaInfo) {
     struct InputConnection *input = (struct InputConnection*)handle;
