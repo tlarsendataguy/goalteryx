@@ -12,9 +12,9 @@ const int cacheSize = 4194304; //4mb
 **     outputAnchors (struct OutputAnchor*)
 **         name (char *)
 **         metadata (wchar_t *)
-**         isOpen (uint32_t)
+**         isOpen (char)
 **         firstChild (struct OutputConn*)
-**             isOpen (uint32_t)
+**             isOpen (char)
 **             ii (struct IncomingInterface*)
 **             nextConnection (struct OutputConn*)
 **         nextAnchor (struct OutputAnchor*)
@@ -25,26 +25,26 @@ const int cacheSize = 4194304; //4mb
 **     inputAnchors (struct InputAnchor*)
 **         name (wchar_t *)
 **         firstChild (struct InputConnection*)
-**             isOpen (uint32_t)
+**             isOpen (char)
 **             metadata (wchar_t *)
 **             percent (double)
 **             nextConnection (struct InputConnection*)
 **             plugin (struct PluginSharedMemory*)
-**             fixedFieldSize (uint32_t)
-**             varFieldSize (uint32_t)
+**             fixedSize (uint32_t)
+**             hasVarFields (char)
 **             recordCache (char *)
 **             recordCachePosition (uint32_t)
 **         nextAnchor (struct InputAnchor*)
 */
 
 struct InputConnection {
-    uint32_t                   isOpen;
+    char                       isOpen;
     wchar_t*                   metadata;
     double                     percent;
     struct InputConnection*    nextConnection;
     struct PluginSharedMemory* plugin;
-    uint32_t                   fixedFieldSize;
-    uint32_t                   varFieldSize;
+    uint32_t                   fixedSize;
+    char                       hasVarFields;
     char*                      recordCache;
     uint32_t                   recordCachePosition;
 };
@@ -56,7 +56,7 @@ struct InputAnchor {
 };
 
 struct OutputConn {
-    uint32_t                            isOpen;
+    char                                isOpen;
     struct IncomingConnectionInterface* ii;
     struct OutputConn*                  nextConnection;
 };
@@ -64,7 +64,7 @@ struct OutputConn {
 struct OutputAnchor {
     wchar_t*             name;
     wchar_t*             metadata;
-    uint32_t             isOpen;
+    char                 isOpen;
     struct OutputConn*   firstChild;
     struct OutputAnchor* nextAnchor;
     char*                recordCache;
@@ -97,8 +97,6 @@ void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineI
     r_pluginInterface->pPI_AddIncomingConnection = &PI_AddIncomingConnection;
     r_pluginInterface->pPI_AddOutgoingConnection = &PI_AddOutgoingConnection;
 
-    Init(plugin);
-
     return plugin;
 }
 
@@ -108,7 +106,7 @@ void PI_Close(void * handle, bool bHasErrors) {
 
 long PI_PushAllRecords(void * handle, __int64 nRecordLimit){
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
-    OnComplete(plugin);
+    goOnComplete(plugin);
 }
 
 struct InputAnchor* createInputAnchor(wchar_t* name) {
@@ -151,8 +149,8 @@ long PI_AddIncomingConnection(void * handle, wchar_t * pIncomingConnectionType, 
     connection->percent = 0;
     connection->nextConnection = NULL;
     connection->plugin = plugin;
-    connection->fixedFieldSize = 0;
-    connection->varFieldSize = 0;
+    connection->fixedSize = 0;
+    connection->hasVarFields = 0;
     connection->recordCache = NULL;
     connection->recordCachePosition = 0;
 
@@ -237,7 +235,7 @@ long PI_AddOutgoingConnection(void * handle, wchar_t * pOutgoingConnectionName, 
 long II_Init(void * handle, wchar_t * pXmlRecordMetaInfo) {
     struct InputConnection *input = (struct InputConnection*)handle;
     input->metadata = pXmlRecordMetaInfo;
-    OnInputConnectionOpened(input);
+    goOnInputConnectionOpened(input);
     return 1;
 }
 
@@ -248,19 +246,19 @@ uint32_t uint32FromRecordPosition(char * record, uint32_t position) {
 
 long II_PushRecord(void * handle, char * pRecord) {
     struct InputConnection *input = (struct InputConnection*)handle;
-    uint32_t totalSize = input->fixedFieldSize + input->varFieldSize;
-    if (input->varFieldSize > 0) {
+    uint32_t totalSize = input->fixedSize;
+    if (input->hasVarFields == 1) {
         uint32_t varSize = uint32FromRecordPosition(pRecord, totalSize);
         totalSize += varSize;
     }
 
     if (input->recordCachePosition + totalSize > cacheSize && input->recordCachePosition > 0) {
-        OnRecordPacket(input);
+        goOnRecordPacket(input);
         input->recordCachePosition = 0;
     }
 
     if (totalSize > cacheSize) {
-        OnSingleRecord(input, pRecord);
+        goOnSingleRecord(input, pRecord);
         return 1;
     }
 
@@ -282,7 +280,7 @@ void II_Close(void * handle) {
     if (plugin->totalInputConnections != plugin->closedInputConnections) {
         return;
     }
-    OnComplete(plugin);
+    goOnComplete(plugin);
 }
 
 void II_Free(void * handle) {
