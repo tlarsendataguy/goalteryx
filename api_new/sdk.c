@@ -8,6 +8,7 @@ const int cacheSize = 4194304; //4mb
 ** (struct PluginSharedMemory)
 **     toolId (uint32_t)
 **     toolConfig (wchar_t *)
+**     toolConfigLen (uint32_t)
 **     engine (struct EngineInterface*)
 **     outputAnchors (struct OutputAnchor*)
 **         name (char *)
@@ -74,6 +75,7 @@ struct OutputAnchor {
 struct PluginSharedMemory {
     uint32_t                toolId;
     wchar_t*                toolConfig;
+    uint32_t                toolConfigLen;
     struct EngineInterface* engine;
     struct OutputAnchor*    outputAnchors;
     uint32_t                totalInputConnections;
@@ -81,10 +83,19 @@ struct PluginSharedMemory {
     struct InputAnchor*     inputAnchors;
 };
 
+uint32_t getLenFromUtf16Ptr(wchar_t * ptr) {
+    uint32_t len = 0;
+    while (ptr[len] != L'\0') {
+        len++;
+    }
+    return len;
+}
+
 void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
     struct PluginSharedMemory* plugin = malloc(sizeof(struct PluginSharedMemory));
     plugin->toolId = nToolID;
     plugin->toolConfig = pXmlProperties;
+    plugin->toolConfigLen = getLenFromUtf16Ptr(pXmlProperties);
     plugin->engine = pEngineInterface;
     plugin->outputAnchors = NULL;
     plugin->totalInputConnections = 0;
