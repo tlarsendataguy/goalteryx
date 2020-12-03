@@ -83,6 +83,14 @@ struct PluginSharedMemory {
     struct InputAnchor*     inputAnchors;
 };
 
+void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, wchar_t *pMessage){
+    engine->pOutputMessage(engine, nToolID, nStatus, pMessage);
+}
+
+void outputToolProgress(struct EngineInterface * engine, int nToolID, double progress){
+    engine->pOutputToolProgress(engine, nToolID, progress);
+}
+
 uint32_t getLenFromUtf16Ptr(wchar_t * ptr) {
     uint32_t len = 0;
     while (ptr[len] != L'\0') {

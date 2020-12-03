@@ -13,8 +13,8 @@ type TestImplementation struct {
 
 func (t *TestImplementation) TestIo() {
 	t.Provider.Io().Info(`test1`)
-	t.Provider.Io().Warn(`test1`)
-	t.Provider.Io().Error(`test1`)
+	t.Provider.Io().Warn(`test2`)
+	t.Provider.Io().Error(`test3`)
 	t.Provider.Io().UpdateProgress(0.10)
 }
 

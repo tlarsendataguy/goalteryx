@@ -4,6 +4,8 @@
 #include <windows.h>
 #include "alteryx_api.h"
 
+void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, wchar_t *pMessage);
+void outputToolProgress(struct EngineInterface * engine, int nToolID, double progress);
 void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
 void PI_Close(void * handle, bool bHasErrors);
 long PI_PushAllRecords(void * handle, __int64 nRecordLimit);

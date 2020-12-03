@@ -66,12 +66,27 @@ func utf16PtrToString(utf16Ptr unsafe.Pointer, len int) string {
 	return string(utf16.Decode(utf16Slice))
 }
 
+func stringToUtf16Ptr(value string) *C.wchar_t {
+	utf16Bytes := append(utf16.Encode([]rune(value)), 0)
+	return (*C.wchar_t)(&utf16Bytes[0])
+}
+
+func sendMessageToEngine(data *goPluginSharedMemory, status MessageStatus, message string) {
+	C.sendMessage((*C.struct_EngineInterface)(data.engine), (C.int)(data.toolId), (C.int)(status), (*C.wchar_t)(stringToUtf16Ptr(message)))
+}
+
+func sendToolProgressToEngine(data *goPluginSharedMemory, progress float64) {
+	C.outputToolProgress((*C.struct_EngineInterface)(data.engine), (C.int)(data.toolId), (C.double)(progress))
+}
+
 func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) int {
 	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
 	config := utf16PtrToString(xmlProperties, int(data.toolConfigLen))
 	var io Io
 	if engineInterface == nil {
 		io = &testIo{}
+	} else {
+		io = &ayxIo{sharedMemory: data}
 	}
 	provider := &provider{
 		sharedMemory: data,
