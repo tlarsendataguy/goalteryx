@@ -3,6 +3,7 @@ package api_new
 type provider struct {
 	sharedMemory *goPluginSharedMemory
 	config       string
+	io           Io
 }
 
 func (p *provider) ToolConfig() string {
@@ -10,7 +11,7 @@ func (p *provider) ToolConfig() string {
 }
 
 func (p *provider) Io() Io {
-	panic("implement me")
+	return p.io
 }
 
 func (p *provider) GetOutputAnchor(s string) OutputAnchor {

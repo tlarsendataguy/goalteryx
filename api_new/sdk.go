@@ -69,9 +69,14 @@ func utf16PtrToString(utf16Ptr unsafe.Pointer, len int) string {
 func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) int {
 	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
 	config := utf16PtrToString(xmlProperties, int(data.toolConfigLen))
+	var io Io
+	if engineInterface == nil {
+		io = &testIo{}
+	}
 	provider := &provider{
 		sharedMemory: data,
 		config:       config,
+		io:           io,
 	}
 
 	tools[data] = plugin
@@ -83,9 +88,8 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string) int {
 	xmlRunes := []rune(xmlProperties)
 	xmlUtf16 := append(utf16.Encode(xmlRunes), 0)
 	xmlPtr := unsafe.Pointer(&xmlUtf16[0])
-	engine := C.malloc(148)
 	pluginInterface := C.malloc(44)
-	return RegisterTool(plugin, toolId, xmlPtr, engine, pluginInterface)
+	return RegisterTool(plugin, toolId, xmlPtr, nil, pluginInterface)
 }
 
 //export goOnInputConnectionOpened
