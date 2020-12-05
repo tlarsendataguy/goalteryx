@@ -4,6 +4,7 @@ type provider struct {
 	sharedMemory *goPluginSharedMemory
 	config       string
 	io           Io
+	environment  Environment
 }
 
 func (p *provider) ToolConfig() string {
@@ -19,5 +20,5 @@ func (p *provider) GetOutputAnchor(s string) OutputAnchor {
 }
 
 func (p *provider) Environment() Environment {
-	panic("implement me")
+	return p.environment
 }

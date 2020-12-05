@@ -18,6 +18,19 @@ func (t *TestImplementation) TestIo() {
 	t.Provider.Io().UpdateProgress(0.10)
 }
 
+func (t *TestImplementation) TestEnvironmentToolId() int {
+	return t.Provider.Environment().ToolId()
+}
+
+func (t *TestImplementation) TestEnvironment() {
+	t.Provider.Environment().AlteryxInstallDir()
+	t.Provider.Environment().AlteryxLocale()
+	t.Provider.Environment().DesignerVersion()
+	t.Provider.Environment().UpdateMode()
+	t.Provider.Environment().UpdateOnly()
+	t.Provider.Environment().WorkflowDir()
+}
+
 func (t *TestImplementation) Init(provider api_new.Provider) {
 	t.DidInit = true
 	t.Config = provider.ToolConfig()
@@ -55,4 +68,14 @@ func TestProviderIo(t *testing.T) {
 	implementation := &TestImplementation{}
 	api_new.RegisterToolTest(implementation, 1, ``)
 	implementation.TestIo()
+}
+
+func TestProviderEnvironment(t *testing.T) {
+	implementation := &TestImplementation{}
+	api_new.RegisterToolTest(implementation, 5, ``)
+	id := implementation.TestEnvironmentToolId()
+	if id != 5 {
+		t.Fatalf(`expected 5 but got %v`, id)
+	}
+	implementation.TestEnvironment()
 }

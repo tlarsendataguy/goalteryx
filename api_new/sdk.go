@@ -83,15 +83,19 @@ func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engin
 	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
 	config := utf16PtrToString(xmlProperties, int(data.toolConfigLen))
 	var io Io
+	var environment Environment
 	if engineInterface == nil {
 		io = &testIo{}
+		environment = &testEnvironment{sharedMemory: data}
 	} else {
 		io = &ayxIo{sharedMemory: data}
+		environment = &ayxEnvironment{sharedMemory: data}
 	}
 	provider := &provider{
 		sharedMemory: data,
 		config:       config,
 		io:           io,
+		environment:  environment,
 	}
 
 	tools[data] = plugin
