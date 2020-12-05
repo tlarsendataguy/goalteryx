@@ -2,10 +2,11 @@ package api_new
 
 type testEnvironment struct {
 	sharedMemory *goPluginSharedMemory
+	updateOnly   bool
 }
 
 func (e *testEnvironment) UpdateOnly() bool {
-	return false
+	return e.updateOnly
 }
 
 func (e *testEnvironment) UpdateMode() string {

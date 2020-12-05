@@ -52,10 +52,7 @@ func (t *TestImplementation) OnComplete() {
 func TestRegister(t *testing.T) {
 	config := `<Configuration></Configuration>`
 	implementation := &TestImplementation{}
-	result := api_new.RegisterToolTest(implementation, 1, config)
-	if result != 1 {
-		t.Fatalf(`expected 1 but got %v`, result)
-	}
+	api_new.RegisterToolTest(implementation, 1, config)
 	if !implementation.DidInit {
 		t.Fatalf(`implementation did not init`)
 	}
@@ -72,10 +69,19 @@ func TestProviderIo(t *testing.T) {
 
 func TestProviderEnvironment(t *testing.T) {
 	implementation := &TestImplementation{}
-	api_new.RegisterToolTest(implementation, 5, ``)
+	runner := api_new.RegisterToolTest(implementation, 5, ``)
 	id := implementation.TestEnvironmentToolId()
 	if id != 5 {
 		t.Fatalf(`expected 5 but got %v`, id)
+	}
+	updateOnly := implementation.Provider.Environment().UpdateOnly()
+	if updateOnly {
+		t.Fatalf(`expected UpdateOnly() to return false but got true`)
+	}
+	runner.SetUpdateOnly(true)
+	updateOnly = implementation.Provider.Environment().UpdateOnly()
+	if !updateOnly {
+		t.Fatalf(`expected UpdateOnly() to return true but got false`)
 	}
 	implementation.TestEnvironment()
 }

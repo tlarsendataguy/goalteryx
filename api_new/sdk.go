@@ -79,18 +79,16 @@ func sendToolProgressToEngine(data *goPluginSharedMemory, progress float64) {
 	C.outputToolProgress((*C.struct_EngineInterface)(data.engine), (C.int)(data.toolId), (C.double)(progress))
 }
 
+func registerAndInit(plugin Plugin, data *goPluginSharedMemory, provider Provider) {
+	tools[data] = plugin
+	plugin.Init(provider)
+}
+
 func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) int {
 	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
-	config := utf16PtrToString(xmlProperties, int(data.toolConfigLen))
-	var io Io
-	var environment Environment
-	if engineInterface == nil {
-		io = &testIo{}
-		environment = &testEnvironment{sharedMemory: data}
-	} else {
-		io = &ayxIo{sharedMemory: data}
-		environment = &ayxEnvironment{sharedMemory: data}
-	}
+	io := &ayxIo{sharedMemory: data}
+	environment := &ayxEnvironment{sharedMemory: data}
+	config := utf16PtrToString(data.toolConfig, int(data.toolConfigLen))
 	provider := &provider{
 		sharedMemory: data,
 		config:       config,
@@ -98,17 +96,29 @@ func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engin
 		environment:  environment,
 	}
 
-	tools[data] = plugin
-	plugin.Init(provider)
+	registerAndInit(plugin, data, provider)
 	return 1
 }
 
-func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string) int {
+func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string) TestRunner {
 	xmlRunes := []rune(xmlProperties)
 	xmlUtf16 := append(utf16.Encode(xmlRunes), 0)
 	xmlPtr := unsafe.Pointer(&xmlUtf16[0])
 	pluginInterface := C.malloc(44)
-	return RegisterTool(plugin, toolId, xmlPtr, nil, pluginInterface)
+	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlPtr), nil, (*C.struct_PluginInterface)(pluginInterface)))
+	io := &testIo{}
+	environment := &testEnvironment{sharedMemory: data}
+	provider := &provider{
+		sharedMemory: data,
+		config:       xmlProperties,
+		io:           io,
+		environment:  environment,
+	}
+	registerAndInit(plugin, data, provider)
+	return &FileTestRunner{
+		io:          io,
+		environment: environment,
+	}
 }
 
 //export goOnInputConnectionOpened
