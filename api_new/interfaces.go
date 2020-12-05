@@ -67,7 +67,3 @@ type Provider interface {
 }
 
 type Record = unsafe.Pointer
-
-type TestRunner interface {
-	SetUpdateOnly(bool)
-}

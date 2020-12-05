@@ -18,19 +18,6 @@ func (t *TestImplementation) TestIo() {
 	t.Provider.Io().UpdateProgress(0.10)
 }
 
-func (t *TestImplementation) TestEnvironmentToolId() int {
-	return t.Provider.Environment().ToolId()
-}
-
-func (t *TestImplementation) TestEnvironment() {
-	t.Provider.Environment().AlteryxInstallDir()
-	t.Provider.Environment().AlteryxLocale()
-	t.Provider.Environment().DesignerVersion()
-	t.Provider.Environment().UpdateMode()
-	t.Provider.Environment().UpdateOnly()
-	t.Provider.Environment().WorkflowDir()
-}
-
 func (t *TestImplementation) Init(provider api_new.Provider) {
 	t.DidInit = true
 	t.Config = provider.ToolConfig()
@@ -67,21 +54,49 @@ func TestProviderIo(t *testing.T) {
 	implementation.TestIo()
 }
 
-func TestProviderEnvironment(t *testing.T) {
+func TestDefaultTestProviderEnvironment(t *testing.T) {
 	implementation := &TestImplementation{}
-	runner := api_new.RegisterToolTest(implementation, 5, ``)
-	id := implementation.TestEnvironmentToolId()
-	if id != 5 {
+	api_new.RegisterToolTest(implementation, 5, ``)
+	if id := implementation.Provider.Environment().ToolId(); id != 5 {
 		t.Fatalf(`expected 5 but got %v`, id)
 	}
-	updateOnly := implementation.Provider.Environment().UpdateOnly()
-	if updateOnly {
-		t.Fatalf(`expected UpdateOnly() to return false but got true`)
+	if updateOnly := implementation.Provider.Environment().UpdateOnly(); updateOnly {
+		t.Fatalf(`expected false but got true`)
 	}
-	runner.SetUpdateOnly(true)
-	updateOnly = implementation.Provider.Environment().UpdateOnly()
-	if !updateOnly {
-		t.Fatalf(`expected UpdateOnly() to return true but got false`)
+	if installDir := implementation.Provider.Environment().AlteryxInstallDir(); installDir != `` {
+		t.Fatalf(`expected '' but got '%v'`, installDir)
 	}
-	implementation.TestEnvironment()
+	if locale := implementation.Provider.Environment().AlteryxLocale(); locale != `en` {
+		t.Fatalf(`expected 'en' but got '%v'`, locale)
+	}
+	if version := implementation.Provider.Environment().DesignerVersion(); version != `TestHarness` {
+		t.Fatalf(`expected 'TestHarness' but got '%v'`, version)
+	}
+	if updateMode := implementation.Provider.Environment().UpdateMode(); updateMode != `` {
+		t.Fatalf(`expected '' but got '%v'`, updateMode)
+	}
+	if workflowDir := implementation.Provider.Environment().WorkflowDir(); workflowDir != `` {
+		t.Fatalf(`expected '' but got '%v'`, workflowDir)
+	}
+}
+
+func TestCustomTestProviderEnvironmentOptions(t *testing.T) {
+	implementation := &TestImplementation{}
+	api_new.RegisterToolTest(implementation, 5, ``,
+		api_new.UpdateOnly(true),
+		api_new.UpdateMode(`custom updateMode`),
+		api_new.WorkflowDir(`custom workflowDir`),
+		api_new.AlteryxLocale(`fr`))
+	if updateOnly := implementation.Provider.Environment().UpdateOnly(); !updateOnly {
+		t.Fatalf(`expected true but got false`)
+	}
+	if locale := implementation.Provider.Environment().AlteryxLocale(); locale != `fr` {
+		t.Fatalf(`expected 'fr' but got '%v'`, locale)
+	}
+	if updateMode := implementation.Provider.Environment().UpdateMode(); updateMode != `custom updateMode` {
+		t.Fatalf(`expected 'custom updateMode' but got '%v'`, updateMode)
+	}
+	if workflowDir := implementation.Provider.Environment().WorkflowDir(); workflowDir != `custom workflowDir` {
+		t.Fatalf(`expected 'custom workflowDir' but got '%v'`, workflowDir)
+	}
 }

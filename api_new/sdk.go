@@ -100,14 +100,29 @@ func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engin
 	return 1
 }
 
-func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string) TestRunner {
+func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSetters ...OptionSetter) *FileTestRunner {
+	options := testOptions{
+		updateOnly:  false,
+		updateMode:  "",
+		workflowDir: "",
+		locale:      "en",
+	}
+	for _, optionSetter := range optionSetters {
+		options = optionSetter(options)
+	}
 	xmlRunes := []rune(xmlProperties)
 	xmlUtf16 := append(utf16.Encode(xmlRunes), 0)
 	xmlPtr := unsafe.Pointer(&xmlUtf16[0])
 	pluginInterface := C.malloc(44)
 	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlPtr), nil, (*C.struct_PluginInterface)(pluginInterface)))
 	io := &testIo{}
-	environment := &testEnvironment{sharedMemory: data}
+	environment := &testEnvironment{
+		sharedMemory: data,
+		updateOnly:   options.updateOnly,
+		updateMode:   options.updateMode,
+		workflowDir:  options.workflowDir,
+		locale:       options.locale,
+	}
 	provider := &provider{
 		sharedMemory: data,
 		config:       xmlProperties,
@@ -116,8 +131,7 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string) TestRunne
 	}
 	registerAndInit(plugin, data, provider)
 	return &FileTestRunner{
-		io:          io,
-		environment: environment,
+		io: io,
 	}
 }
 

@@ -3,6 +3,9 @@ package api_new
 type testEnvironment struct {
 	sharedMemory *goPluginSharedMemory
 	updateOnly   bool
+	updateMode   string
+	workflowDir  string
+	locale       string
 }
 
 func (e *testEnvironment) UpdateOnly() bool {
@@ -10,7 +13,7 @@ func (e *testEnvironment) UpdateOnly() bool {
 }
 
 func (e *testEnvironment) UpdateMode() string {
-	return ``
+	return e.updateMode
 }
 
 func (e *testEnvironment) DesignerVersion() string {
@@ -18,7 +21,7 @@ func (e *testEnvironment) DesignerVersion() string {
 }
 
 func (e *testEnvironment) WorkflowDir() string {
-	return ``
+	return e.workflowDir
 }
 
 func (e *testEnvironment) AlteryxInstallDir() string {
@@ -26,7 +29,7 @@ func (e *testEnvironment) AlteryxInstallDir() string {
 }
 
 func (e *testEnvironment) AlteryxLocale() string {
-	return ``
+	return e.locale
 }
 
 func (e *testEnvironment) ToolId() int {
