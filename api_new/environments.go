@@ -45,19 +45,20 @@ type ayxEnvironment struct {
 }
 
 func (e *ayxEnvironment) UpdateOnly() bool {
-	panic("implement me")
+	initVar := getInitVarToEngine(e.sharedMemory, `UpdateOnly`)
+	return initVar == `True`
 }
 
 func (e *ayxEnvironment) UpdateMode() string {
-	panic("implement me")
+	return getInitVarToEngine(e.sharedMemory, `UpdateMode`)
 }
 
 func (e *ayxEnvironment) DesignerVersion() string {
-	panic("implement me")
+	return getInitVarToEngine(e.sharedMemory, `Version`)
 }
 
 func (e *ayxEnvironment) WorkflowDir() string {
-	panic("implement me")
+	return getInitVarToEngine(e.sharedMemory, ``)
 }
 
 func (e *ayxEnvironment) AlteryxInstallDir() string {

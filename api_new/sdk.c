@@ -91,6 +91,10 @@ void outputToolProgress(struct EngineInterface * engine, int nToolID, double pro
     engine->pOutputToolProgress(engine, nToolID, progress);
 }
 
+void* getInitVar(struct EngineInterface * engine, wchar_t *pVar) {
+    return engine->pGetInitVar(engine, pVar);
+}
+
 uint32_t getLenFromUtf16Ptr(wchar_t * ptr) {
     uint32_t len = 0;
     while (ptr[len] != L'\0') {

@@ -55,7 +55,7 @@ type goInputConnectionData struct {
 	recordCachePosition uint32
 }
 
-var tools = map[*goPluginSharedMemory]Plugin{} // = make(map[uint32]goPluginWrapper)
+var tools = map[*goPluginSharedMemory]Plugin{}
 
 func utf16PtrToString(utf16Ptr unsafe.Pointer, len int) string {
 	var utf16Slice []uint16
@@ -64,6 +64,18 @@ func utf16PtrToString(utf16Ptr unsafe.Pointer, len int) string {
 	rawHeader.Len = len
 	rawHeader.Cap = len
 	return string(utf16.Decode(utf16Slice))
+}
+
+func utf16PtrLen(utf16Ptr unsafe.Pointer) int {
+	length := uintptr(0)
+	for {
+		currentChar := *(*uint16)(unsafe.Pointer(uintptr(utf16Ptr) + (length * 2)))
+		if currentChar == 0 {
+			break
+		}
+		length++
+	}
+	return int(length)
 }
 
 func stringToUtf16Ptr(value string) *C.wchar_t {
@@ -77,6 +89,13 @@ func sendMessageToEngine(data *goPluginSharedMemory, status MessageStatus, messa
 
 func sendToolProgressToEngine(data *goPluginSharedMemory, progress float64) {
 	C.outputToolProgress((*C.struct_EngineInterface)(data.engine), (C.int)(data.toolId), (C.double)(progress))
+}
+
+func getInitVarToEngine(data *goPluginSharedMemory, initVar string) string {
+	initVarPtr := stringToUtf16Ptr(initVar)
+	resultPtr := C.getInitVar((*C.struct_EngineInterface)(data.engine), initVarPtr)
+	length := utf16PtrLen(resultPtr)
+	return utf16PtrToString(resultPtr, length)
 }
 
 func registerAndInit(plugin Plugin, data *goPluginSharedMemory, provider Provider) {
