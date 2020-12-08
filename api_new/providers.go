@@ -14,10 +14,39 @@ func (p *provider) Io() Io {
 	return p.io
 }
 
-func (p *provider) GetOutputAnchor(s string) OutputAnchor {
-	panic("implement me")
+func (p *provider) GetOutputAnchor(name string) OutputAnchor {
+	anchorData := getOrCreateOutputAnchor(p.sharedMemory, name)
+	return &outputAnchor{data: anchorData}
 }
 
 func (p *provider) Environment() Environment {
 	return p.environment
+}
+
+type outputAnchor struct {
+	data *goOutputAnchorData
+}
+
+func (a *outputAnchor) Name() string {
+	panic("implement me")
+}
+
+func (a *outputAnchor) IsOpen() bool {
+	panic("implement me")
+}
+
+func (a *outputAnchor) Metadata() string {
+	panic("implement me")
+}
+
+func (a *outputAnchor) Open(config string) {
+	panic("implement me")
+}
+
+func (a *outputAnchor) Write(record Record) {
+	panic("implement me")
+}
+
+func (a *outputAnchor) UpdateProgress(progress float64) {
+	panic("implement me")
 }

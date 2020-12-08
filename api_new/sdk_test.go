@@ -9,6 +9,7 @@ type TestImplementation struct {
 	DidInit  bool
 	Config   string
 	Provider api_new.Provider
+	Output   api_new.OutputAnchor
 }
 
 func (t *TestImplementation) TestIo() {
@@ -22,6 +23,7 @@ func (t *TestImplementation) Init(provider api_new.Provider) {
 	t.DidInit = true
 	t.Config = provider.ToolConfig()
 	t.Provider = provider
+	t.Output = provider.GetOutputAnchor(`Output`)
 }
 
 func (t *TestImplementation) OnInputConnectionOpened(connection api_new.InputConnection) {
@@ -109,5 +111,13 @@ func TestUpdateConfig(t *testing.T) {
 	config := implementation.Provider.ToolConfig()
 	if config != newConfig {
 		t.Fatalf(`expected '%v' but got '%v'`, newConfig, config)
+	}
+}
+
+func TestGetOutputAnchor(t *testing.T) {
+	implementation := &TestImplementation{}
+	api_new.RegisterToolTest(implementation, 1, ``)
+	if implementation.Output == nil {
+		t.Fatalf(`expected an output anchor but got nil`)
 	}
 }

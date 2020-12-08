@@ -164,7 +164,8 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 	}
 	registerAndInit(plugin, data, toolProvider)
 	return &FileTestRunner{
-		io: io,
+		io:     io,
+		plugin: data,
 	}
 }
 
