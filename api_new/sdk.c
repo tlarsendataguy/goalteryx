@@ -11,7 +11,7 @@ const int cacheSize = 4194304; //4mb
 **     toolConfigLen (uint32_t)
 **     engine (struct EngineInterface*)
 **     outputAnchors (struct OutputAnchor*)
-**         name (char *)
+**         name (wchar_t *)
 **         metadata (wchar_t *)
 **         isOpen (char)
 **         firstChild (struct OutputConn*)
@@ -37,51 +37,6 @@ const int cacheSize = 4194304; //4mb
 **             recordCachePosition (uint32_t)
 **         nextAnchor (struct InputAnchor*)
 */
-
-struct InputConnection {
-    char                       isOpen;
-    wchar_t*                   metadata;
-    double                     percent;
-    struct InputConnection*    nextConnection;
-    struct PluginSharedMemory* plugin;
-    uint32_t                   fixedSize;
-    char                       hasVarFields;
-    char*                      recordCache;
-    uint32_t                   recordCachePosition;
-};
-
-struct InputAnchor {
-    wchar_t*                name;
-    struct InputConnection* firstChild;
-    struct InputAnchor*     nextAnchor;
-};
-
-struct OutputConn {
-    char                                isOpen;
-    struct IncomingConnectionInterface* ii;
-    struct OutputConn*                  nextConnection;
-};
-
-struct OutputAnchor {
-    wchar_t*             name;
-    wchar_t*             metadata;
-    char                 isOpen;
-    struct OutputConn*   firstChild;
-    struct OutputAnchor* nextAnchor;
-    char*                recordCache;
-    uint32_t             recordCachePosition;
-};
-
-struct PluginSharedMemory {
-    uint32_t                toolId;
-    wchar_t*                toolConfig;
-    uint32_t                toolConfigLen;
-    struct EngineInterface* engine;
-    struct OutputAnchor*    outputAnchors;
-    uint32_t                totalInputConnections;
-    uint32_t                closedInputConnections;
-    struct InputAnchor*     inputAnchors;
-};
 
 void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, wchar_t *pMessage){
     engine->pOutputMessage(engine, nToolID, nStatus, pMessage);
@@ -223,7 +178,7 @@ void appendOutgoingConnection(struct OutputAnchor* anchor, struct IncomingConnec
     }
 }
 
-struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wchar_t * name) {
+struct OutputAnchor* createOutgoingAnchor(wchar_t* name) {
     struct OutputAnchor* anchor = malloc(sizeof(struct OutputAnchor));
     anchor->name = name;
     anchor->metadata = NULL;
@@ -232,6 +187,10 @@ struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wch
     anchor->nextAnchor = NULL;
     anchor->recordCache = NULL;
     anchor->recordCachePosition = 0;
+}
+
+struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wchar_t * name) {
+    struct OutputAnchor* anchor = createOutgoingAnchor(name);
 
     if (NULL == plugin->outputAnchors) {
         plugin->outputAnchors = anchor;

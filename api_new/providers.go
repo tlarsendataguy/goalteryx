@@ -2,13 +2,12 @@ package api_new
 
 type provider struct {
 	sharedMemory *goPluginSharedMemory
-	config       string
 	io           Io
 	environment  Environment
 }
 
 func (p *provider) ToolConfig() string {
-	return p.config
+	return utf16PtrToString(p.sharedMemory.toolConfig, int(p.sharedMemory.toolConfigLen))
 }
 
 func (p *provider) Io() Io {

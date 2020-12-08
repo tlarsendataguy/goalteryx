@@ -100,3 +100,14 @@ func TestCustomTestProviderEnvironmentOptions(t *testing.T) {
 		t.Fatalf(`expected 'custom workflowDir' but got '%v'`, workflowDir)
 	}
 }
+
+func TestUpdateConfig(t *testing.T) {
+	implementation := &TestImplementation{}
+	api_new.RegisterToolTest(implementation, 1, `<Configuration></Configuration>`)
+	newConfig := `<Configuration><Something /></Configuration`
+	implementation.Provider.Environment().UpdateToolConfig(newConfig)
+	config := implementation.Provider.ToolConfig()
+	if config != newConfig {
+		t.Fatalf(`expected '%v' but got '%v'`, newConfig, config)
+	}
+}

@@ -98,6 +98,23 @@ func getInitVarToEngine(data *goPluginSharedMemory, initVar string) string {
 	return utf16PtrToString(resultPtr, length)
 }
 
+func getOrCreateOutputAnchor(sharedMemory *goPluginSharedMemory, name string) *goOutputAnchorData {
+	anchor := sharedMemory.outputAnchors
+
+	for {
+		if anchor == nil {
+			nameUtf16 := stringToUtf16Ptr(name)
+			cAnchor := unsafe.Pointer(C.appendOutgoingAnchor((*C.struct_PluginSharedMemory)(unsafe.Pointer(sharedMemory)), nameUtf16))
+			anchor = (*goOutputAnchorData)(cAnchor)
+			return anchor
+		}
+		if anchorName := utf16PtrToString(anchor.name, utf16PtrLen(anchor.name)); anchorName == name {
+			return anchor
+		}
+		anchor = anchor.nextAnchor
+	}
+}
+
 func registerAndInit(plugin Plugin, data *goPluginSharedMemory, provider Provider) {
 	tools[data] = plugin
 	plugin.Init(provider)
@@ -107,15 +124,13 @@ func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engin
 	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
 	io := &ayxIo{sharedMemory: data}
 	environment := &ayxEnvironment{sharedMemory: data}
-	config := utf16PtrToString(data.toolConfig, int(data.toolConfigLen))
-	provider := &provider{
+	toolProvider := &provider{
 		sharedMemory: data,
-		config:       config,
 		io:           io,
 		environment:  environment,
 	}
 
-	registerAndInit(plugin, data, provider)
+	registerAndInit(plugin, data, toolProvider)
 	return 1
 }
 
@@ -142,13 +157,12 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 		workflowDir:  options.workflowDir,
 		locale:       options.locale,
 	}
-	provider := &provider{
+	toolProvider := &provider{
 		sharedMemory: data,
-		config:       xmlProperties,
 		io:           io,
 		environment:  environment,
 	}
-	registerAndInit(plugin, data, provider)
+	registerAndInit(plugin, data, toolProvider)
 	return &FileTestRunner{
 		io: io,
 	}
