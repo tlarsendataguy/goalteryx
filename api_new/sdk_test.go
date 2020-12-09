@@ -6,10 +6,13 @@ import (
 )
 
 type TestImplementation struct {
-	DidInit  bool
-	Config   string
-	Provider api_new.Provider
-	Output   api_new.OutputAnchor
+	DidInit                    bool
+	DidOnComplete              bool
+	DidOnInputConnectionOpened bool
+	DidOnRecordPacket          bool
+	Config                     string
+	Provider                   api_new.Provider
+	Output                     api_new.OutputAnchor
 }
 
 func (t *TestImplementation) TestIo() {
@@ -27,15 +30,15 @@ func (t *TestImplementation) Init(provider api_new.Provider) {
 }
 
 func (t *TestImplementation) OnInputConnectionOpened(connection api_new.InputConnection) {
-	panic("implement me")
+	t.DidOnInputConnectionOpened = true
 }
 
 func (t *TestImplementation) OnRecordPacket(connection api_new.InputConnection) {
-	panic("implement me")
+	t.DidOnRecordPacket = true
 }
 
 func (t *TestImplementation) OnComplete() {
-	panic("implement me")
+	t.DidOnComplete = true
 }
 
 func TestRegister(t *testing.T) {
@@ -114,10 +117,20 @@ func TestUpdateConfig(t *testing.T) {
 	}
 }
 
-func TestGetOutputAnchor(t *testing.T) {
+func TestSimulateInputTool(t *testing.T) {
 	implementation := &TestImplementation{}
-	api_new.RegisterToolTest(implementation, 1, ``)
+	runner := api_new.RegisterToolTest(implementation, 1, ``)
 	if implementation.Output == nil {
 		t.Fatalf(`expected an output anchor but got nil`)
+	}
+	runner.SimulateInputTool()
+	if !implementation.DidOnComplete {
+		t.Fatalf(`did not run OnComplete but expected it to`)
+	}
+	if implementation.DidOnInputConnectionOpened {
+		t.Fatalf(`OnInputConnectionOpened was called but it should not have been`)
+	}
+	if implementation.DidOnRecordPacket {
+		t.Fatalf(`OnRecordPacket was called but it should not have been`)
 	}
 }

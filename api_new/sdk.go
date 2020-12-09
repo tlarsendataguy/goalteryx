@@ -83,6 +83,10 @@ func stringToUtf16Ptr(value string) *C.wchar_t {
 	return (*C.wchar_t)(&utf16Bytes[0])
 }
 
+func simulateInputLifecycle(pluginInterface unsafe.Pointer) {
+	C.simulateInputLifecycle((*C.struct_PluginInterface)(pluginInterface))
+}
+
 func sendMessageToEngine(data *goPluginSharedMemory, status MessageStatus, message string) {
 	C.sendMessage((*C.struct_EngineInterface)(data.engine), (C.int)(data.toolId), (C.int)(status), (*C.wchar_t)(stringToUtf16Ptr(message)))
 }
@@ -147,7 +151,7 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 	xmlRunes := []rune(xmlProperties)
 	xmlUtf16 := append(utf16.Encode(xmlRunes), 0)
 	xmlPtr := unsafe.Pointer(&xmlUtf16[0])
-	pluginInterface := C.malloc(44)
+	pluginInterface := unsafe.Pointer(C.generatePluginInterface())
 	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlPtr), nil, (*C.struct_PluginInterface)(pluginInterface)))
 	io := &testIo{}
 	environment := &testEnvironment{
@@ -164,8 +168,9 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 	}
 	registerAndInit(plugin, data, toolProvider)
 	return &FileTestRunner{
-		io:     io,
-		plugin: data,
+		io:           io,
+		plugin:       data,
+		ayxInterface: pluginInterface,
 	}
 }
 
@@ -186,5 +191,7 @@ func goOnSingleRecord(handle unsafe.Pointer, record unsafe.Pointer) {
 
 //export goOnComplete
 func goOnComplete(handle unsafe.Pointer) {
-
+	data := (*goPluginSharedMemory)(handle)
+	implementation := tools[data]
+	implementation.OnComplete()
 }

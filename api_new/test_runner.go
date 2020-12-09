@@ -1,10 +1,21 @@
 package api_new
 
-type FileTestRunner struct {
-	io     *testIo
-	plugin *goPluginSharedMemory
+import "unsafe"
+
+type FileReceiver struct {
 }
 
-func (r *FileTestRunner) ConnectToOutgoingAnchor(name string) {
+type FileTestRunner struct {
+	io           *testIo
+	plugin       *goPluginSharedMemory
+	ayxInterface unsafe.Pointer
+}
 
+func (r *FileTestRunner) SimulateInputTool() {
+	simulateInputLifecycle(r.ayxInterface)
+}
+
+func (r *FileTestRunner) CaptureOutgoingAnchor(name string) *FileReceiver {
+
+	return &FileReceiver{}
 }

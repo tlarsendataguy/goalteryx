@@ -49,6 +49,8 @@ struct PluginSharedMemory {
     struct InputAnchor*     inputAnchors;
 };
 
+struct PluginInterface* generatePluginInterface();
+void simulateInputLifecycle(struct PluginInterface *pluginInterface);
 void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, wchar_t *pMessage);
 void outputToolProgress(struct EngineInterface * engine, int nToolID, double progress);
 void* getInitVar(struct EngineInterface * engine, wchar_t *pVar);

@@ -38,6 +38,15 @@ const int cacheSize = 4194304; //4mb
 **         nextAnchor (struct InputAnchor*)
 */
 
+struct PluginInterface* generatePluginInterface(){
+    return malloc(sizeof(struct PluginInterface));
+}
+
+void simulateInputLifecycle(struct PluginInterface *pluginInterface) {
+    pluginInterface->pPI_PushAllRecords(pluginInterface->handle, 0);
+    pluginInterface->pPI_Close(pluginInterface->handle, 0);
+}
+
 void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, wchar_t *pMessage){
     engine->pOutputMessage(engine, nToolID, nStatus, pMessage);
 }
