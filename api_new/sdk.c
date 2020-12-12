@@ -42,6 +42,18 @@ struct PluginInterface* generatePluginInterface(){
     return malloc(sizeof(struct PluginInterface));
 }
 
+struct IncomingConnectionInterface* generateIncomingConnectionInterface(){
+    return malloc(sizeof(struct IncomingConnectionInterface));
+}
+
+void callPiAddIncomingConnection(struct PluginSharedMemory *handle, wchar_t * name, struct IncomingConnectionInterface *ii){
+    PI_AddIncomingConnection(handle, L"", name, ii);
+}
+
+void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, wchar_t * name, struct IncomingConnectionInterface *ii){
+    PI_AddOutgoingConnection(handle, name, ii);
+}
+
 void simulateInputLifecycle(struct PluginInterface *pluginInterface) {
     pluginInterface->pPI_PushAllRecords(pluginInterface->handle, 0);
     pluginInterface->pPI_Close(pluginInterface->handle, 0);
@@ -196,6 +208,8 @@ struct OutputAnchor* createOutgoingAnchor(wchar_t* name) {
     anchor->nextAnchor = NULL;
     anchor->recordCache = NULL;
     anchor->recordCachePosition = 0;
+
+    return anchor;
 }
 
 struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wchar_t * name) {

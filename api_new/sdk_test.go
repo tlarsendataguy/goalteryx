@@ -41,6 +41,34 @@ func (t *TestImplementation) OnComplete() {
 	t.DidOnComplete = true
 }
 
+type TestInputTool struct {
+	Provider api_new.Provider
+	Output   api_new.OutputAnchor
+}
+
+func (i *TestInputTool) Init(provider api_new.Provider) {
+	i.Provider = provider
+	i.Output = provider.GetOutputAnchor(`Output`)
+}
+
+func (i *TestInputTool) OnInputConnectionOpened(connection api_new.InputConnection) {
+	panic("This should never be called")
+}
+
+func (i *TestInputTool) OnRecordPacket(connection api_new.InputConnection) {
+	panic("This should never be called")
+}
+
+func (i *TestInputTool) OnComplete() {
+	outputConfig := `<MetaInfo connection="Output">
+<RecordInfo>
+	<Field name="Field1" source="TextInput:" type="Byte"/>
+	<Field name="Field2" size="1" source="TextInput:" type="String"/>
+</RecordInfo>
+</MetaInfo>`
+	i.Output.Open(outputConfig)
+}
+
 func TestRegister(t *testing.T) {
 	config := `<Configuration></Configuration>`
 	implementation := &TestImplementation{}
@@ -132,5 +160,21 @@ func TestSimulateInputTool(t *testing.T) {
 	}
 	if implementation.DidOnRecordPacket {
 		t.Fatalf(`OnRecordPacket was called but it should not have been`)
+	}
+}
+
+func TestOutputRecordsToTestRunner(t *testing.T) {
+	implementation := &TestInputTool{}
+	runner := api_new.RegisterToolTest(implementation, 1, ``)
+	collector := runner.CaptureOutgoingAnchor(`Output`)
+	runner.SimulateInputTool()
+	expectedConfig := `<MetaInfo connection="Output">
+<RecordInfo>
+	<Field name="Field1" source="TextInput:" type="Byte"/>
+	<Field name="Field2" size="1" source="TextInput:" type="String"/>
+</RecordInfo>
+</MetaInfo>`
+	if collector.Config != expectedConfig {
+		t.Fatalf("expected\n'%v'\nbut got\n'%v'", expectedConfig, collector.Config)
 	}
 }

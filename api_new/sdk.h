@@ -50,6 +50,9 @@ struct PluginSharedMemory {
 };
 
 struct PluginInterface* generatePluginInterface();
+struct IncomingConnectionInterface* generateIncomingConnectionInterface();
+void callPiAddIncomingConnection(struct PluginSharedMemory *handle, wchar_t * name, struct IncomingConnectionInterface *ii);
+void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, wchar_t * name, struct IncomingConnectionInterface *ii);
 void simulateInputLifecycle(struct PluginInterface *pluginInterface);
 void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, wchar_t *pMessage);
 void outputToolProgress(struct EngineInterface * engine, int nToolID, double progress);

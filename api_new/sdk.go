@@ -124,6 +124,20 @@ func registerAndInit(plugin Plugin, data *goPluginSharedMemory, provider Provide
 	plugin.Init(provider)
 }
 
+func generateIncomingConnectionInterface() unsafe.Pointer {
+	return unsafe.Pointer(C.generateIncomingConnectionInterface())
+}
+
+func callPiAddIncomingConnection(plugin *goPluginSharedMemory, name string, ii unsafe.Pointer) {
+	namePtr := stringToUtf16Ptr(name)
+	C.callPiAddIncomingConnection((*C.struct_PluginSharedMemory)(unsafe.Pointer(plugin)), namePtr, (*C.struct_IncomingConnectionInterface)(ii))
+}
+
+func callPiAddOutgoingConnection(plugin *goPluginSharedMemory, name string, ii unsafe.Pointer) {
+	namePtr := stringToUtf16Ptr(name)
+	C.callPiAddOutgoingConnection((*C.struct_PluginSharedMemory)(unsafe.Pointer(plugin)), namePtr, (*C.struct_IncomingConnectionInterface)(ii))
+}
+
 func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) int {
 	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
 	io := &ayxIo{sharedMemory: data}
@@ -172,6 +186,39 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 		plugin:       data,
 		ayxInterface: pluginInterface,
 	}
+}
+
+func registerTestHarness(plugin Plugin) *goPluginSharedMemory {
+	var toolId uint32 = 1
+	for {
+		found := false
+		for key := range tools {
+			if key.toolId == toolId {
+				found = true
+				break
+			}
+		}
+		if found {
+			toolId++
+			continue
+		}
+		break
+	}
+
+	pluginInterface := unsafe.Pointer(C.generatePluginInterface())
+	config := stringToUtf16Ptr("<Configuration></Configuration>")
+	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(config), nil, (*C.struct_PluginInterface)(pluginInterface)))
+	io := &testIo{}
+	environment := &testEnvironment{
+		sharedMemory: data,
+	}
+	toolProvider := &provider{
+		sharedMemory: data,
+		io:           io,
+		environment:  environment,
+	}
+	registerAndInit(plugin, data, toolProvider)
+	return data
 }
 
 //export goOnInputConnectionOpened
