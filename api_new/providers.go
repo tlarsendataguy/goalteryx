@@ -40,7 +40,7 @@ func (a *outputAnchor) Metadata() string {
 }
 
 func (a *outputAnchor) Open(config string) {
-	panic("implement me")
+	openOutgoingAnchor(a.data, config)
 }
 
 func (a *outputAnchor) Write(record Record) {

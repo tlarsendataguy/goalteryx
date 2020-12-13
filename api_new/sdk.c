@@ -26,6 +26,7 @@ const int cacheSize = 4194304; //4mb
 **     inputAnchors (struct InputAnchor*)
 **         name (wchar_t *)
 **         firstChild (struct InputConnection*)
+**             anchor (struct InputAnchor*)
 **             isOpen (char)
 **             metadata (wchar_t *)
 **             percent (double)
@@ -99,6 +100,18 @@ void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineI
     return plugin;
 }
 
+void openOutgoingAnchor(struct OutputAnchor *anchor, wchar_t * config) {
+    anchor->isOpen = 1;
+    struct OutputConn * conn = anchor->firstChild;
+    while (NULL != conn) {
+        long result = conn->ii->pII_Init(conn->ii->handle, config);
+        if (result == 1) {
+            conn->isOpen = 1;
+        }
+        conn = conn->nextConnection;
+    }
+}
+
 void PI_Close(void * handle, bool bHasErrors) {
     // do nothing
 }
@@ -143,6 +156,7 @@ long PI_AddIncomingConnection(void * handle, wchar_t * pIncomingConnectionType, 
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
     struct InputAnchor *anchor = getOrCreateInputAnchor(plugin, pIncomingConnectionName);
     struct InputConnection *connection = malloc(sizeof(struct InputConnection));
+    connection->anchor = anchor;
     connection->isOpen = 1;
     connection->metadata = NULL;
     connection->percent = 0;

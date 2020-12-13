@@ -5,6 +5,7 @@
 #include "alteryx_api.h"
 
 struct InputConnection {
+    struct InputAnchor*        anchor;
     char                       isOpen;
     wchar_t*                   metadata;
     double                     percent;
@@ -59,6 +60,7 @@ void outputToolProgress(struct EngineInterface * engine, int nToolID, double pro
 void* getInitVar(struct EngineInterface * engine, wchar_t *pVar);
 void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
 struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wchar_t * name);
+void openOutgoingAnchor(struct OutputAnchor *anchor, wchar_t * config);
 void PI_Close(void * handle, bool bHasErrors);
 long PI_PushAllRecords(void * handle, __int64 nRecordLimit);
 long PI_AddIncomingConnection(void * handle,

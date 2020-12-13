@@ -27,11 +27,13 @@ func (r *FileTestRunner) CaptureOutgoingAnchor(name string) *RecordCollector {
 
 type RecordCollector struct {
 	Config string
+	Name   string
 }
 
 func (r *RecordCollector) Init(provider Provider) {}
 
 func (r *RecordCollector) OnInputConnectionOpened(connection InputConnection) {
+	r.Name = connection.Name()
 	r.Config = connection.Metadata()
 }
 

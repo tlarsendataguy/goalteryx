@@ -44,6 +44,7 @@ type goInputAnchorData struct {
 }
 
 type goInputConnectionData struct {
+	anchor              *goInputAnchorData
 	isOpen              byte
 	metadata            unsafe.Pointer
 	percent             float64
@@ -221,9 +222,19 @@ func registerTestHarness(plugin Plugin) *goPluginSharedMemory {
 	return data
 }
 
+func openOutgoingAnchor(anchor *goOutputAnchorData, config string) {
+	configPtr := stringToUtf16Ptr(config)
+	C.openOutgoingAnchor((*C.struct_OutputAnchor)(unsafe.Pointer(anchor)), configPtr)
+}
+
 //export goOnInputConnectionOpened
 func goOnInputConnectionOpened(handle unsafe.Pointer) {
-
+	var data = (*goInputConnectionData)(handle)
+	plugin := tools[data.plugin]
+	inputConnection := &ImpInputConnection{
+		data: data,
+	}
+	plugin.OnInputConnectionOpened(inputConnection)
 }
 
 //export goOnRecordPacket

@@ -174,6 +174,9 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 	<Field name="Field2" size="1" source="TextInput:" type="String"/>
 </RecordInfo>
 </MetaInfo>`
+	if collector.Name != `Output` {
+		t.Fatalf(`expected 'Output' but got '%v'`, collector.Name)
+	}
 	if collector.Config != expectedConfig {
 		t.Fatalf("expected\n'%v'\nbut got\n'%v'", expectedConfig, collector.Config)
 	}
