@@ -5,7 +5,9 @@ import (
 	"unsafe"
 )
 
-func generateGetFixedBytes(startAt int, length int) func(Record) []byte {
+type BytesGetter func(Record) []byte
+
+func generateGetFixedBytes(startAt int, length int) BytesGetter {
 	startAtUint := uintptr(startAt)
 	return func(data Record) []byte {
 		var raw []byte
@@ -17,7 +19,7 @@ func generateGetFixedBytes(startAt int, length int) func(Record) []byte {
 	}
 }
 
-func generateGetVarBytes(startAt int) func(Record) []byte {
+func generateGetVarBytes(startAt int) BytesGetter {
 	startAtUint := uintptr(startAt)
 	return func(data Record) []byte {
 		varStart := *((*uint32)(unsafe.Pointer(uintptr(data) + startAtUint)))
