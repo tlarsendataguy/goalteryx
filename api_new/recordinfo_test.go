@@ -1,6 +1,7 @@
 package api_new
 
 import (
+	"math"
 	"testing"
 	"unsafe"
 )
@@ -162,6 +163,126 @@ func TestGetInt64Value(t *testing.T) {
 	value, isNull = field.GetValue(record)
 	if value != 0 {
 		t.Fatalf(`expected 0 but got %v`, value)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
+}
+
+func TestGetFloatValue(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="Float"/>
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetFloatField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 102, 230, 246, 66, 0}[0])
+	value, isNull := field.GetValue(record)
+	if math.Abs(value-123.45) > 0.00001 {
+		t.Fatalf(`expected 123.45 but got %v`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 102, 230, 246, 66, 1}[0])
+	value, isNull = field.GetValue(record)
+	if value != 0.0 {
+		t.Fatalf(`expected 0 but got %v`, value)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
+}
+
+func TestGetDoubleValue(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="Double"/>
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetFloatField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 205, 204, 204, 204, 204, 220, 94, 64, 0}[0])
+	value, isNull := field.GetValue(record)
+	if math.Abs(value-123.45) > 0.00001 {
+		t.Fatalf(`expected 123.45 but got %v`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 205, 204, 204, 204, 204, 220, 94, 64, 1}[0])
+	value, isNull = field.GetValue(record)
+	if value != 0.0 {
+		t.Fatalf(`expected 0 but got %v`, value)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
+}
+
+func TestGetFixedDecimalValue(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="FixedDecimal" size="19" scale="2" />
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetFloatField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 49, 50, 51, 46, 52, 53, 0, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 0}[0])
+	value, isNull := field.GetValue(record)
+	if value != 123.45 {
+		t.Fatalf(`expected 123.45 but got %v`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 49, 50, 51, 46, 52, 53, 0, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 1}[0])
+	value, isNull = field.GetValue(record)
+	if value != 0.0 {
+		t.Fatalf(`expected 0 but got %v`, value)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
+}
+
+func TestGetBoolValue(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="Bool" />
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetBoolField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 1}[0])
+	value, isNull := field.GetValue(record)
+	if !value {
+		t.Fatal(`expected true but got false`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 2}[0])
+	value, isNull = field.GetValue(record)
+	if value {
+		t.Fatal(`expected false but got true`)
 	}
 	if !isNull {
 		t.Fatalf(`expected null but got not null`)

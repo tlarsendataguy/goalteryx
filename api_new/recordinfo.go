@@ -5,9 +5,13 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"math"
+	"strconv"
 )
 
 type IntGetter func(Record) (int, bool)
+type FloatGetter func(Record) (float64, bool)
+type BoolGetter func(Record) (bool, bool)
 
 type xmlMetaInfo struct {
 	Connection string        `xml:"connection,attr"`
@@ -32,6 +36,20 @@ type IncomingIntField struct {
 	Type     string
 	Source   string
 	GetValue IntGetter
+}
+
+type IncomingFloatField struct {
+	Name     string
+	Type     string
+	Source   string
+	GetValue FloatGetter
+}
+
+type IncomingBoolField struct {
+	Name     string
+	Type     string
+	Source   string
+	GetValue BoolGetter
 }
 
 type IncomingRecordInfo struct {
@@ -61,6 +79,40 @@ func (i IncomingRecordInfo) GetIntField(name string) (IncomingIntField, error) {
 		}
 	}
 	return IncomingIntField{}, fmt.Errorf(`there is no '%v' field in the record`, name)
+}
+
+func (i IncomingRecordInfo) GetFloatField(name string) (IncomingFloatField, error) {
+	for _, field := range i.fields {
+		if field.Name != name {
+			continue
+		}
+		switch field.Type {
+		case `Float`:
+			return generateIncomingFloatField(field, bytesToFloat), nil
+		case `Double`:
+			return generateIncomingFloatField(field, bytesToDouble), nil
+		case `FixedDecimal`:
+			return generateFixedDecimalField(field), nil
+		default:
+			return IncomingFloatField{}, fmt.Errorf(`the '%v' field is not a float field, it is '%v'`, name, field.Type)
+		}
+	}
+	return IncomingFloatField{}, fmt.Errorf(`there is no '%v' field in the record`, name)
+}
+
+func (i IncomingRecordInfo) GetBoolField(name string) (IncomingBoolField, error) {
+	for _, field := range i.fields {
+		if field.Name != name {
+			continue
+		}
+		switch field.Type {
+		case `Bool`:
+			return generateBoolField(field), nil
+		default:
+			return IncomingBoolField{}, fmt.Errorf(`the '%v' field is not a bool field, it is '%v'`, name, field.Type)
+		}
+	}
+	return IncomingBoolField{}, fmt.Errorf(`there is no '%v' field in the record`, name)
 }
 
 func incomingRecordInfoFromString(config string) (IncomingRecordInfo, error) {
@@ -159,5 +211,78 @@ func bytesToInt64(getBytes BytesGetter) IntGetter {
 			return 0, true
 		}
 		return int(binary.LittleEndian.Uint64(bytes)), false
+	}
+}
+
+func generateIncomingFloatField(field IncomingField, getter func(BytesGetter) FloatGetter) IncomingFloatField {
+	return IncomingFloatField{
+		Name:     field.Name,
+		Type:     field.Type,
+		Source:   field.Source,
+		GetValue: getter(field.GetBytes),
+	}
+}
+
+func bytesToFloat(getBytes BytesGetter) FloatGetter {
+	return func(record Record) (float64, bool) {
+		bytes := getBytes(record)
+		if bytes[4] == 1 {
+			return 0, true
+		}
+		return float64(math.Float32frombits(binary.LittleEndian.Uint32(bytes))), false
+	}
+}
+
+func bytesToDouble(getBytes BytesGetter) FloatGetter {
+	return func(record Record) (float64, bool) {
+		bytes := getBytes(record)
+		if bytes[8] == 1 {
+			return 0, true
+		}
+		return math.Float64frombits(binary.LittleEndian.Uint64(bytes)), false
+	}
+}
+
+func truncateAtNullByte(raw []byte) []byte {
+	var dataLen int
+	for dataLen = 0; dataLen < len(raw); dataLen++ {
+		if raw[dataLen] == 0 {
+			break
+		}
+	}
+	return raw[:dataLen]
+}
+
+func generateFixedDecimalField(field IncomingField) IncomingFloatField {
+	getter := func(record Record) (float64, bool) {
+		bytes := field.GetBytes(record)
+		if bytes[field.Size] == 1 {
+			return 0, true
+		}
+		valueStr := string(truncateAtNullByte(bytes))
+		value, _ := strconv.ParseFloat(valueStr, 64)
+		return value, false
+	}
+	return IncomingFloatField{
+		Name:     field.Name,
+		Type:     field.Type,
+		Source:   field.Source,
+		GetValue: getter,
+	}
+}
+
+func generateBoolField(field IncomingField) IncomingBoolField {
+	getter := func(record Record) (bool, bool) {
+		bytes := field.GetBytes(record)
+		if bytes[0] == 2 {
+			return false, true
+		}
+		return bytes[0] == 1, false
+	}
+	return IncomingBoolField{
+		Name:     field.Name,
+		Type:     field.Type,
+		Source:   field.Source,
+		GetValue: getter,
 	}
 }
