@@ -137,3 +137,33 @@ func TestGetInt32Value(t *testing.T) {
 		t.Fatalf(`expected null but got not null`)
 	}
 }
+
+func TestGetInt64Value(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="Int64"/>
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetIntField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 86, 85, 85, 85, 85, 85, 255, 255, 0}[0])
+	value, isNull := field.GetValue(record)
+	if value != -187649984473770 {
+		t.Fatalf(`expected -187649984473770 but got %v`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 86, 85, 85, 85, 85, 85, 255, 255, 1}[0])
+	value, isNull = field.GetValue(record)
+	if value != 0 {
+		t.Fatalf(`expected 0 but got %v`, value)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
+}

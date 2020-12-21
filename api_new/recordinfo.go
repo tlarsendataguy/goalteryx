@@ -54,6 +54,8 @@ func (i IncomingRecordInfo) GetIntField(name string) (IncomingIntField, error) {
 			return generateIncomingIntField(field, bytesToInt16), nil
 		case `Int32`:
 			return generateIncomingIntField(field, bytesToInt32), nil
+		case `Int64`:
+			return generateIncomingIntField(field, bytesToInt64), nil
 		default:
 			return IncomingIntField{}, fmt.Errorf(`the '%v' field is not an integer field, it is '%v'`, name, field.Type)
 		}
@@ -147,5 +149,15 @@ func bytesToInt32(getBytes BytesGetter) IntGetter {
 			return 0, true
 		}
 		return int(binary.LittleEndian.Uint32(bytes)), false
+	}
+}
+
+func bytesToInt64(getBytes BytesGetter) IntGetter {
+	return func(record Record) (int, bool) {
+		bytes := getBytes(record)
+		if bytes[8] == 1 {
+			return 0, true
+		}
+		return int(binary.LittleEndian.Uint64(bytes)), false
 	}
 }
