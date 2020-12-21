@@ -1,6 +1,9 @@
 package api_new
 
-import "testing"
+import (
+	"testing"
+	"unsafe"
+)
 
 func TestNewIncomingRecordInfo(t *testing.T) {
 	config := `<MetaInfo connection="Output">
@@ -32,21 +35,6 @@ func TestNewIncomingRecordInfoWithoutMetaInfo(t *testing.T) {
 	}
 }
 
-func TestGetIncomingField(t *testing.T) {
-	config := `<RecordInfo>
-	<Field name="Field1" source="TextInput:" type="Byte"/>
-	<Field name="Field2" size="1" source="TextInput:" type="String"/>
-</RecordInfo>`
-	recordInfo, _ := incomingRecordInfoFromString(config)
-	field, err := recordInfo.GetIntField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
-	}
-	if field.Name != `Field1` {
-		t.Fatalf(`expected 'Field1' but got '%v'`, field.Name)
-	}
-}
-
 func TestIncomingFieldDoesNotExist(t *testing.T) {
 	config := `<RecordInfo>
 	<Field name="Field1" source="TextInput:" type="Byte"/>
@@ -58,4 +46,94 @@ func TestIncomingFieldDoesNotExist(t *testing.T) {
 		t.Fatalf(`expected an error but got none`)
 	}
 	t.Logf(err.Error())
+}
+
+func TestGetByteValue(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="Byte"/>
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetIntField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 35, 0}[0])
+	value, isNull := field.GetValue(record)
+	if value != 35 {
+		t.Fatalf(`expected 35 but got %v`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 35, 1}[0])
+	value, isNull = field.GetValue(record)
+	if value != 0 {
+		t.Fatalf(`expected 0 but got %v`, value)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
+}
+
+func TestGetInt16Value(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="Int16"/>
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetIntField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 255, 127, 0}[0])
+	value, isNull := field.GetValue(record)
+	if value != 32767 {
+		t.Fatalf(`expected 32767 but got %v`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 255, 127, 1}[0])
+	value, isNull = field.GetValue(record)
+	if value != 0 {
+		t.Fatalf(`expected 0 but got %v`, value)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
+}
+
+func TestGetInt32Value(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="Int32"/>
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetIntField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 0, 16, 0, 0, 0}[0])
+	value, isNull := field.GetValue(record)
+	if value != 4096 {
+		t.Fatalf(`expected 4096 but got %v`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 0, 16, 0, 0, 1}[0])
+	value, isNull = field.GetValue(record)
+	if value != 0 {
+		t.Fatalf(`expected 0 but got %v`, value)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
 }
