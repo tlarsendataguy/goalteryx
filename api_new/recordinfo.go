@@ -134,7 +134,9 @@ func (i IncomingRecordInfo) GetTimeField(name string) (IncomingTimeField, error)
 		}
 		switch field.Type {
 		case `Date`:
-			return generateIncomingTimeField(field, bytesToDate), nil
+			return generateTimeField(field, dateFormat, 10), nil
+		case `DateTime`:
+			return generateTimeField(field, dateTimeFormat, 19), nil
 		default:
 			return IncomingTimeField{}, fmt.Errorf(`the '%v' field is not a time field, it is '%v'`, name, field.Type)
 		}
@@ -314,22 +316,19 @@ func generateBoolField(field IncomingField) IncomingBoolField {
 	}
 }
 
-func generateIncomingTimeField(field IncomingField, getter func(BytesGetter) TimeGetter) IncomingTimeField {
+func generateTimeField(field IncomingField, format string, size int) IncomingTimeField {
+	getter := func(record Record) (time.Time, bool) {
+		bytes := field.GetBytes(record)
+		if bytes[size] == 1 {
+			return time.Time{}, true
+		}
+		value, _ := time.Parse(format, string(bytes[0:size]))
+		return value, false
+	}
 	return IncomingTimeField{
 		Name:     field.Name,
 		Type:     field.Type,
 		Source:   field.Source,
-		GetValue: getter(field.GetBytes),
-	}
-}
-
-func bytesToDate(getBytes BytesGetter) TimeGetter {
-	return func(record Record) (time.Time, bool) {
-		bytes := getBytes(record)
-		if bytes[10] == 1 {
-			return time.Time{}, true
-		}
-		value, _ := time.Parse(dateFormat, string(bytes[0:10]))
-		return value, false
+		GetValue: getter,
 	}
 }

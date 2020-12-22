@@ -319,3 +319,33 @@ func TestGetDateValue(t *testing.T) {
 		t.Fatalf(`expected null but got not null`)
 	}
 }
+
+func TestGetDatetimeValue(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="DateTime" />
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetTimeField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 50, 48, 50, 48, 45, 48, 49, 45, 48, 51, 32, 49, 52, 58, 48, 53, 58, 48, 54, 0}[0])
+	value, isNull := field.GetValue(record)
+	if value != time.Date(2020, 1, 3, 14, 5, 6, 0, time.UTC) {
+		t.Fatalf(`expected '2020-01-03 14:05:06' but got '%v'`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 50, 48, 50, 48, 45, 48, 49, 45, 48, 51, 32, 49, 52, 58, 48, 53, 58, 48, 54, 1}[0])
+	value, isNull = field.GetValue(record)
+	if empty := (time.Time{}); value != empty {
+		t.Fatalf(`expected '%v' but got '%v'`, empty, value)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
+}
