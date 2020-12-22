@@ -64,6 +64,14 @@ type IncomingTimeField struct {
 	GetValue TimeGetter
 }
 
+type IncomingBlobField struct {
+	Name     string
+	Type     string
+	Source   string
+	Size     int
+	GetValue BytesGetter
+}
+
 type IncomingRecordInfo struct {
 	fields []IncomingField
 }
@@ -142,6 +150,21 @@ func (i IncomingRecordInfo) GetTimeField(name string) (IncomingTimeField, error)
 		}
 	}
 	return IncomingTimeField{}, fmt.Errorf(`there is no '%v' field in the record`, name)
+}
+
+func (i IncomingRecordInfo) GetBlobField(name string) (IncomingBlobField, error) {
+	for _, field := range i.fields {
+		if field.Name != name {
+			continue
+		}
+		switch field.Type {
+		case `Blob`, `SpatialObj`:
+			return generateBlobField(field), nil
+		default:
+			return IncomingBlobField{}, fmt.Errorf(`the '%v' field is not a blob field, it is '%v'`, name, field.Type)
+		}
+	}
+	return IncomingBlobField{}, fmt.Errorf(`there is no '%v' field in the record`, name)
 }
 
 func incomingRecordInfoFromString(config string) (IncomingRecordInfo, error) {
@@ -330,5 +353,15 @@ func generateTimeField(field IncomingField, format string, size int) IncomingTim
 		Type:     field.Type,
 		Source:   field.Source,
 		GetValue: getter,
+	}
+}
+
+func generateBlobField(field IncomingField) IncomingBlobField {
+	return IncomingBlobField{
+		Name:     field.Name,
+		Type:     field.Type,
+		Source:   field.Source,
+		Size:     field.Size,
+		GetValue: field.GetBytes,
 	}
 }

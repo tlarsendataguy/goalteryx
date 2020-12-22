@@ -1,6 +1,7 @@
 package api_new
 
 import (
+	"bytes"
 	"math"
 	"testing"
 	"time"
@@ -347,5 +348,53 @@ func TestGetDatetimeValue(t *testing.T) {
 	}
 	if !isNull {
 		t.Fatalf(`expected null but got not null`)
+	}
+}
+
+func TestGetBlobValue(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="Blob" />
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetBlobField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 8, 0, 0, 0, 7, 0, 0, 0, 13, 49, 0, 48, 0, 48, 0}[0])
+	value := field.GetValue(record)
+	if expected := []byte{49, 0, 48, 0, 48, 0}; !bytes.Equal(expected, value) {
+		t.Fatalf(`expected '%v' but got '%v'`, expected, value)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 1, 0, 0, 0}[0])
+	value = field.GetValue(record)
+	if value != nil {
+		t.Fatalf(`expected nil but got '%v'`, value)
+	}
+}
+
+func TestGetSpatialObjValue(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="SpatialObj" />
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetBlobField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 8, 0, 0, 0, 7, 0, 0, 0, 13, 49, 0, 48, 0, 48, 0}[0])
+	value := field.GetValue(record)
+	if expected := []byte{49, 0, 48, 0, 48, 0}; !bytes.Equal(expected, value) {
+		t.Fatalf(`expected '%v' but got '%v'`, expected, value)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 1, 0, 0, 0}[0])
+	value = field.GetValue(record)
+	if value != nil {
+		t.Fatalf(`expected nil but got '%v'`, value)
 	}
 }
