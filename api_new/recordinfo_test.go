@@ -3,6 +3,7 @@ package api_new
 import (
 	"math"
 	"testing"
+	"time"
 	"unsafe"
 )
 
@@ -273,7 +274,7 @@ func TestGetBoolValue(t *testing.T) {
 	record := unsafe.Pointer(&[]byte{2, 1}[0])
 	value, isNull := field.GetValue(record)
 	if !value {
-		t.Fatal(`expected true but got false`, value)
+		t.Fatal(`expected true but got false`)
 	}
 	if isNull {
 		t.Fatalf(`expected not null but got null`)
@@ -283,6 +284,36 @@ func TestGetBoolValue(t *testing.T) {
 	value, isNull = field.GetValue(record)
 	if value {
 		t.Fatal(`expected false but got true`)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
+}
+
+func TestGetDateValue(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="Date" />
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetTimeField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 50, 48, 50, 48, 45, 48, 49, 45, 48, 51, 0}[0])
+	value, isNull := field.GetValue(record)
+	if value != time.Date(2020, 1, 3, 0, 0, 0, 0, time.UTC) {
+		t.Fatalf(`expected '2020-01-03' but got '%v'`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 50, 48, 50, 48, 45, 48, 49, 45, 48, 51, 1}[0])
+	value, isNull = field.GetValue(record)
+	if empty := (time.Time{}); value != empty {
+		t.Fatalf(`expected '%v' but got '%v'`, empty, value)
 	}
 	if !isNull {
 		t.Fatalf(`expected null but got not null`)

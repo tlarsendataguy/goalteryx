@@ -7,11 +7,16 @@ import (
 	"fmt"
 	"math"
 	"strconv"
+	"time"
 )
 
 type IntGetter func(Record) (int, bool)
 type FloatGetter func(Record) (float64, bool)
 type BoolGetter func(Record) (bool, bool)
+type TimeGetter func(Record) (time.Time, bool)
+
+const dateFormat = `2006-01-02`
+const dateTimeFormat = `2006-01-02 15:04:05`
 
 type xmlMetaInfo struct {
 	Connection string        `xml:"connection,attr"`
@@ -50,6 +55,13 @@ type IncomingBoolField struct {
 	Type     string
 	Source   string
 	GetValue BoolGetter
+}
+
+type IncomingTimeField struct {
+	Name     string
+	Type     string
+	Source   string
+	GetValue TimeGetter
 }
 
 type IncomingRecordInfo struct {
@@ -113,6 +125,21 @@ func (i IncomingRecordInfo) GetBoolField(name string) (IncomingBoolField, error)
 		}
 	}
 	return IncomingBoolField{}, fmt.Errorf(`there is no '%v' field in the record`, name)
+}
+
+func (i IncomingRecordInfo) GetTimeField(name string) (IncomingTimeField, error) {
+	for _, field := range i.fields {
+		if field.Name != name {
+			continue
+		}
+		switch field.Type {
+		case `Date`:
+			return generateIncomingTimeField(field, bytesToDate), nil
+		default:
+			return IncomingTimeField{}, fmt.Errorf(`the '%v' field is not a time field, it is '%v'`, name, field.Type)
+		}
+	}
+	return IncomingTimeField{}, fmt.Errorf(`there is no '%v' field in the record`, name)
 }
 
 func incomingRecordInfoFromString(config string) (IncomingRecordInfo, error) {
@@ -284,5 +311,25 @@ func generateBoolField(field IncomingField) IncomingBoolField {
 		Type:     field.Type,
 		Source:   field.Source,
 		GetValue: getter,
+	}
+}
+
+func generateIncomingTimeField(field IncomingField, getter func(BytesGetter) TimeGetter) IncomingTimeField {
+	return IncomingTimeField{
+		Name:     field.Name,
+		Type:     field.Type,
+		Source:   field.Source,
+		GetValue: getter(field.GetBytes),
+	}
+}
+
+func bytesToDate(getBytes BytesGetter) TimeGetter {
+	return func(record Record) (time.Time, bool) {
+		bytes := getBytes(record)
+		if bytes[10] == 1 {
+			return time.Time{}, true
+		}
+		value, _ := time.Parse(dateFormat, string(bytes[0:10]))
+		return value, false
 	}
 }
