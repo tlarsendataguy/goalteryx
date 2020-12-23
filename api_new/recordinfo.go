@@ -189,6 +189,10 @@ func (i IncomingRecordInfo) GetStringField(name string) (IncomingStringField, er
 			return generateIncomingStringField(field, bytesToString), nil
 		case `WString`:
 			return generateIncomingStringField(field, bytesToWString), nil
+		case `V_String`:
+			return generateIncomingStringField(field, bytesToV_String), nil
+		case `V_WString`:
+			return generateIncomingStringField(field, bytesToV_WString), nil
 		default:
 			return IncomingStringField{}, fmt.Errorf(`the '%v' field is not a string field, it is '%v'`, name, field.Type)
 		}
@@ -440,6 +444,32 @@ func bytesToWString(getBytes BytesGetter, size int) StringGetter {
 		rawHeader.Len = size
 		rawHeader.Cap = size
 		utf16Bytes = truncateAtNullUtf16(utf16Bytes)
+		value := string(utf16.Decode(utf16Bytes))
+		return value, false
+	}
+}
+
+func bytesToV_String(getBytes BytesGetter, _ int) StringGetter {
+	return func(record Record) (string, bool) {
+		bytes := getBytes(record)
+		if bytes == nil {
+			return ``, true
+		}
+		return string(bytes), false
+	}
+}
+
+func bytesToV_WString(getBytes BytesGetter, size int) StringGetter {
+	return func(record Record) (string, bool) {
+		bytes := getBytes(record)
+		if bytes == nil {
+			return ``, true
+		}
+		var utf16Bytes []uint16
+		rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&utf16Bytes))
+		rawHeader.Data = uintptr(unsafe.Pointer(&bytes[0]))
+		rawHeader.Len = len(bytes) / 2
+		rawHeader.Cap = len(bytes) / 2
 		value := string(utf16.Decode(utf16Bytes))
 		return value, false
 	}
