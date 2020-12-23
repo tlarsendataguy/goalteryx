@@ -518,3 +518,15 @@ func TestGetV_WStringValue(t *testing.T) {
 		t.Fatalf(`expected null but got not null`)
 	}
 }
+
+func TestClone(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="Int16"/>
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	editor := recordInfo.Clone()
+	if editor.NumFields() != 2 {
+		t.Fatalf(`expected 2 fields but got %v`, editor.NumFields())
+	}
+}

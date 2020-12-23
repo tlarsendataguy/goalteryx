@@ -92,6 +92,10 @@ func (i IncomingRecordInfo) NumFields() int {
 	return len(i.fields)
 }
 
+func (i IncomingRecordInfo) Clone() EditingRecordInfo {
+	return EditingRecordInfo{fields: i.fields}
+}
+
 func (i IncomingRecordInfo) GetIntField(name string) (IncomingIntField, error) {
 	for _, field := range i.fields {
 		if field.Name != name {
