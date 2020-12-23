@@ -6,8 +6,11 @@ import (
 	"errors"
 	"fmt"
 	"math"
+	"reflect"
 	"strconv"
 	"time"
+	"unicode/utf16"
+	"unsafe"
 )
 
 type IntGetter func(Record) (int, bool)
@@ -184,6 +187,8 @@ func (i IncomingRecordInfo) GetStringField(name string) (IncomingStringField, er
 		switch field.Type {
 		case `String`:
 			return generateIncomingStringField(field, bytesToString), nil
+		case `WString`:
+			return generateIncomingStringField(field, bytesToWString), nil
 		default:
 			return IncomingStringField{}, fmt.Errorf(`the '%v' field is not a string field, it is '%v'`, name, field.Type)
 		}
@@ -224,9 +229,13 @@ func incomingRecordInfoFromString(config string) (IncomingRecordInfo, error) {
 		case `Int64`, `Double`:
 			field.GetBytes = generateGetFixedBytes(startAt, 9)
 			startAt += 9
-		case `String`, `WString`, `FixedDecimal`:
+		case `String`, `FixedDecimal`:
 			field.GetBytes = generateGetFixedBytes(startAt, field.Size+1)
 			startAt += field.Size + 1
+		case `WString`:
+			size := field.Size * 2
+			field.GetBytes = generateGetFixedBytes(startAt, size+1)
+			startAt += size + 1
 		case `Date`:
 			field.GetBytes = generateGetFixedBytes(startAt, 11)
 			startAt += 11
@@ -406,5 +415,32 @@ func bytesToString(getBytes BytesGetter, size int) StringGetter {
 			return ``, true
 		}
 		return string(truncateAtNullByte(bytes)), false
+	}
+}
+
+func truncateAtNullUtf16(raw []uint16) []uint16 {
+	var dataLen int
+	for dataLen = 0; dataLen < len(raw); dataLen++ {
+		if raw[dataLen] == 0 {
+			break
+		}
+	}
+	return raw[:dataLen]
+}
+
+func bytesToWString(getBytes BytesGetter, size int) StringGetter {
+	return func(record Record) (string, bool) {
+		bytes := getBytes(record)
+		if bytes[size*2] == 1 {
+			return ``, true
+		}
+		var utf16Bytes []uint16
+		rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&utf16Bytes))
+		rawHeader.Data = uintptr(unsafe.Pointer(&bytes[0]))
+		rawHeader.Len = size
+		rawHeader.Cap = size
+		utf16Bytes = truncateAtNullUtf16(utf16Bytes)
+		value := string(utf16.Decode(utf16Bytes))
+		return value, false
 	}
 }

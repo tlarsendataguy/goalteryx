@@ -428,3 +428,33 @@ func TestGetStringValue(t *testing.T) {
 		t.Fatalf(`expected null but got not null`)
 	}
 }
+
+func TestGetWStringValue(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="WString" size="10" />
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetStringField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 65, 0, 66, 0, 67, 0, 68, 0, 69, 0, 70, 0, 0, 0, 71, 0, 72, 0, 73, 0, 0}[0])
+	value, isNull := field.GetValue(record)
+	if value != `ABCDEF` {
+		t.Fatalf(`expected 'ABCDEF' but got '%v'`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 65, 0, 66, 0, 67, 0, 68, 0, 69, 0, 70, 0, 0, 0, 71, 0, 72, 0, 73, 0, 1}[0])
+	value, isNull = field.GetValue(record)
+	if value != `` {
+		t.Fatalf(`expected '' but got '%v'`, value)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
+}
