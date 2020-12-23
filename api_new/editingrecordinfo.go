@@ -14,14 +14,8 @@ func (i *EditingRecordInfo) AddBoolField(name string, source string) string {
 	return i.addField(name, `Bool`, source, 1, 0)
 }
 
-func (i *EditingRecordInfo) checkName(name string) string {
-	for _, field := range i.fields {
-		if name == field.Name {
-			name = fmt.Sprintf(`%v2`, name)
-			return i.checkName(name)
-		}
-	}
-	return name
+func (i *EditingRecordInfo) AddByteField(name string, source string) string {
+	return i.addField(name, `Byte`, source, 1, 0)
 }
 
 func (i *EditingRecordInfo) addField(name string, typeName string, source string, size int, scale int) string {
@@ -35,4 +29,14 @@ func (i *EditingRecordInfo) addField(name string, typeName string, source string
 		GetBytes: nil,
 	})
 	return actualName
+}
+
+func (i *EditingRecordInfo) checkName(name string) string {
+	for _, field := range i.fields {
+		if name == field.Name {
+			name = fmt.Sprintf(`%v2`, name)
+			return i.checkName(name)
+		}
+	}
+	return name
 }

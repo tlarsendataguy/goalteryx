@@ -30,3 +30,14 @@ func TestAddDuplicateBoolFields(t *testing.T) {
 		t.Fatalf(`expected 2 but got %v`, editor.NumFields())
 	}
 }
+
+func TestAddByteField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddByteField(`Field1`, ``)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+}
