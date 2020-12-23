@@ -14,6 +14,7 @@ type IntGetter func(Record) (int, bool)
 type FloatGetter func(Record) (float64, bool)
 type BoolGetter func(Record) (bool, bool)
 type TimeGetter func(Record) (time.Time, bool)
+type StringGetter func(Record) (string, bool)
 
 const dateFormat = `2006-01-02`
 const dateTimeFormat = `2006-01-02 15:04:05`
@@ -70,6 +71,14 @@ type IncomingBlobField struct {
 	Source   string
 	Size     int
 	GetValue BytesGetter
+}
+
+type IncomingStringField struct {
+	Name     string
+	Type     string
+	Source   string
+	Size     int
+	GetValue StringGetter
 }
 
 type IncomingRecordInfo struct {
@@ -165,6 +174,21 @@ func (i IncomingRecordInfo) GetBlobField(name string) (IncomingBlobField, error)
 		}
 	}
 	return IncomingBlobField{}, fmt.Errorf(`there is no '%v' field in the record`, name)
+}
+
+func (i IncomingRecordInfo) GetStringField(name string) (IncomingStringField, error) {
+	for _, field := range i.fields {
+		if field.Name != name {
+			continue
+		}
+		switch field.Type {
+		case `String`:
+			return generateIncomingStringField(field, bytesToString), nil
+		default:
+			return IncomingStringField{}, fmt.Errorf(`the '%v' field is not a string field, it is '%v'`, name, field.Type)
+		}
+	}
+	return IncomingStringField{}, fmt.Errorf(`there is no '%v' field in the record`, name)
 }
 
 func incomingRecordInfoFromString(config string) (IncomingRecordInfo, error) {
@@ -363,5 +387,24 @@ func generateBlobField(field IncomingField) IncomingBlobField {
 		Source:   field.Source,
 		Size:     field.Size,
 		GetValue: field.GetBytes,
+	}
+}
+
+func generateIncomingStringField(field IncomingField, getter func(BytesGetter, int) StringGetter) IncomingStringField {
+	return IncomingStringField{
+		Name:     field.Name,
+		Type:     field.Type,
+		Source:   field.Source,
+		GetValue: getter(field.GetBytes, field.Size),
+	}
+}
+
+func bytesToString(getBytes BytesGetter, size int) StringGetter {
+	return func(record Record) (string, bool) {
+		bytes := getBytes(record)
+		if bytes[size] == 1 {
+			return ``, true
+		}
+		return string(truncateAtNullByte(bytes)), false
 	}
 }

@@ -398,3 +398,33 @@ func TestGetSpatialObjValue(t *testing.T) {
 		t.Fatalf(`expected nil but got '%v'`, value)
 	}
 }
+
+func TestGetStringValue(t *testing.T) {
+	config := `<RecordInfo>
+	<Field name="Field1" type="Bool"/>
+	<Field name="Field2" type="String" size="10" />
+</RecordInfo>`
+	recordInfo, _ := incomingRecordInfoFromString(config)
+	field, err := recordInfo.GetStringField(`Field2`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+
+	record := unsafe.Pointer(&[]byte{2, 65, 66, 67, 68, 69, 70, 0, 71, 72, 73, 0}[0])
+	value, isNull := field.GetValue(record)
+	if value != `ABCDEF` {
+		t.Fatalf(`expected 'ABCDEF' but got '%v'`, value)
+	}
+	if isNull {
+		t.Fatalf(`expected not null but got null`)
+	}
+
+	record = unsafe.Pointer(&[]byte{2, 65, 66, 67, 68, 69, 70, 0, 71, 72, 73, 1}[0])
+	value, isNull = field.GetValue(record)
+	if value != `` {
+		t.Fatalf(`expected '' but got '%v'`, value)
+	}
+	if !isNull {
+		t.Fatalf(`expected null but got not null`)
+	}
+}
