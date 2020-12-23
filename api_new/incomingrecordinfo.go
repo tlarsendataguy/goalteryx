@@ -92,8 +92,8 @@ func (i IncomingRecordInfo) NumFields() int {
 	return len(i.fields)
 }
 
-func (i IncomingRecordInfo) Clone() EditingRecordInfo {
-	return EditingRecordInfo{fields: i.fields}
+func (i IncomingRecordInfo) Clone() *EditingRecordInfo {
+	return &EditingRecordInfo{fields: i.fields}
 }
 
 func (i IncomingRecordInfo) GetIntField(name string) (IncomingIntField, error) {
