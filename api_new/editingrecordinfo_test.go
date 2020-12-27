@@ -142,7 +142,7 @@ func TestAddDoubleField(t *testing.T) {
 	}
 }
 
-func TestAddFixedDecinalField(t *testing.T) {
+func TestAddFixedDecimalField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	name := editor.AddFixedDecimalField(`Field1`, ``, 19, 2)
 	if name != `Field1` {
