@@ -39,6 +39,18 @@ func (i *EditingRecordInfo) AddByteField(name string, source string, options ...
 	return i.addField(name, `Byte`, source, 1, 0, options...)
 }
 
+func (i *EditingRecordInfo) AddInt16Field(name string, source string, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `Int16`, source, 2, 0, options...)
+}
+
+func (i *EditingRecordInfo) AddInt32Field(name string, source string, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `Int32`, source, 4, 0, options...)
+}
+
+func (i *EditingRecordInfo) AddInt64Field(name string, source string, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `Int64`, source, 8, 0, options...)
+}
+
 func (i *EditingRecordInfo) addField(name string, typeName string, source string, size int, scale int, options ...AddFieldOptionSetter) string {
 	addFieldOptions := AddFieldOptions{}
 	for _, setter := range options {

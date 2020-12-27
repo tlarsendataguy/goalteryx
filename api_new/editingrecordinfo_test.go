@@ -58,3 +58,36 @@ func TestAddByteField(t *testing.T) {
 		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
 	}
 }
+
+func TestAddInt16Field(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddInt16Field(`Field1`, ``)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+}
+
+func TestAddInt32Field(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddInt32Field(`Field1`, ``)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+}
+
+func TestAddInt64Field(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddInt64Field(`Field1`, ``)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+}
