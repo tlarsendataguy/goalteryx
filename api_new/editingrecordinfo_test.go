@@ -14,6 +14,10 @@ func TestAddBoolField(t *testing.T) {
 	if editor.NumFields() != 1 {
 		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
 	}
+	field := editor.Fields()[0]
+	if field.Type != `Bool` || field.Size != 1 || field.Scale != 0 {
+		t.Fatalf(`expected Bool size 1 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
 }
 
 func TestAddDuplicateBoolFields(t *testing.T) {
@@ -57,6 +61,10 @@ func TestAddByteField(t *testing.T) {
 	if editor.NumFields() != 1 {
 		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
 	}
+	field := editor.Fields()[0]
+	if field.Type != `Byte` || field.Size != 1 || field.Scale != 0 {
+		t.Fatalf(`expected Byte size 1 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
 }
 
 func TestAddInt16Field(t *testing.T) {
@@ -67,6 +75,10 @@ func TestAddInt16Field(t *testing.T) {
 	}
 	if editor.NumFields() != 1 {
 		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `Int16` || field.Size != 2 || field.Scale != 0 {
+		t.Fatalf(`expected Int16 size 2 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
 	}
 }
 
@@ -79,6 +91,10 @@ func TestAddInt32Field(t *testing.T) {
 	if editor.NumFields() != 1 {
 		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
 	}
+	field := editor.Fields()[0]
+	if field.Type != `Int32` || field.Size != 4 || field.Scale != 0 {
+		t.Fatalf(`expected Int32 size 4 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
 }
 
 func TestAddInt64Field(t *testing.T) {
@@ -89,5 +105,9 @@ func TestAddInt64Field(t *testing.T) {
 	}
 	if editor.NumFields() != 1 {
 		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `Int64` || field.Size != 8 || field.Scale != 0 {
+		t.Fatalf(`expected Int64 size 8 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
 	}
 }
