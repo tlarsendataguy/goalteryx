@@ -79,6 +79,14 @@ func (i *EditingRecordInfo) AddV_WStringField(name string, source string, size i
 	return i.addField(name, `V_WString`, source, size, 0, options...)
 }
 
+func (i *EditingRecordInfo) AddBlobField(name string, source string, size int, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `Blob`, source, size, 0, options...)
+}
+
+func (i *EditingRecordInfo) AddSpatialObjField(name string, source string, size int, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `SpatialObj`, source, size, 0, options...)
+}
+
 func (i *EditingRecordInfo) addField(name string, typeName string, source string, size int, scale int, options ...AddFieldOptionSetter) string {
 	addFieldOptions := AddFieldOptions{}
 	for _, setter := range options {

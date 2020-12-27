@@ -216,3 +216,33 @@ func TestAddV_WStringField(t *testing.T) {
 		t.Fatalf(`expected V_WString size 256 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
 	}
 }
+
+func TestAddBlobField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddBlobField(`Field1`, ``, 100000)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `Blob` || field.Size != 100000 || field.Scale != 0 {
+		t.Fatalf(`expected Blob size 100000 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
+}
+
+func TestSpatialObjField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddSpatialObjField(`Field1`, ``, 200000)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `SpatialObj` || field.Size != 200000 || field.Scale != 0 {
+		t.Fatalf(`expected SpatialObj size 200000 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
+}
