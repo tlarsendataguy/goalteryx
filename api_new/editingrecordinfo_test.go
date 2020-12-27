@@ -111,3 +111,48 @@ func TestAddInt64Field(t *testing.T) {
 		t.Fatalf(`expected Int64 size 8 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
 	}
 }
+
+func TestAddFloatField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddFloatField(`Field1`, ``)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `Float` || field.Size != 4 || field.Scale != 0 {
+		t.Fatalf(`expected Float size 4 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
+}
+
+func TestAddDoubleField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddDoubleField(`Field1`, ``)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `Double` || field.Size != 8 || field.Scale != 0 {
+		t.Fatalf(`expected Double size 8 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
+}
+
+func TestAddFixedDecinalField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddFixedDecimalField(`Field1`, ``, 19, 2)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `FixedDecimal` || field.Size != 19 || field.Scale != 2 {
+		t.Fatalf(`expected FixedDecimal size 19 scale 2 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
+}

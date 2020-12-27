@@ -51,6 +51,18 @@ func (i *EditingRecordInfo) AddInt64Field(name string, source string, options ..
 	return i.addField(name, `Int64`, source, 8, 0, options...)
 }
 
+func (i *EditingRecordInfo) AddFloatField(name string, source string, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `Float`, source, 4, 0, options...)
+}
+
+func (i *EditingRecordInfo) AddDoubleField(name string, source string, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `Double`, source, 8, 0, options...)
+}
+
+func (i *EditingRecordInfo) AddFixedDecimalField(name string, source string, size int, scale int, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `FixedDecimal`, source, size, scale, options...)
+}
+
 func (i *EditingRecordInfo) addField(name string, typeName string, source string, size int, scale int, options ...AddFieldOptionSetter) string {
 	addFieldOptions := AddFieldOptions{}
 	for _, setter := range options {
