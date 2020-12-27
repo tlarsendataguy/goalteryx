@@ -87,6 +87,14 @@ func (i *EditingRecordInfo) AddSpatialObjField(name string, source string, size 
 	return i.addField(name, `SpatialObj`, source, size, 0, options...)
 }
 
+func (i *EditingRecordInfo) AddDateField(name string, source string, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `Date`, source, 10, 0, options...)
+}
+
+func (i *EditingRecordInfo) AddDateTimeField(name string, source string, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `DateTime`, source, 19, 0, options...)
+}
+
 func (i *EditingRecordInfo) addField(name string, typeName string, source string, size int, scale int, options ...AddFieldOptionSetter) string {
 	addFieldOptions := AddFieldOptions{}
 	for _, setter := range options {

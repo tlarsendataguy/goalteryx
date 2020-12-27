@@ -246,3 +246,33 @@ func TestSpatialObjField(t *testing.T) {
 		t.Fatalf(`expected SpatialObj size 200000 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
 	}
 }
+
+func TestDateField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddDateField(`Field1`, ``)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `Date` || field.Size != 10 || field.Scale != 0 {
+		t.Fatalf(`expected Date size 10 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
+}
+
+func TestDateTimeField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddDateTimeField(`Field1`, ``)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `DateTime` || field.Size != 19 || field.Scale != 0 {
+		t.Fatalf(`expected DateTime size 19 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
+}
