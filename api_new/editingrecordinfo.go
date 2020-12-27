@@ -63,6 +63,22 @@ func (i *EditingRecordInfo) AddFixedDecimalField(name string, source string, siz
 	return i.addField(name, `FixedDecimal`, source, size, scale, options...)
 }
 
+func (i *EditingRecordInfo) AddStringField(name string, source string, size int, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `String`, source, size, 0, options...)
+}
+
+func (i *EditingRecordInfo) AddWStringField(name string, source string, size int, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `WString`, source, size, 0, options...)
+}
+
+func (i *EditingRecordInfo) AddV_StringField(name string, source string, size int, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `V_String`, source, size, 0, options...)
+}
+
+func (i *EditingRecordInfo) AddV_WStringField(name string, source string, size int, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `V_WString`, source, size, 0, options...)
+}
+
 func (i *EditingRecordInfo) addField(name string, typeName string, source string, size int, scale int, options ...AddFieldOptionSetter) string {
 	addFieldOptions := AddFieldOptions{}
 	for _, setter := range options {

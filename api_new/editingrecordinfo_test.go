@@ -156,3 +156,63 @@ func TestAddFixedDecimalField(t *testing.T) {
 		t.Fatalf(`expected FixedDecimal size 19 scale 2 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
 	}
 }
+
+func TestAddStringField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddStringField(`Field1`, ``, 15)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `String` || field.Size != 15 || field.Scale != 0 {
+		t.Fatalf(`expected String size 15 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
+}
+
+func TestAddWStringDecimalField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddWStringField(`Field1`, ``, 100)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `WString` || field.Size != 100 || field.Scale != 0 {
+		t.Fatalf(`expected WString size 100 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
+}
+
+func TestAddV_StringField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddV_StringField(`Field1`, ``, 10000)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `V_String` || field.Size != 10000 || field.Scale != 0 {
+		t.Fatalf(`expected V_String size 10000 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
+}
+
+func TestAddV_WStringField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	name := editor.AddV_WStringField(`Field1`, ``, 256)
+	if name != `Field1` {
+		t.Fatalf(`expected 'Field1' but got '%v'`, name)
+	}
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 but got %v`, editor.NumFields())
+	}
+	field := editor.Fields()[0]
+	if field.Type != `V_WString` || field.Size != 256 || field.Scale != 0 {
+		t.Fatalf(`expected V_WString size 256 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
+	}
+}
