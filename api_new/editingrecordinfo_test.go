@@ -31,6 +31,23 @@ func TestAddDuplicateBoolFields(t *testing.T) {
 	}
 }
 
+func TestInsertField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddBoolField(`Field1`, `blah blah`)
+	editor.AddBoolField(`Field2`, `blah blah`, api_new.InsertAt(0))
+	if editor.NumFields() != 2 {
+		t.Fatalf(`expected 2 fields but got %v`, editor.NumFields())
+	}
+	for index, field := range editor.Fields() {
+		if index == 0 && field.Name != `Field2` {
+			t.Fatalf(`expected 'Field2' at index 0 but got '%v'`, field.Name)
+		}
+		if index == 1 && field.Name != `Field1` {
+			t.Fatalf(`expected 'Field1' at index 1 but got '%v'`, field.Name)
+		}
+	}
+}
+
 func TestAddByteField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	name := editor.AddByteField(`Field1`, ``)
