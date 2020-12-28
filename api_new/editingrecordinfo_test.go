@@ -354,3 +354,22 @@ func TestOutgoingInt32Field(t *testing.T) {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
 }
+
+func TestOutgoingInt64Field(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddInt64Field(`Field1`, ``)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetIntField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	expectedValue := -500000000
+	field.SetInt(expectedValue)
+	if currentValue, isNull := field.GetCurrentInt(); currentValue != expectedValue || isNull {
+		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
+	}
+	field.SetNullInt()
+	if currentValue, isNull := field.GetCurrentInt(); currentValue != 0 || isNull != true {
+		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
+	}
+}
