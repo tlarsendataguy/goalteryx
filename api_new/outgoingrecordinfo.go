@@ -66,22 +66,18 @@ type OutgoingByteField interface {
 }
 
 func (i *OutgoingRecordInfo) GetBoolField(name string) (OutgoingBoolField, error) {
-	for _, field := range i.outgoingFields {
-		if field.Name == name {
-			if field.Type != `Bool` {
-				return nil, fmt.Errorf(`the '%v' field is not a bool field, it is '%v'`, name, field.Type)
-			}
-			return field, nil
-		}
-	}
-	return nil, fmt.Errorf(`there is no '%v' field in the record`, name)
+	return i.getField(name, `Bool`)
 }
 
 func (i *OutgoingRecordInfo) GetByteField(name string) (OutgoingByteField, error) {
+	return i.getField(name, `Byte`)
+}
+
+func (i *OutgoingRecordInfo) getField(name string, ofType string) (*outgoingField, error) {
 	for _, field := range i.outgoingFields {
 		if field.Name == name {
-			if field.Type != `Byte` {
-				return nil, fmt.Errorf(`the '%v' field is not a byte field, it is '%v'`, name, field.Type)
+			if field.Type != ofType {
+				return nil, fmt.Errorf(`the '%v' field is not a %v field, it is '%v'`, name, ofType, field.Type)
 			}
 			return field, nil
 		}
