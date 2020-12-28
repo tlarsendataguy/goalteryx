@@ -4,6 +4,8 @@ import (
 	"encoding/binary"
 	"fmt"
 	"math"
+	"strconv"
+	"strings"
 )
 
 type OutgoingRecordInfo struct {
@@ -11,17 +13,18 @@ type OutgoingRecordInfo struct {
 }
 
 type outgoingField struct {
-	Name         string
-	Type         string
-	Source       string
-	Size         int
-	Scale        int
-	CopyFrom     BytesGetter
-	CurrentValue []byte
-	intSetter    func(int, *outgoingField)
-	intGetter    func(*outgoingField) int
-	floatSetter  func(float64, *outgoingField)
-	floatGetter  func(*outgoingField) float64
+	Name            string
+	Type            string
+	Source          string
+	Size            int
+	Scale           int
+	CopyFrom        BytesGetter
+	CurrentValue    []byte
+	intSetter       func(int, *outgoingField)
+	intGetter       func(*outgoingField) int
+	floatSetter     func(float64, *outgoingField)
+	floatGetter     func(*outgoingField) float64
+	fixedDecimalFmt string
 }
 
 func (f *outgoingField) SetBool(value bool) {
@@ -107,6 +110,23 @@ func setDouble(value float64, f *outgoingField) {
 	binary.LittleEndian.PutUint64(f.CurrentValue[:8], math.Float64bits(value))
 }
 
+func getFixedDecimal(f *outgoingField) float64 {
+	valueStr := string(truncateAtNullByte(f.CurrentValue[:f.Size]))
+	value, err := strconv.ParseFloat(valueStr, 64)
+	if err != nil {
+		println(err.Error())
+	}
+	return value
+}
+
+func setFixedDecimal(value float64, f *outgoingField) {
+	valueStr := strings.TrimLeft(fmt.Sprintf(f.fixedDecimalFmt, value), ` `)
+	copy(f.CurrentValue[:f.Size], valueStr)
+	if length := len(valueStr); length < f.Size {
+		f.CurrentValue[length] = 0
+	}
+}
+
 func (f *outgoingField) SetFloat(value float64) {
 	f.floatSetter(value, f)
 	f.CurrentValue[f.Size] = 0
@@ -150,7 +170,7 @@ func (i *OutgoingRecordInfo) GetIntField(name string) (OutgoingIntField, error) 
 }
 
 func (i *OutgoingRecordInfo) GetFloatField(name string) (OutgoingFloatField, error) {
-	return i.getField(name, []string{`Float`, `Double`}, `Decimal`)
+	return i.getField(name, []string{`Float`, `Double`, `FixedDecimal`}, `Decimal`)
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {

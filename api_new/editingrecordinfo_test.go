@@ -411,3 +411,58 @@ func TestOutgoingDoubleField(t *testing.T) {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
 }
+
+func TestOutgoingFixedDecimalField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddFixedDecimalField(`Field1`, ``, 19, 2)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetFloatField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	expectedValue := 123.4
+	field.SetFloat(expectedValue)
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != expectedValue || isNull {
+		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
+	}
+	field.SetNullFloat()
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
+		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
+	}
+}
+
+func TestTruncateDecimals(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddFixedDecimalField(`Field1`, ``, 19, 2)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetFloatField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	field.SetFloat(123.456)
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 123.46 || isNull {
+		t.Fatalf(`expected 123.45 and not null but got %v and %v`, currentValue, isNull)
+	}
+	field.SetNullFloat()
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
+		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
+	}
+}
+
+func TestTruncateNumber(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddFixedDecimalField(`Field1`, ``, 5, 2)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetFloatField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	field.SetFloat(123.45)
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 123.4 || isNull {
+		t.Fatalf(`expected 123.4 and not null but got %v and %v`, currentValue, isNull)
+	}
+	field.SetNullFloat()
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
+		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
+	}
+}
