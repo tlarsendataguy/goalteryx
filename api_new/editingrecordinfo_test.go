@@ -276,3 +276,42 @@ func TestDateTimeField(t *testing.T) {
 		t.Fatalf(`expected DateTime size 19 scale 0 but got %v size %v scale %v`, field.Type, field.Size, field.Scale)
 	}
 }
+
+func TestOutgoingBoolField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddBoolField(`Field1`, ``)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetBoolField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	field.SetBool(true)
+	if currentValue, isNull := field.GetCurrentBool(); currentValue != true || isNull {
+		t.Fatalf(`expected true and not null but got %v and %v`, currentValue, isNull)
+	}
+	field.SetNullBool()
+	if currentValue, isNull := field.GetCurrentBool(); currentValue != false || isNull != true {
+		t.Fatalf(`expected false and null but got %v and %v`, currentValue, isNull)
+	}
+}
+
+func TestOutgoingByteField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddByteField(`Field1`, ``)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetByteField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	field.SetByte(45)
+	if currentValue, isNull := field.GetCurrentByte(); currentValue != 45 || isNull {
+		t.Fatalf(`expected 45 and not null but got %v and %v`, currentValue, isNull)
+	}
+	field.SetNullByte()
+	if currentValue, isNull := field.GetCurrentByte(); currentValue != 0 || isNull != true {
+		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
+	}
+	field.SetByte(10000)
+	currentValue, isNull := field.GetCurrentByte()
+	t.Logf(`value %v and null=%v`, currentValue, isNull)
+}
