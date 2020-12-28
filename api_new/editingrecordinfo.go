@@ -163,6 +163,14 @@ func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 			outgoing.CurrentValue = make([]byte, 9)
 			outgoing.intSetter = setInt64
 			outgoing.intGetter = getInt64
+		case `Float`:
+			outgoing.CurrentValue = make([]byte, 5)
+			outgoing.floatSetter = setFloat
+			outgoing.floatGetter = getFloat
+		case `Double`:
+			outgoing.CurrentValue = make([]byte, 9)
+			outgoing.floatSetter = setDouble
+			outgoing.floatGetter = getDouble
 		default:
 			panic(fmt.Sprintf(`field %v has an invalid field type (%v) for generating an OutgoingRecordInfo`, field.Name, field.Type))
 		}

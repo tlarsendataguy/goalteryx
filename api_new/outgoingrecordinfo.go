@@ -3,6 +3,7 @@ package api_new
 import (
 	"encoding/binary"
 	"fmt"
+	"math"
 )
 
 type OutgoingRecordInfo struct {
@@ -19,6 +20,8 @@ type outgoingField struct {
 	CurrentValue []byte
 	intSetter    func(int, *outgoingField)
 	intGetter    func(*outgoingField) int
+	floatSetter  func(float64, *outgoingField)
+	floatGetter  func(*outgoingField) float64
 }
 
 func (f *outgoingField) SetBool(value bool) {
@@ -88,6 +91,38 @@ func (f *outgoingField) GetCurrentInt() (int, bool) {
 	return f.intGetter(f), false
 }
 
+func getFloat(f *outgoingField) float64 {
+	return float64(math.Float32frombits(binary.LittleEndian.Uint32(f.CurrentValue[:4])))
+}
+
+func setFloat(value float64, f *outgoingField) {
+	binary.LittleEndian.PutUint32(f.CurrentValue[:4], math.Float32bits(float32(value)))
+}
+
+func getDouble(f *outgoingField) float64 {
+	return math.Float64frombits(binary.LittleEndian.Uint64(f.CurrentValue[:8]))
+}
+
+func setDouble(value float64, f *outgoingField) {
+	binary.LittleEndian.PutUint64(f.CurrentValue[:8], math.Float64bits(value))
+}
+
+func (f *outgoingField) SetFloat(value float64) {
+	f.floatSetter(value, f)
+	f.CurrentValue[f.Size] = 0
+}
+
+func (f *outgoingField) SetNullFloat() {
+	f.CurrentValue[f.Size] = 1
+}
+
+func (f *outgoingField) GetCurrentFloat() (float64, bool) {
+	if f.CurrentValue[f.Size] == 1 {
+		return 0, true
+	}
+	return f.floatGetter(f), false
+}
+
 type OutgoingBoolField interface {
 	SetBool(bool)
 	SetNullBool()
@@ -100,12 +135,22 @@ type OutgoingIntField interface {
 	GetCurrentInt() (int, bool)
 }
 
+type OutgoingFloatField interface {
+	SetFloat(float64)
+	SetNullFloat()
+	GetCurrentFloat() (float64, bool)
+}
+
 func (i *OutgoingRecordInfo) GetBoolField(name string) (OutgoingBoolField, error) {
-	return i.getField(name, []string{`Bool`}, `Int`)
+	return i.getField(name, []string{`Bool`}, `Bool`)
 }
 
 func (i *OutgoingRecordInfo) GetIntField(name string) (OutgoingIntField, error) {
 	return i.getField(name, []string{`Byte`, `Int16`, `Int32`, `Int64`}, `Int`)
+}
+
+func (i *OutgoingRecordInfo) GetFloatField(name string) (OutgoingFloatField, error) {
+	return i.getField(name, []string{`Float`, `Double`}, `Decimal`)
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {

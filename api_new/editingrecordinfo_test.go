@@ -373,3 +373,41 @@ func TestOutgoingInt64Field(t *testing.T) {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
 }
+
+func TestOutgoingFloatField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddFloatField(`Field1`, ``)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetFloatField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	expectedValue := 1.25
+	field.SetFloat(expectedValue)
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != expectedValue || isNull {
+		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
+	}
+	field.SetNullFloat()
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
+		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
+	}
+}
+
+func TestOutgoingDoubleField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddDoubleField(`Field1`, ``)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetFloatField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	expectedValue := 10456.25
+	field.SetFloat(expectedValue)
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != expectedValue || isNull {
+		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
+	}
+	field.SetNullFloat()
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
+		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
+	}
+}
