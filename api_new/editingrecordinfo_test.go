@@ -315,3 +315,21 @@ func TestOutgoingByteField(t *testing.T) {
 	currentValue, isNull := field.GetCurrentInt()
 	t.Logf(`value %v and null=%v`, currentValue, isNull)
 }
+
+func TestOutgoingInt16Field(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddInt16Field(`Field1`, ``)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetIntField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	field.SetInt(500)
+	if currentValue, isNull := field.GetCurrentInt(); currentValue != 500 || isNull {
+		t.Fatalf(`expected 500 and not null but got %v and %v`, currentValue, isNull)
+	}
+	field.SetNullInt()
+	if currentValue, isNull := field.GetCurrentInt(); currentValue != 0 || isNull != true {
+		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
+	}
+}
