@@ -465,4 +465,12 @@ func TestTruncateNumber(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
+	field.SetFloat(-123.45)
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != -123 || isNull {
+		t.Fatalf(`expected -123 and not null but got %v and %v`, currentValue, isNull)
+	}
+	field.SetNullFloat()
+	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
+		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
+	}
 }
