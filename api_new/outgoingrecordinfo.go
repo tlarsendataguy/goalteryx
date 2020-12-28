@@ -56,6 +56,14 @@ func setInt16(value int, f *outgoingField) {
 	binary.LittleEndian.PutUint16(f.CurrentValue[:2], uint16(value))
 }
 
+func getInt32(f *outgoingField) int {
+	return int(binary.LittleEndian.Uint32(f.CurrentValue[:4]))
+}
+
+func setInt32(value int, f *outgoingField) {
+	binary.LittleEndian.PutUint32(f.CurrentValue[:4], uint32(value))
+}
+
 func (f *outgoingField) SetInt(value int) {
 	f.intSetter(value, f)
 	f.CurrentValue[f.Size] = 0
@@ -89,7 +97,7 @@ func (i *OutgoingRecordInfo) GetBoolField(name string) (OutgoingBoolField, error
 }
 
 func (i *OutgoingRecordInfo) GetIntField(name string) (OutgoingIntField, error) {
-	return i.getField(name, []string{`Byte`, `Int16`}, `Int`)
+	return i.getField(name, []string{`Byte`, `Int16`, `Int32`}, `Int`)
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {

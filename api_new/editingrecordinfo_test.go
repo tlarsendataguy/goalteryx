@@ -303,9 +303,10 @@ func TestOutgoingByteField(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`expected no error but got %v`, err.Error())
 	}
-	field.SetInt(45)
-	if currentValue, isNull := field.GetCurrentInt(); currentValue != 45 || isNull {
-		t.Fatalf(`expected 45 and not null but got %v and %v`, currentValue, isNull)
+	expectedValue := 45
+	field.SetInt(expectedValue)
+	if currentValue, isNull := field.GetCurrentInt(); currentValue != expectedValue || isNull {
+		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
 	}
 	field.SetNullInt()
 	if currentValue, isNull := field.GetCurrentInt(); currentValue != 0 || isNull != true {
@@ -324,9 +325,29 @@ func TestOutgoingInt16Field(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`expected no error but got %v`, err.Error())
 	}
-	field.SetInt(500)
-	if currentValue, isNull := field.GetCurrentInt(); currentValue != 500 || isNull {
-		t.Fatalf(`expected 500 and not null but got %v and %v`, currentValue, isNull)
+	expectedValue := 500
+	field.SetInt(expectedValue)
+	if currentValue, isNull := field.GetCurrentInt(); currentValue != expectedValue || isNull {
+		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
+	}
+	field.SetNullInt()
+	if currentValue, isNull := field.GetCurrentInt(); currentValue != 0 || isNull != true {
+		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
+	}
+}
+
+func TestOutgoingInt32Field(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddInt32Field(`Field1`, ``)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetIntField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	expectedValue := 50000
+	field.SetInt(expectedValue)
+	if currentValue, isNull := field.GetCurrentInt(); currentValue != expectedValue || isNull {
+		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
 	}
 	field.SetNullInt()
 	if currentValue, isNull := field.GetCurrentInt(); currentValue != 0 || isNull != true {
