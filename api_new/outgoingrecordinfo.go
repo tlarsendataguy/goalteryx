@@ -16,6 +16,8 @@ type outgoingField struct {
 	Scale        int
 	CopyFrom     BytesGetter
 	CurrentValue []byte
+	intSetter    func(int, *outgoingField)
+	intGetter    func(*outgoingField) int
 }
 
 func (f *outgoingField) SetBool(value bool) {
@@ -37,20 +39,28 @@ func (f *outgoingField) GetCurrentBool() (bool, bool) {
 	return f.CurrentValue[0] == 1, false
 }
 
-func (f *outgoingField) SetByte(value int) {
+func getByte(f *outgoingField) int {
+	return int(f.CurrentValue[0])
+}
+
+func setByte(value int, f *outgoingField) {
 	f.CurrentValue[0] = byte(value)
-	f.CurrentValue[1] = 0
 }
 
-func (f *outgoingField) SetNullByte() {
-	f.CurrentValue[1] = 1
+func (f *outgoingField) SetInt(value int) {
+	f.intSetter(value, f)
+	f.CurrentValue[f.Size] = 0
 }
 
-func (f *outgoingField) GetCurrentByte() (int, bool) {
-	if f.CurrentValue[1] == 1 {
+func (f *outgoingField) SetNullInt() {
+	f.CurrentValue[f.Size] = 1
+}
+
+func (f *outgoingField) GetCurrentInt() (int, bool) {
+	if f.CurrentValue[f.Size] == 1 {
 		return 0, true
 	}
-	return int(f.CurrentValue[0]), false
+	return f.intGetter(f), false
 }
 
 type OutgoingBoolField interface {
@@ -59,27 +69,29 @@ type OutgoingBoolField interface {
 	GetCurrentBool() (bool, bool)
 }
 
-type OutgoingByteField interface {
-	SetByte(int)
-	SetNullByte()
-	GetCurrentByte() (int, bool)
+type OutgoingIntField interface {
+	SetInt(int)
+	SetNullInt()
+	GetCurrentInt() (int, bool)
 }
 
 func (i *OutgoingRecordInfo) GetBoolField(name string) (OutgoingBoolField, error) {
-	return i.getField(name, `Bool`)
+	return i.getField(name, []string{`Bool`}, `Int`)
 }
 
-func (i *OutgoingRecordInfo) GetByteField(name string) (OutgoingByteField, error) {
-	return i.getField(name, `Byte`)
+func (i *OutgoingRecordInfo) GetIntField(name string) (OutgoingIntField, error) {
+	return i.getField(name, []string{`Byte`}, `Int`)
 }
 
-func (i *OutgoingRecordInfo) getField(name string, ofType string) (*outgoingField, error) {
+func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {
 	for _, field := range i.outgoingFields {
 		if field.Name == name {
-			if field.Type != ofType {
-				return nil, fmt.Errorf(`the '%v' field is not a %v field, it is '%v'`, name, ofType, field.Type)
+			for _, ofType := range types {
+				if field.Type == ofType {
+					return field, nil
+				}
 			}
-			return field, nil
+			return nil, fmt.Errorf(`the '%v' field is not a %v field, it is '%v'`, name, label, field.Type)
 		}
 	}
 	return nil, fmt.Errorf(`there is no '%v' field in the record`, name)

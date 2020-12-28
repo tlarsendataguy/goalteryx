@@ -299,19 +299,19 @@ func TestOutgoingByteField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddByteField(`Field1`, ``)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetByteField(`Field1`)
+	field, err := info.GetIntField(`Field1`)
 	if err != nil {
 		t.Fatalf(`expected no error but got %v`, err.Error())
 	}
-	field.SetByte(45)
-	if currentValue, isNull := field.GetCurrentByte(); currentValue != 45 || isNull {
+	field.SetInt(45)
+	if currentValue, isNull := field.GetCurrentInt(); currentValue != 45 || isNull {
 		t.Fatalf(`expected 45 and not null but got %v and %v`, currentValue, isNull)
 	}
-	field.SetNullByte()
-	if currentValue, isNull := field.GetCurrentByte(); currentValue != 0 || isNull != true {
+	field.SetNullInt()
+	if currentValue, isNull := field.GetCurrentInt(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
-	field.SetByte(10000)
-	currentValue, isNull := field.GetCurrentByte()
+	field.SetInt(10000)
+	currentValue, isNull := field.GetCurrentInt()
 	t.Logf(`value %v and null=%v`, currentValue, isNull)
 }

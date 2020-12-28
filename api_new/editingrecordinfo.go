@@ -132,27 +132,29 @@ func (i *EditingRecordInfo) checkName(name string) string {
 }
 
 func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
-	var valueCache []byte
 	fields := make([]*outgoingField, i.NumFields())
+	var outgoing *outgoingField
 
 	for index, field := range i.fields {
+		outgoing = &outgoingField{
+			Name:     field.Name,
+			Type:     field.Type,
+			Source:   field.Source,
+			Size:     field.Size,
+			Scale:    field.Scale,
+			CopyFrom: field.GetBytes,
+		}
 		switch field.Type {
 		case `Bool`:
-			valueCache = make([]byte, 1)
+			outgoing.CurrentValue = make([]byte, 1)
 		case `Byte`:
-			valueCache = make([]byte, 2)
+			outgoing.CurrentValue = make([]byte, 2)
+			outgoing.intSetter = setByte
+			outgoing.intGetter = getByte
 		default:
 			panic(fmt.Sprintf(`field %v has an invalid field type (%v) for generating an OutgoingRecordInfo`, field.Name, field.Type))
 		}
-		fields[index] = &outgoingField{
-			Name:         field.Name,
-			Type:         field.Type,
-			Source:       field.Source,
-			Size:         field.Size,
-			Scale:        field.Scale,
-			CopyFrom:     field.GetBytes,
-			CurrentValue: valueCache,
-		}
+		fields[index] = outgoing
 	}
 	info := &OutgoingRecordInfo{outgoingFields: fields}
 	return info
