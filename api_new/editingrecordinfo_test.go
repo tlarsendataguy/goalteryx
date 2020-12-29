@@ -3,6 +3,7 @@ package api_new_test
 import (
 	"github.com/tlarsen7572/goalteryx/api_new"
 	"testing"
+	"time"
 )
 
 func TestAddBoolField(t *testing.T) {
@@ -472,5 +473,43 @@ func TestTruncateNumber(t *testing.T) {
 	field.SetNullFloat()
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
+	}
+}
+
+func TestOutgoingDateField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddDateField(`Field1`, ``)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetDatetimeField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	expectedValue := time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
+	field.SetDateTime(expectedValue)
+	if currentValue, isNull := field.GetCurrentDateTime(); currentValue != expectedValue || isNull {
+		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
+	}
+	field.SetNullDateTime()
+	if currentValue, isNull := field.GetCurrentDateTime(); currentValue != time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC) || isNull != true {
+		t.Fatalf(`expected 0000-00-00 and null but got %v and %v`, currentValue, isNull)
+	}
+}
+
+func TestOutgoingDatetimeField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddDateTimeField(`Field1`, ``)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetDatetimeField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	expectedValue := time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
+	field.SetDateTime(expectedValue)
+	if currentValue, isNull := field.GetCurrentDateTime(); currentValue != expectedValue || isNull {
+		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
+	}
+	field.SetNullDateTime()
+	if currentValue, isNull := field.GetCurrentDateTime(); currentValue != time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC) || isNull != true {
+		t.Fatalf(`expected 0000-00-00 and null but got %v and %v`, currentValue, isNull)
 	}
 }

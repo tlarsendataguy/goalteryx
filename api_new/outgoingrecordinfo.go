@@ -6,6 +6,7 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"time"
 )
 
 type OutgoingRecordInfo struct {
@@ -24,6 +25,8 @@ type outgoingField struct {
 	intGetter       func(*outgoingField) int
 	floatSetter     func(float64, *outgoingField)
 	floatGetter     func(*outgoingField) float64
+	dateTimeSetter  func(time.Time, *outgoingField)
+	dateTimeGetter  func(*outgoingField) time.Time
 	fixedDecimalFmt string
 }
 
@@ -143,6 +146,32 @@ func (f *outgoingField) GetCurrentFloat() (float64, bool) {
 	return f.floatGetter(f), false
 }
 
+func getDate(f *outgoingField) time.Time {
+	value, _ := time.Parse(dateFormat, string(f.CurrentValue[:10]))
+	return value
+}
+
+func setDate(value time.Time, f *outgoingField) {
+	valueStr := value.Format(dateFormat)
+	copy(f.CurrentValue[:10], valueStr)
+}
+
+func (f *outgoingField) SetDateTime(value time.Time) {
+	f.dateTimeSetter(value, f)
+	f.CurrentValue[f.Size] = 0
+}
+
+func (f *outgoingField) SetNullDateTime() {
+	f.CurrentValue[f.Size] = 1
+}
+
+func (f *outgoingField) GetCurrentDateTime() (time.Time, bool) {
+	if f.CurrentValue[f.Size] == 1 {
+		return time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC), true
+	}
+	return f.dateTimeGetter(f), false
+}
+
 type OutgoingBoolField interface {
 	SetBool(bool)
 	SetNullBool()
@@ -161,6 +190,12 @@ type OutgoingFloatField interface {
 	GetCurrentFloat() (float64, bool)
 }
 
+type OutgoingDateTimeField interface {
+	SetDateTime(time.Time)
+	SetNullDateTime()
+	GetCurrentDateTime() (time.Time, bool)
+}
+
 func (i *OutgoingRecordInfo) GetBoolField(name string) (OutgoingBoolField, error) {
 	return i.getField(name, []string{`Bool`}, `Bool`)
 }
@@ -171,6 +206,10 @@ func (i *OutgoingRecordInfo) GetIntField(name string) (OutgoingIntField, error) 
 
 func (i *OutgoingRecordInfo) GetFloatField(name string) (OutgoingFloatField, error) {
 	return i.getField(name, []string{`Float`, `Double`, `FixedDecimal`}, `Decimal`)
+}
+
+func (i *OutgoingRecordInfo) GetDatetimeField(name string) (OutgoingDateTimeField, error) {
+	return i.getField(name, []string{`Date`}, `Datetime`)
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {

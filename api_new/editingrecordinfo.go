@@ -176,7 +176,10 @@ func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 			outgoing.floatSetter = setFixedDecimal
 			outgoing.floatGetter = getFixedDecimal
 			outgoing.fixedDecimalFmt = fmt.Sprintf(`%%%d.%df`, outgoing.Size, outgoing.Scale)
-
+		case `Date`:
+			outgoing.CurrentValue = make([]byte, field.Size+1)
+			outgoing.dateTimeSetter = setDate
+			outgoing.dateTimeGetter = getDate
 		default:
 			panic(fmt.Sprintf(`field %v has an invalid field type (%v) for generating an OutgoingRecordInfo`, field.Name, field.Type))
 		}
