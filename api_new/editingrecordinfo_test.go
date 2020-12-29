@@ -503,7 +503,7 @@ func TestOutgoingDatetimeField(t *testing.T) {
 	if err != nil {
 		t.Fatalf(`expected no error but got %v`, err.Error())
 	}
-	expectedValue := time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
+	expectedValue := time.Date(2020, 1, 2, 3, 4, 5, 0, time.UTC)
 	field.SetDateTime(expectedValue)
 	if currentValue, isNull := field.GetCurrentDateTime(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)

@@ -156,6 +156,16 @@ func setDate(value time.Time, f *outgoingField) {
 	copy(f.CurrentValue[:10], valueStr)
 }
 
+func getDateTime(f *outgoingField) time.Time {
+	value, _ := time.Parse(dateTimeFormat, string(f.CurrentValue[:19]))
+	return value
+}
+
+func setDateTime(value time.Time, f *outgoingField) {
+	valueStr := value.Format(dateTimeFormat)
+	copy(f.CurrentValue[:19], valueStr)
+}
+
 func (f *outgoingField) SetDateTime(value time.Time) {
 	f.dateTimeSetter(value, f)
 	f.CurrentValue[f.Size] = 0
@@ -209,7 +219,7 @@ func (i *OutgoingRecordInfo) GetFloatField(name string) (OutgoingFloatField, err
 }
 
 func (i *OutgoingRecordInfo) GetDatetimeField(name string) (OutgoingDateTimeField, error) {
-	return i.getField(name, []string{`Date`}, `Datetime`)
+	return i.getField(name, []string{`Date`, `DateTime`}, `DateTime`)
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {
