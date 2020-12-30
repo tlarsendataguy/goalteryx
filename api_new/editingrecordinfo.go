@@ -208,7 +208,7 @@ func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 			outgoing.stringGetter = getV_WString
 			outgoing.nullSetter = setVarFieldNull
 			outgoing.nullGetter = getVarFieldNull
-		case `Blob`:
+		case `Blob`, `SpatialObj`:
 			outgoing.CurrentValue = make([]byte, 1)
 			outgoing.blobSetter = setBlob
 			outgoing.blobGetter = getBlob

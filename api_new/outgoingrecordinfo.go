@@ -390,7 +390,7 @@ func (i *OutgoingRecordInfo) GetStringField(name string) (OutgoingStringField, e
 }
 
 func (i *OutgoingRecordInfo) GetBlobField(name string) (OutgoingBlobField, error) {
-	return i.getField(name, []string{`Blob`}, `Blob`)
+	return i.getField(name, []string{`Blob`, `SpatialObj`}, `Blob`)
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {
