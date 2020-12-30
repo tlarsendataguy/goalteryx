@@ -28,6 +28,8 @@ type outgoingField struct {
 	dateTimeSetter  func(time.Time, *outgoingField)
 	dateTimeGetter  func(*outgoingField) time.Time
 	fixedDecimalFmt string
+	stringSetter    func(string, *outgoingField)
+	stringGetter    func(*outgoingField) string
 }
 
 func (f *outgoingField) SetBool(value bool) {
@@ -182,6 +184,39 @@ func (f *outgoingField) GetCurrentDateTime() (time.Time, bool) {
 	return f.dateTimeGetter(f), false
 }
 
+func getString(f *outgoingField) string {
+	value := truncateAtNullByte(f.CurrentValue[:f.Size])
+	return string(value)
+}
+
+func setString(value string, f *outgoingField) {
+	length := len(value)
+	if length > f.Size {
+		value = value[:f.Size]
+		length = f.Size
+	}
+	if length < f.Size {
+		f.CurrentValue[length] = 0
+	}
+	copy(f.CurrentValue[:length], value)
+}
+
+func (f *outgoingField) SetString(value string) {
+	f.stringSetter(value, f)
+	f.CurrentValue[f.Size] = 0
+}
+
+func (f *outgoingField) SetNullString() {
+	f.CurrentValue[f.Size] = 1
+}
+
+func (f *outgoingField) GetCurrentString() (string, bool) {
+	if f.CurrentValue[f.Size] == 1 {
+		return ``, true
+	}
+	return f.stringGetter(f), false
+}
+
 type OutgoingBoolField interface {
 	SetBool(bool)
 	SetNullBool()
@@ -206,6 +241,12 @@ type OutgoingDateTimeField interface {
 	GetCurrentDateTime() (time.Time, bool)
 }
 
+type OutgoingStringField interface {
+	SetString(string)
+	SetNullString()
+	GetCurrentString() (string, bool)
+}
+
 func (i *OutgoingRecordInfo) GetBoolField(name string) (OutgoingBoolField, error) {
 	return i.getField(name, []string{`Bool`}, `Bool`)
 }
@@ -220,6 +261,10 @@ func (i *OutgoingRecordInfo) GetFloatField(name string) (OutgoingFloatField, err
 
 func (i *OutgoingRecordInfo) GetDatetimeField(name string) (OutgoingDateTimeField, error) {
 	return i.getField(name, []string{`Date`, `DateTime`}, `DateTime`)
+}
+
+func (i *OutgoingRecordInfo) GetStringField(name string) (OutgoingStringField, error) {
+	return i.getField(name, []string{`String`}, `String`)
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {
