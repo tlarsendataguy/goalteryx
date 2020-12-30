@@ -6,11 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"reflect"
 	"strconv"
 	"time"
 	"unicode/utf16"
-	"unsafe"
 )
 
 type IntGetter func(Record) (int, bool)
@@ -442,11 +440,7 @@ func bytesToWString(getBytes BytesGetter, size int) StringGetter {
 		if bytes[size*2] == 1 {
 			return ``, true
 		}
-		var utf16Bytes []uint16
-		rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&utf16Bytes))
-		rawHeader.Data = uintptr(unsafe.Pointer(&bytes[0]))
-		rawHeader.Len = size
-		rawHeader.Cap = size
+		utf16Bytes := bytesToUtf16(bytes)
 		utf16Bytes = truncateAtNullUtf16(utf16Bytes)
 		value := string(utf16.Decode(utf16Bytes))
 		return value, false
@@ -463,17 +457,13 @@ func bytesToV_String(getBytes BytesGetter, _ int) StringGetter {
 	}
 }
 
-func bytesToV_WString(getBytes BytesGetter, size int) StringGetter {
+func bytesToV_WString(getBytes BytesGetter, _ int) StringGetter {
 	return func(record Record) (string, bool) {
 		bytes := getBytes(record)
 		if bytes == nil {
 			return ``, true
 		}
-		var utf16Bytes []uint16
-		rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&utf16Bytes))
-		rawHeader.Data = uintptr(unsafe.Pointer(&bytes[0]))
-		rawHeader.Len = len(bytes) / 2
-		rawHeader.Cap = len(bytes) / 2
+		utf16Bytes := bytesToUtf16(bytes)
 		value := string(utf16.Decode(utf16Bytes))
 		return value, false
 	}
