@@ -267,6 +267,25 @@ func setV_String(value string, f *outgoingField) {
 	f.CurrentValue = f.CurrentValue[:requiredLen]
 }
 
+func getV_WString(f *outgoingField) string {
+	utf16Bytes := bytesToUtf16(f.CurrentValue[1:])
+	return string(utf16.Decode(utf16Bytes))
+}
+
+func setV_WString(value string, f *outgoingField) {
+	utf16Bytes := utf16.Encode([]rune(value))
+	if length := len(utf16Bytes); length > f.Size {
+		utf16Bytes = utf16Bytes[:f.Size]
+	}
+	bytes := utf16ToBytes(utf16Bytes)
+	requiredLen := len(bytes) + 1
+	if requiredLen > cap(f.CurrentValue) {
+		f.CurrentValue = make([]byte, requiredLen)
+	}
+	copy(f.CurrentValue[1:], bytes)
+	f.CurrentValue = f.CurrentValue[:requiredLen]
+}
+
 func (f *outgoingField) SetString(value string) {
 	f.stringSetter(value, f)
 	f.nullSetter(0, f)
@@ -330,7 +349,7 @@ func (i *OutgoingRecordInfo) GetDatetimeField(name string) (OutgoingDateTimeFiel
 }
 
 func (i *OutgoingRecordInfo) GetStringField(name string) (OutgoingStringField, error) {
-	return i.getField(name, []string{`String`, `WString`, `V_String`}, `String`)
+	return i.getField(name, []string{`String`, `WString`, `V_String`, `V_WString`}, `String`)
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {
