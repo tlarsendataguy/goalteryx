@@ -144,6 +144,8 @@ func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 			Scale:    field.Scale,
 			CopyFrom: field.GetBytes,
 		}
+		outgoing.nullGetter = getNormalFieldNull
+		outgoing.nullSetter = setNormalFieldNull
 		switch field.Type {
 		case `Bool`:
 			outgoing.CurrentValue = make([]byte, 1)
@@ -188,6 +190,12 @@ func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 			outgoing.CurrentValue = make([]byte, field.Size+1)
 			outgoing.stringSetter = setString
 			outgoing.stringGetter = getString
+		case `WString`:
+			outgoing.CurrentValue = make([]byte, (field.Size*2)+1)
+			outgoing.stringSetter = setWString
+			outgoing.stringGetter = getWString
+			outgoing.nullSetter = setWideFieldNull
+			outgoing.nullGetter = getWideFieldNull
 		default:
 			panic(fmt.Sprintf(`field %v has an invalid field type (%v) for generating an OutgoingRecordInfo`, field.Name, field.Type))
 		}

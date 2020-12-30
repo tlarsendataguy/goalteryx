@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"unicode/utf16"
 )
 
 type OutgoingRecordInfo struct {
@@ -21,6 +22,8 @@ type outgoingField struct {
 	Scale           int
 	CopyFrom        BytesGetter
 	CurrentValue    []byte
+	nullSetter      func(byte, *outgoingField)
+	nullGetter      func(*outgoingField) bool
 	intSetter       func(int, *outgoingField)
 	intGetter       func(*outgoingField) int
 	floatSetter     func(float64, *outgoingField)
@@ -30,6 +33,22 @@ type outgoingField struct {
 	fixedDecimalFmt string
 	stringSetter    func(string, *outgoingField)
 	stringGetter    func(*outgoingField) string
+}
+
+func setNormalFieldNull(isNull byte, f *outgoingField) {
+	f.CurrentValue[f.Size] = isNull
+}
+
+func setWideFieldNull(isNull byte, f *outgoingField) {
+	f.CurrentValue[f.Size*2] = isNull
+}
+
+func getNormalFieldNull(f *outgoingField) bool {
+	return f.CurrentValue[f.Size] == 1
+}
+
+func getWideFieldNull(f *outgoingField) bool {
+	return f.CurrentValue[f.Size*2] == 1
 }
 
 func (f *outgoingField) SetBool(value bool) {
@@ -85,15 +104,15 @@ func setInt64(value int, f *outgoingField) {
 
 func (f *outgoingField) SetInt(value int) {
 	f.intSetter(value, f)
-	f.CurrentValue[f.Size] = 0
+	f.nullSetter(0, f)
 }
 
 func (f *outgoingField) SetNullInt() {
-	f.CurrentValue[f.Size] = 1
+	f.nullSetter(1, f)
 }
 
 func (f *outgoingField) GetCurrentInt() (int, bool) {
-	if f.CurrentValue[f.Size] == 1 {
+	if f.nullGetter(f) {
 		return 0, true
 	}
 	return f.intGetter(f), false
@@ -134,15 +153,15 @@ func setFixedDecimal(value float64, f *outgoingField) {
 
 func (f *outgoingField) SetFloat(value float64) {
 	f.floatSetter(value, f)
-	f.CurrentValue[f.Size] = 0
+	f.nullSetter(0, f)
 }
 
 func (f *outgoingField) SetNullFloat() {
-	f.CurrentValue[f.Size] = 1
+	f.nullSetter(1, f)
 }
 
 func (f *outgoingField) GetCurrentFloat() (float64, bool) {
-	if f.CurrentValue[f.Size] == 1 {
+	if f.nullGetter(f) {
 		return 0, true
 	}
 	return f.floatGetter(f), false
@@ -170,15 +189,15 @@ func setDateTime(value time.Time, f *outgoingField) {
 
 func (f *outgoingField) SetDateTime(value time.Time) {
 	f.dateTimeSetter(value, f)
-	f.CurrentValue[f.Size] = 0
+	f.nullSetter(0, f)
 }
 
 func (f *outgoingField) SetNullDateTime() {
-	f.CurrentValue[f.Size] = 1
+	f.nullSetter(1, f)
 }
 
 func (f *outgoingField) GetCurrentDateTime() (time.Time, bool) {
-	if f.CurrentValue[f.Size] == 1 {
+	if f.nullGetter(f) {
 		return time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC), true
 	}
 	return f.dateTimeGetter(f), false
@@ -201,17 +220,39 @@ func setString(value string, f *outgoingField) {
 	copy(f.CurrentValue[:length], value)
 }
 
+func getWString(f *outgoingField) string {
+	utf16Bytes := bytesToUtf16(f.CurrentValue[:f.Size*2])
+	utf16Bytes = truncateAtNullUtf16(utf16Bytes)
+	value := string(utf16.Decode(utf16Bytes))
+	return value
+}
+
+func setWString(value string, f *outgoingField) {
+	utf16Bytes := utf16.Encode([]rune(value))
+	length := len(utf16Bytes)
+	if length > f.Size {
+		utf16Bytes = utf16Bytes[:f.Size]
+		length = f.Size
+	}
+	if length < f.Size {
+		utf16Bytes = append(utf16Bytes, 0)
+		length++
+	}
+	stringBytes := utf16ToBytes(utf16Bytes)
+	println(copy(f.CurrentValue, stringBytes))
+}
+
 func (f *outgoingField) SetString(value string) {
 	f.stringSetter(value, f)
-	f.CurrentValue[f.Size] = 0
+	f.nullSetter(0, f)
 }
 
 func (f *outgoingField) SetNullString() {
-	f.CurrentValue[f.Size] = 1
+	f.nullSetter(1, f)
 }
 
 func (f *outgoingField) GetCurrentString() (string, bool) {
-	if f.CurrentValue[f.Size] == 1 {
+	if f.nullGetter(f) {
 		return ``, true
 	}
 	return f.stringGetter(f), false
@@ -264,7 +305,7 @@ func (i *OutgoingRecordInfo) GetDatetimeField(name string) (OutgoingDateTimeFiel
 }
 
 func (i *OutgoingRecordInfo) GetStringField(name string) (OutgoingStringField, error) {
-	return i.getField(name, []string{`String`}, `String`)
+	return i.getField(name, []string{`String`, `WString`}, `String`)
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {
