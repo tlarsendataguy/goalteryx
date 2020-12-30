@@ -239,7 +239,7 @@ func setWString(value string, f *outgoingField) {
 		length++
 	}
 	stringBytes := utf16ToBytes(utf16Bytes)
-	println(copy(f.CurrentValue, stringBytes))
+	copy(f.CurrentValue, stringBytes)
 }
 
 func (f *outgoingField) SetString(value string) {

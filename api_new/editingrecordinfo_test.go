@@ -581,3 +581,33 @@ func TestOutgoingWStringField(t *testing.T) {
 		t.Fatalf(`expected '' and null but got '%v' and %v`, currentValue, isNull)
 	}
 }
+
+func TestWStringSameSizeAsField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddWStringField(`Field1`, ``, 10)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetStringField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	expectedValue := `0123456789`
+	field.SetString(expectedValue)
+	if currentValue, isNull := field.GetCurrentString(); currentValue != expectedValue || isNull {
+		t.Fatalf(`expected '%v' and not null but got '%v' and %v`, expectedValue, currentValue, isNull)
+	}
+}
+
+func TestWStringLargerThanField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddWStringField(`Field1`, ``, 10)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetStringField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	expectedValue := `blah blah blah`
+	field.SetString(expectedValue)
+	if currentValue, isNull := field.GetCurrentString(); currentValue != `blah blah ` || isNull {
+		t.Fatalf(`expected 'blah blah ' and not null but got '%v' and %v`, currentValue, isNull)
+	}
+}
