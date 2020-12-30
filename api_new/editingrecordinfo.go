@@ -196,6 +196,12 @@ func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 			outgoing.stringGetter = getWString
 			outgoing.nullSetter = setWideFieldNull
 			outgoing.nullGetter = getWideFieldNull
+		case `V_String`:
+			outgoing.CurrentValue = make([]byte, 1)
+			outgoing.stringSetter = setV_String
+			outgoing.stringGetter = getV_String
+			outgoing.nullSetter = setVarFieldNull
+			outgoing.nullGetter = getVarFieldNull
 		default:
 			panic(fmt.Sprintf(`field %v has an invalid field type (%v) for generating an OutgoingRecordInfo`, field.Name, field.Type))
 		}

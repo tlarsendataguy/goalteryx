@@ -611,3 +611,22 @@ func TestWStringLargerThanField(t *testing.T) {
 		t.Fatalf(`expected 'blah blah ' and not null but got '%v' and %v`, currentValue, isNull)
 	}
 }
+
+func TestOutgoingV_StringField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddV_StringField(`Field1`, ``, 20)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetStringField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	expectedValue := `hello world`
+	field.SetString(expectedValue)
+	if currentValue, isNull := field.GetCurrentString(); currentValue != expectedValue || isNull {
+		t.Fatalf(`expected '%v' and not null but got '%v' and %v`, expectedValue, currentValue, isNull)
+	}
+	field.SetNullString()
+	if currentValue, isNull := field.GetCurrentString(); currentValue != `` || isNull != true {
+		t.Fatalf(`expected '' and null but got '%v' and %v`, currentValue, isNull)
+	}
+}

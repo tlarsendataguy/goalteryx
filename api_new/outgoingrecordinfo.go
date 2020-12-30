@@ -43,12 +43,20 @@ func setWideFieldNull(isNull byte, f *outgoingField) {
 	f.CurrentValue[f.Size*2] = isNull
 }
 
+func setVarFieldNull(isNull byte, f *outgoingField) {
+	f.CurrentValue[0] = isNull
+}
+
 func getNormalFieldNull(f *outgoingField) bool {
 	return f.CurrentValue[f.Size] == 1
 }
 
 func getWideFieldNull(f *outgoingField) bool {
 	return f.CurrentValue[f.Size*2] == 1
+}
+
+func getVarFieldNull(f *outgoingField) bool {
+	return f.CurrentValue[0] == 1
 }
 
 func (f *outgoingField) SetBool(value bool) {
@@ -242,6 +250,20 @@ func setWString(value string, f *outgoingField) {
 	copy(f.CurrentValue, stringBytes)
 }
 
+func getV_String(f *outgoingField) string {
+	return string(f.CurrentValue[1:])
+}
+
+func setV_String(value string, f *outgoingField) {
+	bytes := []byte(value)
+	requiredLen := len(bytes) + 1
+	if requiredLen > cap(f.CurrentValue) {
+		f.CurrentValue = make([]byte, requiredLen)
+	}
+	copy(f.CurrentValue[1:], value)
+	f.CurrentValue = f.CurrentValue[:requiredLen]
+}
+
 func (f *outgoingField) SetString(value string) {
 	f.stringSetter(value, f)
 	f.nullSetter(0, f)
@@ -305,7 +327,7 @@ func (i *OutgoingRecordInfo) GetDatetimeField(name string) (OutgoingDateTimeFiel
 }
 
 func (i *OutgoingRecordInfo) GetStringField(name string) (OutgoingStringField, error) {
-	return i.getField(name, []string{`String`, `WString`}, `String`)
+	return i.getField(name, []string{`String`, `WString`, `V_String`}, `String`)
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {
