@@ -256,6 +256,9 @@ func getV_String(f *outgoingField) string {
 
 func setV_String(value string, f *outgoingField) {
 	bytes := []byte(value)
+	if length := len(bytes); length > f.Size {
+		bytes = bytes[:f.Size]
+	}
 	requiredLen := len(bytes) + 1
 	if requiredLen > cap(f.CurrentValue) {
 		f.CurrentValue = make([]byte, requiredLen)
