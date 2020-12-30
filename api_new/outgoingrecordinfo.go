@@ -33,6 +33,8 @@ type outgoingField struct {
 	fixedDecimalFmt string
 	stringSetter    func(string, *outgoingField)
 	stringGetter    func(*outgoingField) string
+	blobSetter      func([]byte, *outgoingField)
+	blobGetter      func(*outgoingField) []byte
 }
 
 func setNormalFieldNull(isNull byte, f *outgoingField) {
@@ -302,6 +304,35 @@ func (f *outgoingField) GetCurrentString() (string, bool) {
 	return f.stringGetter(f), false
 }
 
+func getBlob(f *outgoingField) []byte {
+	return f.CurrentValue[1:]
+}
+
+func setBlob(value []byte, f *outgoingField) {
+	requiredLen := len(value) + 1
+	if requiredLen > cap(f.CurrentValue) {
+		f.CurrentValue = make([]byte, requiredLen)
+	}
+	copy(f.CurrentValue[1:], value)
+	f.CurrentValue = f.CurrentValue[:requiredLen]
+}
+
+func (f *outgoingField) SetBlob(value []byte) {
+	f.blobSetter(value, f)
+	f.nullSetter(0, f)
+}
+
+func (f *outgoingField) SetNullBlob() {
+	f.nullSetter(1, f)
+}
+
+func (f *outgoingField) GetCurrentBlob() ([]byte, bool) {
+	if f.nullGetter(f) {
+		return nil, true
+	}
+	return f.blobGetter(f), false
+}
+
 type OutgoingBoolField interface {
 	SetBool(bool)
 	SetNullBool()
@@ -332,6 +363,12 @@ type OutgoingStringField interface {
 	GetCurrentString() (string, bool)
 }
 
+type OutgoingBlobField interface {
+	SetBlob([]byte)
+	SetNullBlob()
+	GetCurrentBlob() ([]byte, bool)
+}
+
 func (i *OutgoingRecordInfo) GetBoolField(name string) (OutgoingBoolField, error) {
 	return i.getField(name, []string{`Bool`}, `Bool`)
 }
@@ -350,6 +387,10 @@ func (i *OutgoingRecordInfo) GetDatetimeField(name string) (OutgoingDateTimeFiel
 
 func (i *OutgoingRecordInfo) GetStringField(name string) (OutgoingStringField, error) {
 	return i.getField(name, []string{`String`, `WString`, `V_String`, `V_WString`}, `String`)
+}
+
+func (i *OutgoingRecordInfo) GetBlobField(name string) (OutgoingBlobField, error) {
+	return i.getField(name, []string{`Blob`}, `Blob`)
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {

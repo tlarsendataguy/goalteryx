@@ -1,6 +1,7 @@
 package api_new_test
 
 import (
+	"bytes"
 	"github.com/tlarsen7572/goalteryx/api_new"
 	"testing"
 	"time"
@@ -707,5 +708,24 @@ func TestV_WStringLargerThanField(t *testing.T) {
 	field.SetString(expectedValue)
 	if currentValue, isNull := field.GetCurrentString(); currentValue != `blah blah ` || isNull {
 		t.Fatalf(`expected 'blah blah ' and not null but got '%v' and %v`, currentValue, isNull)
+	}
+}
+
+func TestOutgoingBlobField(t *testing.T) {
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddBlobField(`Field1`, ``, 20)
+	info := editor.GenerateOutgoingRecordInfo()
+	field, err := info.GetBlobField(`Field1`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	expectedValue := []byte{1, 2, 3, 4, 5}
+	field.SetBlob(expectedValue)
+	if currentValue, isNull := field.GetCurrentBlob(); !bytes.Equal(currentValue, expectedValue) || isNull {
+		t.Fatalf(`expected '%v' and not null but got '%v' and %v`, expectedValue, currentValue, isNull)
+	}
+	field.SetNullBlob()
+	if currentValue, isNull := field.GetCurrentBlob(); currentValue != nil || isNull != true {
+		t.Fatalf(`expected '' and null but got '%v' and %v`, currentValue, isNull)
 	}
 }
