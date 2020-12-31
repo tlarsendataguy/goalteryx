@@ -22,6 +22,7 @@ func NewBoolField(name string, source string) NewOutgoingField {
 			Size:         1,
 			Scale:        0,
 			CurrentValue: make([]byte, 1),
+			isFixedLen:   true,
 		}
 	}
 }
@@ -38,6 +39,7 @@ func NewByteField(name string, source string) NewOutgoingField {
 			nullGetter:   getNormalFieldNull,
 			intSetter:    setByte,
 			intGetter:    getByte,
+			isFixedLen:   true,
 		}
 	}
 }
@@ -54,6 +56,7 @@ func NewInt16Field(name string, source string) NewOutgoingField {
 			nullGetter:   getNormalFieldNull,
 			intSetter:    setInt16,
 			intGetter:    getInt16,
+			isFixedLen:   true,
 		}
 	}
 }
@@ -70,6 +73,7 @@ func NewInt32Field(name string, source string) NewOutgoingField {
 			nullGetter:   getNormalFieldNull,
 			intSetter:    setInt32,
 			intGetter:    getInt32,
+			isFixedLen:   true,
 		}
 	}
 }
@@ -86,6 +90,7 @@ func NewInt64Field(name string, source string) NewOutgoingField {
 			nullGetter:   getNormalFieldNull,
 			intSetter:    setInt64,
 			intGetter:    getInt64,
+			isFixedLen:   true,
 		}
 	}
 }
@@ -102,6 +107,7 @@ func NewFloatField(name string, source string) NewOutgoingField {
 			nullGetter:   getNormalFieldNull,
 			floatSetter:  setFloat,
 			floatGetter:  getFloat,
+			isFixedLen:   true,
 		}
 	}
 }
@@ -118,6 +124,7 @@ func NewDoubleField(name string, source string) NewOutgoingField {
 			nullGetter:   getNormalFieldNull,
 			floatSetter:  setDouble,
 			floatGetter:  getDouble,
+			isFixedLen:   true,
 		}
 	}
 }
@@ -136,6 +143,7 @@ func NewFixedDecimalField(name string, source string, size int, scale int) NewOu
 			nullGetter:      getNormalFieldNull,
 			floatSetter:     setFixedDecimal,
 			floatGetter:     getFixedDecimal,
+			isFixedLen:      true,
 		}
 	}
 }
@@ -152,6 +160,7 @@ func NewDateField(name string, source string) NewOutgoingField {
 			nullGetter:     getNormalFieldNull,
 			dateTimeSetter: setDate,
 			dateTimeGetter: getDate,
+			isFixedLen:     true,
 		}
 	}
 }
@@ -168,6 +177,7 @@ func NewDateTimeField(name string, source string) NewOutgoingField {
 			nullGetter:     getNormalFieldNull,
 			dateTimeSetter: setDateTime,
 			dateTimeGetter: getDateTime,
+			isFixedLen:     true,
 		}
 	}
 }
@@ -184,6 +194,7 @@ func NewStringField(name string, source string, size int) NewOutgoingField {
 			nullGetter:   getNormalFieldNull,
 			stringSetter: setString,
 			stringGetter: getString,
+			isFixedLen:   true,
 		}
 	}
 }
@@ -200,6 +211,7 @@ func NewWStringField(name string, source string, size int) NewOutgoingField {
 			nullGetter:   getWideFieldNull,
 			stringSetter: setWString,
 			stringGetter: getWString,
+			isFixedLen:   true,
 		}
 	}
 }
@@ -216,6 +228,7 @@ func NewV_StringField(name string, source string, size int) NewOutgoingField {
 			nullGetter:   getVarFieldNull,
 			stringSetter: setV_String,
 			stringGetter: getV_String,
+			isFixedLen:   false,
 		}
 	}
 }
@@ -232,6 +245,7 @@ func NewV_WStringField(name string, source string, size int) NewOutgoingField {
 			nullGetter:   getVarFieldNull,
 			stringSetter: setV_WString,
 			stringGetter: getV_WString,
+			isFixedLen:   false,
 		}
 	}
 }
@@ -248,6 +262,7 @@ func NewBlobField(name string, source string, size int) NewOutgoingField {
 			nullGetter:   getVarFieldNull,
 			blobSetter:   setBlob,
 			blobGetter:   getBlob,
+			isFixedLen:   false,
 		}
 	}
 }
@@ -264,6 +279,7 @@ func NewSpatialObjField(name string, source string, size int) NewOutgoingField {
 			nullGetter:   getVarFieldNull,
 			blobSetter:   setBlob,
 			blobGetter:   getBlob,
+			isFixedLen:   false,
 		}
 	}
 }
@@ -289,6 +305,7 @@ type outgoingField struct {
 	Scale           int                             `xml:"scale,attr"`
 	CopyFrom        BytesGetter                     `xml:"-"`
 	CurrentValue    []byte                          `xml:"-"`
+	isFixedLen      bool                            `xml:"-"`
 	nullSetter      func(byte, *outgoingField)      `xml:"-"`
 	nullGetter      func(*outgoingField) bool       `xml:"-"`
 	intSetter       func(int, *outgoingField)       `xml:"-"`
@@ -665,11 +682,29 @@ func (i *OutgoingRecordInfo) GetBlobField(name string) (OutgoingBlobField, error
 }
 
 func (i *OutgoingRecordInfo) DataSize() int {
-	size := 0
+	totalSize := 0
+	varFields := 0
 	for _, field := range i.outgoingFields {
-		size += field.dataSize()
+		if field.isFixedLen {
+			totalSize += field.dataSize()
+			continue
+		}
+		varFields++
+		size := field.dataSize() - 1
+		if field.CurrentValue[0] == 1 || size < 4 {
+			totalSize += 4 // everything fits into the fixed portion of record
+			continue
+		}
+		if size < 127 {
+			totalSize += 5 + size // 4 bytes in fixed portion of record and 1 byte for len
+			continue
+		}
+		totalSize += 8 + size // 4 bytes in fixed portion of record and 4 bytes for len
 	}
-	return size
+	if varFields > 0 {
+		totalSize += 4 // 4 byte integer for the length of the variable portion of record
+	}
+	return totalSize
 }
 
 func (i *OutgoingRecordInfo) toXml(connName string) string {
