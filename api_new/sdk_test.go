@@ -60,13 +60,25 @@ func (i *TestInputTool) OnRecordPacket(connection api_new.InputConnection) {
 }
 
 func (i *TestInputTool) OnComplete() {
-	outputConfig := `<MetaInfo connection="Output">
-<RecordInfo>
-	<Field name="Field1" source="TextInput:" type="Byte"/>
-	<Field name="Field2" size="1" source="TextInput:" type="String"/>
-</RecordInfo>
-</MetaInfo>`
-	i.Output.Open(outputConfig)
+	editor := &api_new.EditingRecordInfo{}
+	editor.AddBlobField(`Field1`, `source`, 100)
+	editor.AddBoolField(`Field2`, `source`)
+	editor.AddByteField(`Field3`, `source`)
+	editor.AddInt16Field(`Field4`, `source`)
+	editor.AddInt32Field(`Field5`, `source`)
+	editor.AddInt64Field(`Field6`, `source`)
+	editor.AddFloatField(`Field7`, `source`)
+	editor.AddDoubleField(`Field8`, `source`)
+	editor.AddFixedDecimalField(`Field9`, `source`, 19, 2)
+	editor.AddStringField(`Field10`, `source`, 100)
+	editor.AddWStringField(`Field11`, `source`, 100)
+	editor.AddV_StringField(`Field12`, `source`, 100000)
+	editor.AddV_WStringField(`Field13`, `source`, 100000)
+	editor.AddDateField(`Field14`, `source`)
+	editor.AddDateTimeField(`Field15`, `source`)
+	editor.AddSpatialObjField(`Field16`, `source`, 1000000)
+	output := editor.GenerateOutgoingRecordInfo()
+	i.Output.Open(output)
 }
 
 func TestRegister(t *testing.T) {
@@ -168,16 +180,10 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 	runner := api_new.RegisterToolTest(implementation, 1, ``)
 	collector := runner.CaptureOutgoingAnchor(`Output`)
 	runner.SimulateInputTool()
-	expectedConfig := `<MetaInfo connection="Output">
-<RecordInfo>
-	<Field name="Field1" source="TextInput:" type="Byte"/>
-	<Field name="Field2" size="1" source="TextInput:" type="String"/>
-</RecordInfo>
-</MetaInfo>`
 	if collector.Name != `Output` {
 		t.Fatalf(`expected 'Output' but got '%v'`, collector.Name)
 	}
-	if collector.Config != expectedConfig {
-		t.Fatalf("expected\n'%v'\nbut got\n'%v'", expectedConfig, collector.Config)
+	if fields := collector.Config.NumFields(); fields != 16 {
+		t.Fatalf("expected 16 fields but got %v", fields)
 	}
 }

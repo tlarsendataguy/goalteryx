@@ -28,19 +28,21 @@ type outputAnchor struct {
 }
 
 func (a *outputAnchor) Name() string {
-	panic("implement me")
+	name := utf16PtrToString(a.data.name, utf16PtrLen(a.data.name))
+	return name
 }
 
 func (a *outputAnchor) IsOpen() bool {
 	panic("implement me")
 }
 
-func (a *outputAnchor) Metadata() string {
+func (a *outputAnchor) Metadata() *OutgoingRecordInfo {
 	panic("implement me")
 }
 
-func (a *outputAnchor) Open(config string) {
-	openOutgoingAnchor(a.data, config)
+func (a *outputAnchor) Open(config *OutgoingRecordInfo) {
+	xmlStr := config.toXml(a.Name())
+	openOutgoingAnchor(a.data, xmlStr)
 }
 
 func (a *outputAnchor) Write(record Record) {

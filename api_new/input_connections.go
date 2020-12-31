@@ -10,9 +10,10 @@ func (i *ImpInputConnection) Name() string {
 	return name
 }
 
-func (i *ImpInputConnection) Metadata() string {
+func (i *ImpInputConnection) Metadata() IncomingRecordInfo {
 	configLen := utf16PtrLen(i.data.metadata)
-	config := utf16PtrToString(i.data.metadata, configLen)
+	configStr := utf16PtrToString(i.data.metadata, configLen)
+	config, _ := incomingRecordInfoFromString(configStr)
 	return config
 }
 

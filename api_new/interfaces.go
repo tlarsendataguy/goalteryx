@@ -34,7 +34,7 @@ type Io interface {
 
 type InputConnection interface {
 	Name() string
-	Metadata() string
+	Metadata() IncomingRecordInfo
 	Read() Record
 	Progress() float64
 }
@@ -42,8 +42,8 @@ type InputConnection interface {
 type OutputAnchor interface {
 	Name() string
 	IsOpen() bool
-	Metadata() string
-	Open(string)
+	Metadata() *OutgoingRecordInfo
+	Open(info *OutgoingRecordInfo)
 	Write(Record)
 	UpdateProgress(float64)
 }

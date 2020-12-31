@@ -2,6 +2,7 @@ package api_new
 
 import (
 	"encoding/binary"
+	"encoding/xml"
 	"fmt"
 	"math"
 	"strconv"
@@ -15,26 +16,27 @@ type OutgoingRecordInfo struct {
 }
 
 type outgoingField struct {
-	Name            string
-	Type            string
-	Source          string
-	Size            int
-	Scale           int
-	CopyFrom        BytesGetter
-	CurrentValue    []byte
-	nullSetter      func(byte, *outgoingField)
-	nullGetter      func(*outgoingField) bool
-	intSetter       func(int, *outgoingField)
-	intGetter       func(*outgoingField) int
-	floatSetter     func(float64, *outgoingField)
-	floatGetter     func(*outgoingField) float64
-	dateTimeSetter  func(time.Time, *outgoingField)
-	dateTimeGetter  func(*outgoingField) time.Time
-	fixedDecimalFmt string
-	stringSetter    func(string, *outgoingField)
-	stringGetter    func(*outgoingField) string
-	blobSetter      func([]byte, *outgoingField)
-	blobGetter      func(*outgoingField) []byte
+	XMLName         string                          `xml:"Field"`
+	Name            string                          `xml:"name,attr"`
+	Type            string                          `xml:"type,attr"`
+	Source          string                          `xml:"source,attr"`
+	Size            int                             `xml:"size,attr"`
+	Scale           int                             `xml:"scale,attr"`
+	CopyFrom        BytesGetter                     `xml:"-"`
+	CurrentValue    []byte                          `xml:"-"`
+	nullSetter      func(byte, *outgoingField)      `xml:"-"`
+	nullGetter      func(*outgoingField) bool       `xml:"-"`
+	intSetter       func(int, *outgoingField)       `xml:"-"`
+	intGetter       func(*outgoingField) int        `xml:"-"`
+	floatSetter     func(float64, *outgoingField)   `xml:"-"`
+	floatGetter     func(*outgoingField) float64    `xml:"-"`
+	dateTimeSetter  func(time.Time, *outgoingField) `xml:"-"`
+	dateTimeGetter  func(*outgoingField) time.Time  `xml:"-"`
+	fixedDecimalFmt string                          `xml:"-"`
+	stringSetter    func(string, *outgoingField)    `xml:"-"`
+	stringGetter    func(*outgoingField) string     `xml:"-"`
+	blobSetter      func([]byte, *outgoingField)    `xml:"-"`
+	blobGetter      func(*outgoingField) []byte     `xml:"-"`
 }
 
 func setNormalFieldNull(isNull byte, f *outgoingField) {
@@ -391,6 +393,11 @@ func (i *OutgoingRecordInfo) GetStringField(name string) (OutgoingStringField, e
 
 func (i *OutgoingRecordInfo) GetBlobField(name string) (OutgoingBlobField, error) {
 	return i.getField(name, []string{`Blob`, `SpatialObj`}, `Blob`)
+}
+
+func (i *OutgoingRecordInfo) toXml(connName string) string {
+	xmlBytes, _ := xml.Marshal(i.outgoingFields)
+	return fmt.Sprintf(`<MetaInfo connection="%v"><RecordInfo>%v</RecordInfo></MetaInfo>`, connName, string(xmlBytes))
 }
 
 func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {

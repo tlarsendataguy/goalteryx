@@ -26,7 +26,7 @@ func (r *FileTestRunner) CaptureOutgoingAnchor(name string) *RecordCollector {
 }
 
 type RecordCollector struct {
-	Config string
+	Config IncomingRecordInfo
 	Name   string
 }
 
