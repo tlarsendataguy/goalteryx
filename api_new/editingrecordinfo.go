@@ -136,87 +136,43 @@ func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 	var outgoing *outgoingField
 
 	for index, field := range i.fields {
-		outgoing = &outgoingField{
-			Name:     field.Name,
-			Type:     field.Type,
-			Source:   field.Source,
-			Size:     field.Size,
-			Scale:    field.Scale,
-			CopyFrom: field.GetBytes,
-		}
-		outgoing.nullGetter = getNormalFieldNull
-		outgoing.nullSetter = setNormalFieldNull
 		switch field.Type {
 		case `Bool`:
-			outgoing.CurrentValue = make([]byte, 1)
+			outgoing = NewBoolField(field.Name, field.Source)()
 		case `Byte`:
-			outgoing.CurrentValue = make([]byte, 2)
-			outgoing.intSetter = setByte
-			outgoing.intGetter = getByte
+			outgoing = NewByteField(field.Name, field.Source)()
 		case `Int16`:
-			outgoing.CurrentValue = make([]byte, 3)
-			outgoing.intSetter = setInt16
-			outgoing.intGetter = getInt16
+			outgoing = NewInt16Field(field.Name, field.Source)()
 		case `Int32`:
-			outgoing.CurrentValue = make([]byte, 5)
-			outgoing.intSetter = setInt32
-			outgoing.intGetter = getInt32
+			outgoing = NewInt32Field(field.Name, field.Source)()
 		case `Int64`:
-			outgoing.CurrentValue = make([]byte, 9)
-			outgoing.intSetter = setInt64
-			outgoing.intGetter = getInt64
+			outgoing = NewInt64Field(field.Name, field.Source)()
 		case `Float`:
-			outgoing.CurrentValue = make([]byte, 5)
-			outgoing.floatSetter = setFloat
-			outgoing.floatGetter = getFloat
+			outgoing = NewFloatField(field.Name, field.Source)()
 		case `Double`:
-			outgoing.CurrentValue = make([]byte, 9)
-			outgoing.floatSetter = setDouble
-			outgoing.floatGetter = getDouble
+			outgoing = NewDoubleField(field.Name, field.Source)()
 		case `FixedDecimal`:
-			outgoing.CurrentValue = make([]byte, field.Size+1)
-			outgoing.floatSetter = setFixedDecimal
-			outgoing.floatGetter = getFixedDecimal
-			outgoing.fixedDecimalFmt = fmt.Sprintf(`%%%d.%df`, outgoing.Size, outgoing.Scale)
+			outgoing = NewFixedDecimalField(field.Name, field.Source, field.Size, field.Scale)()
 		case `Date`:
-			outgoing.CurrentValue = make([]byte, field.Size+1)
-			outgoing.dateTimeSetter = setDate
-			outgoing.dateTimeGetter = getDate
+			outgoing = NewDateField(field.Name, field.Source)()
 		case `DateTime`:
-			outgoing.CurrentValue = make([]byte, field.Size+1)
-			outgoing.dateTimeSetter = setDateTime
-			outgoing.dateTimeGetter = getDateTime
+			outgoing = NewDateTimeField(field.Name, field.Source)()
 		case `String`:
-			outgoing.CurrentValue = make([]byte, field.Size+1)
-			outgoing.stringSetter = setString
-			outgoing.stringGetter = getString
+			outgoing = NewStringField(field.Name, field.Source, field.Size)()
 		case `WString`:
-			outgoing.CurrentValue = make([]byte, (field.Size*2)+1)
-			outgoing.stringSetter = setWString
-			outgoing.stringGetter = getWString
-			outgoing.nullSetter = setWideFieldNull
-			outgoing.nullGetter = getWideFieldNull
+			outgoing = NewWStringField(field.Name, field.Source, field.Size)()
 		case `V_String`:
-			outgoing.CurrentValue = make([]byte, 1)
-			outgoing.stringSetter = setV_String
-			outgoing.stringGetter = getV_String
-			outgoing.nullSetter = setVarFieldNull
-			outgoing.nullGetter = getVarFieldNull
+			outgoing = NewV_StringField(field.Name, field.Source, field.Size)()
 		case `V_WString`:
-			outgoing.CurrentValue = make([]byte, 1)
-			outgoing.stringSetter = setV_WString
-			outgoing.stringGetter = getV_WString
-			outgoing.nullSetter = setVarFieldNull
-			outgoing.nullGetter = getVarFieldNull
-		case `Blob`, `SpatialObj`:
-			outgoing.CurrentValue = make([]byte, 1)
-			outgoing.blobSetter = setBlob
-			outgoing.blobGetter = getBlob
-			outgoing.nullSetter = setVarFieldNull
-			outgoing.nullGetter = getVarFieldNull
+			outgoing = NewV_WStringField(field.Name, field.Source, field.Size)()
+		case `Blob`:
+			outgoing = NewBlobField(field.Name, field.Source, field.Size)()
+		case `SpatialObj`:
+			outgoing = NewSpatialObjField(field.Name, field.Source, field.Size)()
 		default:
 			panic(fmt.Sprintf(`field %v has an invalid field type (%v) for generating an OutgoingRecordInfo`, field.Name, field.Type))
 		}
+		outgoing.CopyFrom = field.GetBytes
 		fields[index] = outgoing
 	}
 	info := &OutgoingRecordInfo{outgoingFields: fields}

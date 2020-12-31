@@ -11,6 +11,271 @@ import (
 	"unicode/utf16"
 )
 
+type NewOutgoingField func() *outgoingField
+
+func NewBoolField(name string, source string) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `Bool`,
+			Source:       source,
+			Size:         1,
+			Scale:        0,
+			CurrentValue: make([]byte, 1),
+		}
+	}
+}
+
+func NewByteField(name string, source string) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `Byte`,
+			Source:       source,
+			Size:         1,
+			CurrentValue: make([]byte, 2),
+			nullSetter:   setNormalFieldNull,
+			nullGetter:   getNormalFieldNull,
+			intSetter:    setByte,
+			intGetter:    getByte,
+		}
+	}
+}
+
+func NewInt16Field(name string, source string) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `Int16`,
+			Source:       source,
+			Size:         2,
+			CurrentValue: make([]byte, 3),
+			nullSetter:   setNormalFieldNull,
+			nullGetter:   getNormalFieldNull,
+			intSetter:    setInt16,
+			intGetter:    getInt16,
+		}
+	}
+}
+
+func NewInt32Field(name string, source string) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `Int32`,
+			Source:       source,
+			Size:         4,
+			CurrentValue: make([]byte, 5),
+			nullSetter:   setNormalFieldNull,
+			nullGetter:   getNormalFieldNull,
+			intSetter:    setInt32,
+			intGetter:    getInt32,
+		}
+	}
+}
+
+func NewInt64Field(name string, source string) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `Int64`,
+			Source:       source,
+			Size:         8,
+			CurrentValue: make([]byte, 9),
+			nullSetter:   setNormalFieldNull,
+			nullGetter:   getNormalFieldNull,
+			intSetter:    setInt64,
+			intGetter:    getInt64,
+		}
+	}
+}
+
+func NewFloatField(name string, source string) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `Float`,
+			Source:       source,
+			Size:         4,
+			CurrentValue: make([]byte, 5),
+			nullSetter:   setNormalFieldNull,
+			nullGetter:   getNormalFieldNull,
+			floatSetter:  setFloat,
+			floatGetter:  getFloat,
+		}
+	}
+}
+
+func NewDoubleField(name string, source string) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `Double`,
+			Source:       source,
+			Size:         8,
+			CurrentValue: make([]byte, 9),
+			nullSetter:   setNormalFieldNull,
+			nullGetter:   getNormalFieldNull,
+			floatSetter:  setDouble,
+			floatGetter:  getDouble,
+		}
+	}
+}
+
+func NewFixedDecimalField(name string, source string, size int, scale int) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:            name,
+			Type:            `FixedDecimal`,
+			Source:          source,
+			Size:            size,
+			Scale:           scale,
+			fixedDecimalFmt: fmt.Sprintf(`%%%d.%df`, size, scale),
+			CurrentValue:    make([]byte, size+1),
+			nullSetter:      setNormalFieldNull,
+			nullGetter:      getNormalFieldNull,
+			floatSetter:     setFixedDecimal,
+			floatGetter:     getFixedDecimal,
+		}
+	}
+}
+
+func NewDateField(name string, source string) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:           name,
+			Type:           `Date`,
+			Source:         source,
+			Size:           10,
+			CurrentValue:   make([]byte, 11),
+			nullSetter:     setNormalFieldNull,
+			nullGetter:     getNormalFieldNull,
+			dateTimeSetter: setDate,
+			dateTimeGetter: getDate,
+		}
+	}
+}
+
+func NewDateTimeField(name string, source string) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:           name,
+			Type:           `DateTime`,
+			Source:         source,
+			Size:           19,
+			CurrentValue:   make([]byte, 20),
+			nullSetter:     setNormalFieldNull,
+			nullGetter:     getNormalFieldNull,
+			dateTimeSetter: setDateTime,
+			dateTimeGetter: getDateTime,
+		}
+	}
+}
+
+func NewStringField(name string, source string, size int) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `String`,
+			Source:       source,
+			Size:         size,
+			CurrentValue: make([]byte, size+1),
+			nullSetter:   setNormalFieldNull,
+			nullGetter:   getNormalFieldNull,
+			stringSetter: setString,
+			stringGetter: getString,
+		}
+	}
+}
+
+func NewWStringField(name string, source string, size int) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `WString`,
+			Source:       source,
+			Size:         size,
+			CurrentValue: make([]byte, (size*2)+1),
+			nullSetter:   setWideFieldNull,
+			nullGetter:   getWideFieldNull,
+			stringSetter: setWString,
+			stringGetter: getWString,
+		}
+	}
+}
+
+func NewV_StringField(name string, source string, size int) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `V_String`,
+			Source:       source,
+			Size:         size,
+			CurrentValue: make([]byte, 1),
+			nullSetter:   setVarFieldNull,
+			nullGetter:   getVarFieldNull,
+			stringSetter: setV_String,
+			stringGetter: getV_String,
+		}
+	}
+}
+
+func NewV_WStringField(name string, source string, size int) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `V_WString`,
+			Source:       source,
+			Size:         size,
+			CurrentValue: make([]byte, 1),
+			nullSetter:   setVarFieldNull,
+			nullGetter:   getVarFieldNull,
+			stringSetter: setV_WString,
+			stringGetter: getV_WString,
+		}
+	}
+}
+
+func NewBlobField(name string, source string, size int) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `Blob`,
+			Source:       source,
+			Size:         size,
+			CurrentValue: make([]byte, 1),
+			nullSetter:   setVarFieldNull,
+			nullGetter:   getVarFieldNull,
+			blobSetter:   setBlob,
+			blobGetter:   getBlob,
+		}
+	}
+}
+
+func NewSpatialObjField(name string, source string, size int) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:         name,
+			Type:         `SpatialObj`,
+			Source:       source,
+			Size:         size,
+			CurrentValue: make([]byte, 1),
+			nullSetter:   setVarFieldNull,
+			nullGetter:   getVarFieldNull,
+			blobSetter:   setBlob,
+			blobGetter:   getBlob,
+		}
+	}
+}
+
+func NewOutgoingRecordInfo(fields []NewOutgoingField) *OutgoingRecordInfo {
+	outgoingFields := make([]*outgoingField, len(fields))
+	for index, field := range fields {
+		outgoingFields[index] = field()
+	}
+	return &OutgoingRecordInfo{outgoingFields: outgoingFields}
+}
+
 type OutgoingRecordInfo struct {
 	outgoingFields []*outgoingField
 }
@@ -393,6 +658,10 @@ func (i *OutgoingRecordInfo) GetStringField(name string) (OutgoingStringField, e
 
 func (i *OutgoingRecordInfo) GetBlobField(name string) (OutgoingBlobField, error) {
 	return i.getField(name, []string{`Blob`, `SpatialObj`}, `Blob`)
+}
+
+func (i *OutgoingRecordInfo) DataSize() int {
+	return 0
 }
 
 func (i *OutgoingRecordInfo) toXml(connName string) string {
