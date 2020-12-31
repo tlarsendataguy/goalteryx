@@ -304,6 +304,10 @@ type outgoingField struct {
 	blobGetter      func(*outgoingField) []byte     `xml:"-"`
 }
 
+func (f *outgoingField) dataSize() int {
+	return len(f.CurrentValue)
+}
+
 func setNormalFieldNull(isNull byte, f *outgoingField) {
 	f.CurrentValue[f.Size] = isNull
 }
@@ -661,7 +665,11 @@ func (i *OutgoingRecordInfo) GetBlobField(name string) (OutgoingBlobField, error
 }
 
 func (i *OutgoingRecordInfo) DataSize() int {
-	return 0
+	size := 0
+	for _, field := range i.outgoingFields {
+		size += field.dataSize()
+	}
+	return size
 }
 
 func (i *OutgoingRecordInfo) toXml(connName string) string {

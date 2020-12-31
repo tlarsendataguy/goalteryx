@@ -6,11 +6,9 @@ import (
 )
 
 func TestDataSize(t *testing.T) {
-	editor := api_new.EditingRecordInfo{}
-	editor.AddBoolField(`Field1`, `source`)
-	info := editor.GenerateOutgoingRecordInfo()
-	field, _ := info.GetBoolField(`Field1`)
-	field.SetBool(false)
+	info := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
+		api_new.NewBoolField(`Field1`, `source`),
+	})
 	size := info.DataSize()
 	if size != 1 {
 		t.Fatalf(`expected size 1 but got %v`, size)
