@@ -1,9 +1,10 @@
 package api_new
 
 type provider struct {
-	sharedMemory *goPluginSharedMemory
-	io           Io
-	environment  Environment
+	sharedMemory  *goPluginSharedMemory
+	io            Io
+	environment   Environment
+	outputAnchors map[string]*outputAnchor
 }
 
 func (p *provider) ToolConfig() string {
@@ -15,8 +16,14 @@ func (p *provider) Io() Io {
 }
 
 func (p *provider) GetOutputAnchor(name string) OutputAnchor {
+	anchor, ok := p.outputAnchors[name]
+	if ok {
+		return anchor
+	}
 	anchorData := getOrCreateOutputAnchor(p.sharedMemory, name)
-	return &outputAnchor{data: anchorData}
+	anchor = &outputAnchor{data: anchorData}
+	p.outputAnchors[name] = anchor
+	return anchor
 }
 
 func (p *provider) Environment() Environment {
@@ -24,7 +31,8 @@ func (p *provider) Environment() Environment {
 }
 
 type outputAnchor struct {
-	data *goOutputAnchorData
+	data     *goOutputAnchorData
+	metaData *OutgoingRecordInfo
 }
 
 func (a *outputAnchor) Name() string {
@@ -33,14 +41,15 @@ func (a *outputAnchor) Name() string {
 }
 
 func (a *outputAnchor) IsOpen() bool {
-	panic("implement me")
+	return a.data.isOpen == 1
 }
 
 func (a *outputAnchor) Metadata() *OutgoingRecordInfo {
-	panic("implement me")
+	return a.metaData
 }
 
 func (a *outputAnchor) Open(config *OutgoingRecordInfo) {
+	a.metaData = config
 	xmlStr := config.toXml(a.Name())
 	openOutgoingAnchor(a.data, xmlStr)
 }

@@ -42,8 +42,9 @@ func (t *TestImplementation) OnComplete() {
 }
 
 type TestInputTool struct {
-	Provider api_new.Provider
-	Output   api_new.OutputAnchor
+	Provider     api_new.Provider
+	Output       api_new.OutputAnchor
+	OutputConfig *api_new.OutgoingRecordInfo
 }
 
 func (i *TestInputTool) Init(provider api_new.Provider) {
@@ -78,6 +79,7 @@ func (i *TestInputTool) OnComplete() {
 	editor.AddDateTimeField(`Field15`, `source`)
 	editor.AddSpatialObjField(`Field16`, `source`, 1000000)
 	output := editor.GenerateOutgoingRecordInfo()
+	i.OutputConfig = output
 	i.Output.Open(output)
 }
 
@@ -157,6 +159,16 @@ func TestUpdateConfig(t *testing.T) {
 	}
 }
 
+func TestGettingOutputAnchorTwiceIsSameObject(t *testing.T) {
+	implementation := &TestImplementation{}
+	api_new.RegisterToolTest(implementation, 1, ``)
+	output1 := implementation.Provider.GetOutputAnchor(`Output`)
+	output2 := implementation.Provider.GetOutputAnchor(`Output`)
+	if output1 != output2 {
+		t.Fatalf(`expected the same outputAnchor object but got 2 different objects: %v and %v`, output1, output2)
+	}
+}
+
 func TestSimulateInputTool(t *testing.T) {
 	implementation := &TestImplementation{}
 	runner := api_new.RegisterToolTest(implementation, 1, ``)
@@ -185,5 +197,9 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 	}
 	if fields := collector.Config.NumFields(); fields != 16 {
 		t.Fatalf("expected 16 fields but got %v", fields)
+	}
+	outputConfig := implementation.Output.Metadata()
+	if outputConfig != implementation.OutputConfig {
+		t.Fatalf(`expected same instance but got %v and %v`, outputConfig, implementation.OutputConfig)
 	}
 }

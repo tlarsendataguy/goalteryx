@@ -144,9 +144,10 @@ func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engin
 	io := &ayxIo{sharedMemory: data}
 	environment := &ayxEnvironment{sharedMemory: data}
 	toolProvider := &provider{
-		sharedMemory: data,
-		io:           io,
-		environment:  environment,
+		sharedMemory:  data,
+		io:            io,
+		environment:   environment,
+		outputAnchors: make(map[string]*outputAnchor),
 	}
 
 	registerAndInit(plugin, data, toolProvider)
@@ -177,9 +178,10 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 		locale:       options.locale,
 	}
 	toolProvider := &provider{
-		sharedMemory: data,
-		io:           io,
-		environment:  environment,
+		sharedMemory:  data,
+		io:            io,
+		environment:   environment,
+		outputAnchors: make(map[string]*outputAnchor),
 	}
 	registerAndInit(plugin, data, toolProvider)
 	return &FileTestRunner{
@@ -214,9 +216,10 @@ func registerTestHarness(plugin Plugin) *goPluginSharedMemory {
 		sharedMemory: data,
 	}
 	toolProvider := &provider{
-		sharedMemory: data,
-		io:           io,
-		environment:  environment,
+		sharedMemory:  data,
+		io:            io,
+		environment:   environment,
+		outputAnchors: make(map[string]*outputAnchor),
 	}
 	registerAndInit(plugin, data, toolProvider)
 	return data
