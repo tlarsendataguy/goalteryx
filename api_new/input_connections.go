@@ -17,7 +17,7 @@ func (i *ImpInputConnection) Metadata() IncomingRecordInfo {
 	return config
 }
 
-func (i *ImpInputConnection) Read() Record {
+func (i *ImpInputConnection) Read() RecordPacket {
 	panic("implement me")
 }
 

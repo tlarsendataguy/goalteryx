@@ -35,7 +35,7 @@ type Io interface {
 type InputConnection interface {
 	Name() string
 	Metadata() IncomingRecordInfo
-	Read() Record
+	Read() RecordPacket
 	Progress() float64
 }
 
@@ -64,6 +64,11 @@ type Provider interface {
 	Io() Io
 	GetOutputAnchor(string) OutputAnchor
 	Environment() Environment
+}
+
+type RecordPacket interface {
+	Next() bool
+	Record() Record
 }
 
 type Record = unsafe.Pointer
