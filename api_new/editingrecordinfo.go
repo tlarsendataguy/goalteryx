@@ -133,48 +133,72 @@ func (i *EditingRecordInfo) checkName(name string) string {
 
 func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 	fields := make([]*outgoingField, i.NumFields())
+	info := &OutgoingRecordInfo{
+		outgoingFields: fields,
+		BlobFields:     make(map[string]OutgoingBlobField),
+		BoolFields:     make(map[string]OutgoingBoolField),
+		DateTimeFields: make(map[string]OutgoingDateTimeField),
+		FloatFields:    make(map[string]OutgoingFloatField),
+		IntFields:      make(map[string]OutgoingIntField),
+		StringFields:   make(map[string]OutgoingStringField),
+	}
 	var outgoing *outgoingField
 
 	for index, field := range i.fields {
 		switch field.Type {
 		case `Bool`:
 			outgoing = NewBoolField(field.Name, field.Source)()
+			info.BoolFields[field.Name] = outgoing
 		case `Byte`:
 			outgoing = NewByteField(field.Name, field.Source)()
+			info.IntFields[field.Name] = outgoing
 		case `Int16`:
 			outgoing = NewInt16Field(field.Name, field.Source)()
+			info.IntFields[field.Name] = outgoing
 		case `Int32`:
 			outgoing = NewInt32Field(field.Name, field.Source)()
+			info.IntFields[field.Name] = outgoing
 		case `Int64`:
 			outgoing = NewInt64Field(field.Name, field.Source)()
+			info.IntFields[field.Name] = outgoing
 		case `Float`:
 			outgoing = NewFloatField(field.Name, field.Source)()
+			info.FloatFields[field.Name] = outgoing
 		case `Double`:
 			outgoing = NewDoubleField(field.Name, field.Source)()
+			info.FloatFields[field.Name] = outgoing
 		case `FixedDecimal`:
 			outgoing = NewFixedDecimalField(field.Name, field.Source, field.Size, field.Scale)()
+			info.FloatFields[field.Name] = outgoing
 		case `Date`:
 			outgoing = NewDateField(field.Name, field.Source)()
+			info.DateTimeFields[field.Name] = outgoing
 		case `DateTime`:
 			outgoing = NewDateTimeField(field.Name, field.Source)()
+			info.DateTimeFields[field.Name] = outgoing
 		case `String`:
 			outgoing = NewStringField(field.Name, field.Source, field.Size)()
+			info.StringFields[field.Name] = outgoing
 		case `WString`:
 			outgoing = NewWStringField(field.Name, field.Source, field.Size)()
+			info.StringFields[field.Name] = outgoing
 		case `V_String`:
 			outgoing = NewV_StringField(field.Name, field.Source, field.Size)()
+			info.StringFields[field.Name] = outgoing
 		case `V_WString`:
 			outgoing = NewV_WStringField(field.Name, field.Source, field.Size)()
+			info.StringFields[field.Name] = outgoing
 		case `Blob`:
 			outgoing = NewBlobField(field.Name, field.Source, field.Size)()
+			info.BlobFields[field.Name] = outgoing
 		case `SpatialObj`:
 			outgoing = NewSpatialObjField(field.Name, field.Source, field.Size)()
+			info.BlobFields[field.Name] = outgoing
 		default:
 			panic(fmt.Sprintf(`field %v has an invalid field type (%v) for generating an OutgoingRecordInfo`, field.Name, field.Type))
 		}
 		outgoing.CopyFrom = field.GetBytes
 		fields[index] = outgoing
 	}
-	info := &OutgoingRecordInfo{outgoingFields: fields}
 	return info
 }

@@ -55,7 +55,7 @@ func (a *outputAnchor) Open(info *OutgoingRecordInfo) {
 }
 
 func (a *outputAnchor) Write() {
-	panic("implement me")
+	return
 }
 
 func (a *outputAnchor) UpdateProgress(progress float64) {

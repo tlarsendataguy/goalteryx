@@ -20,7 +20,7 @@ func TestVarDataSize(t *testing.T) {
 	info := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
 		api_new.NewV_StringField(`Field1`, `source`, 100000),
 	})
-	field, _ := info.GetStringField(`Field1`)
+	field := info.StringFields[`Field1`]
 
 	size := info.DataSize()
 	if size != 8 {

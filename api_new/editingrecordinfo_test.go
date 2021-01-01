@@ -283,9 +283,9 @@ func TestOutgoingBoolField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddBoolField(`Field1`, ``)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetBoolField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.BoolFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	field.SetBool(true)
 	if currentValue, isNull := field.GetCurrentBool(); currentValue != true || isNull {
@@ -301,9 +301,9 @@ func TestOutgoingByteField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddByteField(`Field1`, ``)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetIntField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.IntFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := 45
 	field.SetInt(expectedValue)
@@ -323,9 +323,9 @@ func TestOutgoingInt16Field(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddInt16Field(`Field1`, ``)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetIntField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.IntFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := 500
 	field.SetInt(expectedValue)
@@ -342,9 +342,9 @@ func TestOutgoingInt32Field(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddInt32Field(`Field1`, ``)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetIntField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.IntFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := 50000
 	field.SetInt(expectedValue)
@@ -361,9 +361,9 @@ func TestOutgoingInt64Field(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddInt64Field(`Field1`, ``)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetIntField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.IntFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := -500000000
 	field.SetInt(expectedValue)
@@ -380,9 +380,9 @@ func TestOutgoingFloatField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddFloatField(`Field1`, ``)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetFloatField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.FloatFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := 1.25
 	field.SetFloat(expectedValue)
@@ -399,9 +399,9 @@ func TestOutgoingDoubleField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddDoubleField(`Field1`, ``)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetFloatField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.FloatFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := 10456.25
 	field.SetFloat(expectedValue)
@@ -418,9 +418,9 @@ func TestOutgoingFixedDecimalField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddFixedDecimalField(`Field1`, ``, 19, 2)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetFloatField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.FloatFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := 123.4
 	field.SetFloat(expectedValue)
@@ -437,9 +437,9 @@ func TestTruncateDecimals(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddFixedDecimalField(`Field1`, ``, 19, 2)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetFloatField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.FloatFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	field.SetFloat(123.456)
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 123.46 || isNull {
@@ -455,9 +455,9 @@ func TestTruncateNumber(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddFixedDecimalField(`Field1`, ``, 5, 2)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetFloatField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.FloatFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	field.SetFloat(123.45)
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 123.4 || isNull {
@@ -481,9 +481,9 @@ func TestOutgoingDateField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddDateField(`Field1`, ``)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetDatetimeField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.DateTimeFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := time.Date(2020, 1, 2, 0, 0, 0, 0, time.UTC)
 	field.SetDateTime(expectedValue)
@@ -500,9 +500,9 @@ func TestOutgoingDatetimeField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddDateTimeField(`Field1`, ``)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetDatetimeField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.DateTimeFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := time.Date(2020, 1, 2, 3, 4, 5, 0, time.UTC)
 	field.SetDateTime(expectedValue)
@@ -519,9 +519,9 @@ func TestOutgoingStringField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddStringField(`Field1`, ``, 20)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `hello world`
 	field.SetString(expectedValue)
@@ -538,9 +538,9 @@ func TestStringSameSizeAsField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddStringField(`Field1`, ``, 10)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `0123456789`
 	field.SetString(expectedValue)
@@ -553,9 +553,9 @@ func TestStringLargerThanField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddStringField(`Field1`, ``, 10)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `blah blah blah`
 	field.SetString(expectedValue)
@@ -568,9 +568,9 @@ func TestOutgoingWStringField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddWStringField(`Field1`, ``, 20)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `hello world`
 	field.SetString(expectedValue)
@@ -587,9 +587,9 @@ func TestWStringSameSizeAsField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddWStringField(`Field1`, ``, 10)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `0123456789`
 	field.SetString(expectedValue)
@@ -602,9 +602,9 @@ func TestWStringLargerThanField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddWStringField(`Field1`, ``, 10)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `blah blah blah`
 	field.SetString(expectedValue)
@@ -617,9 +617,9 @@ func TestOutgoingV_StringField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddV_StringField(`Field1`, ``, 20)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `hello world`
 	field.SetString(expectedValue)
@@ -636,9 +636,9 @@ func TestV_StringSameSizeAsField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddV_StringField(`Field1`, ``, 10)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `0123456789`
 	field.SetString(expectedValue)
@@ -651,9 +651,9 @@ func TestV_StringLargerThanField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddV_StringField(`Field1`, ``, 10)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `blah blah blah`
 	field.SetString(expectedValue)
@@ -666,9 +666,9 @@ func TestOutgoingV_WStringField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddV_WStringField(`Field1`, ``, 20)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `hello world`
 	field.SetString(expectedValue)
@@ -685,9 +685,9 @@ func TestV_WStringSameSizeAsField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddV_WStringField(`Field1`, ``, 10)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `0123456789`
 	field.SetString(expectedValue)
@@ -700,9 +700,9 @@ func TestV_WStringLargerThanField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddV_WStringField(`Field1`, ``, 10)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetStringField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.StringFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := `blah blah blah`
 	field.SetString(expectedValue)
@@ -715,9 +715,9 @@ func TestOutgoingBlobField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddBlobField(`Field1`, ``, 20)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetBlobField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.BlobFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := []byte{1, 2, 3, 4, 5}
 	field.SetBlob(expectedValue)
@@ -734,9 +734,9 @@ func TestOutgoingSpatialObjField(t *testing.T) {
 	editor := &api_new.EditingRecordInfo{}
 	editor.AddSpatialObjField(`Field1`, ``, 20)
 	info := editor.GenerateOutgoingRecordInfo()
-	field, err := info.GetBlobField(`Field1`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
+	field, ok := info.BlobFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected a field but got none`)
 	}
 	expectedValue := []byte{1, 2, 3, 4, 5}
 	field.SetBlob(expectedValue)

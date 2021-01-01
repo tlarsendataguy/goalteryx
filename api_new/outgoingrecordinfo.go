@@ -284,18 +284,6 @@ func NewSpatialObjField(name string, source string, size int) NewOutgoingField {
 	}
 }
 
-func NewOutgoingRecordInfo(fields []NewOutgoingField) *OutgoingRecordInfo {
-	outgoingFields := make([]*outgoingField, len(fields))
-	for index, field := range fields {
-		outgoingFields[index] = field()
-	}
-	return &OutgoingRecordInfo{outgoingFields: outgoingFields}
-}
-
-type OutgoingRecordInfo struct {
-	outgoingFields []*outgoingField
-}
-
 type outgoingField struct {
 	XMLName         string                          `xml:"Field"`
 	Name            string                          `xml:"name,attr"`
@@ -657,28 +645,46 @@ type OutgoingBlobField interface {
 	GetCurrentBlob() ([]byte, bool)
 }
 
-func (i *OutgoingRecordInfo) GetBoolField(name string) (OutgoingBoolField, error) {
-	return i.getField(name, []string{`Bool`}, `Bool`)
+func NewOutgoingRecordInfo(fields []NewOutgoingField) *OutgoingRecordInfo {
+	outgoingFields := make([]*outgoingField, len(fields))
+	info := &OutgoingRecordInfo{
+		outgoingFields: outgoingFields,
+		BlobFields:     make(map[string]OutgoingBlobField),
+		BoolFields:     make(map[string]OutgoingBoolField),
+		DateTimeFields: make(map[string]OutgoingDateTimeField),
+		FloatFields:    make(map[string]OutgoingFloatField),
+		IntFields:      make(map[string]OutgoingIntField),
+		StringFields:   make(map[string]OutgoingStringField),
+	}
+	for index, createField := range fields {
+		field := createField()
+		outgoingFields[index] = field
+		switch field.Type {
+		case `Bool`:
+			info.BoolFields[field.Name] = field
+		case `Byte`, `Int16`, `Int32`, `Int64`:
+			info.IntFields[field.Name] = field
+		case `Float`, `Double`, `FixedDecimal`:
+			info.FloatFields[field.Name] = field
+		case `Date`, `DateTime`:
+			info.DateTimeFields[field.Name] = field
+		case `String`, `WString`, `V_String`, `V_WString`:
+			info.StringFields[field.Name] = field
+		case `Blob`, `SpatialObj`:
+			info.BlobFields[field.Name] = field
+		}
+	}
+	return info
 }
 
-func (i *OutgoingRecordInfo) GetIntField(name string) (OutgoingIntField, error) {
-	return i.getField(name, []string{`Byte`, `Int16`, `Int32`, `Int64`}, `Int`)
-}
-
-func (i *OutgoingRecordInfo) GetFloatField(name string) (OutgoingFloatField, error) {
-	return i.getField(name, []string{`Float`, `Double`, `FixedDecimal`}, `Decimal`)
-}
-
-func (i *OutgoingRecordInfo) GetDatetimeField(name string) (OutgoingDateTimeField, error) {
-	return i.getField(name, []string{`Date`, `DateTime`}, `DateTime`)
-}
-
-func (i *OutgoingRecordInfo) GetStringField(name string) (OutgoingStringField, error) {
-	return i.getField(name, []string{`String`, `WString`, `V_String`, `V_WString`}, `String`)
-}
-
-func (i *OutgoingRecordInfo) GetBlobField(name string) (OutgoingBlobField, error) {
-	return i.getField(name, []string{`Blob`, `SpatialObj`}, `Blob`)
+type OutgoingRecordInfo struct {
+	outgoingFields []*outgoingField
+	BlobFields     map[string]OutgoingBlobField
+	BoolFields     map[string]OutgoingBoolField
+	DateTimeFields map[string]OutgoingDateTimeField
+	FloatFields    map[string]OutgoingFloatField
+	IntFields      map[string]OutgoingIntField
+	StringFields   map[string]OutgoingStringField
 }
 
 func (i *OutgoingRecordInfo) DataSize() int {
@@ -712,16 +718,12 @@ func (i *OutgoingRecordInfo) toXml(connName string) string {
 	return fmt.Sprintf(`<MetaInfo connection="%v"><RecordInfo>%v</RecordInfo></MetaInfo>`, connName, string(xmlBytes))
 }
 
-func (i *OutgoingRecordInfo) getField(name string, types []string, label string) (*outgoingField, error) {
+func (i *OutgoingRecordInfo) checkName(name string) string {
 	for _, field := range i.outgoingFields {
-		if field.Name == name {
-			for _, ofType := range types {
-				if field.Type == ofType {
-					return field, nil
-				}
-			}
-			return nil, fmt.Errorf(`the '%v' field is not a %v field, it is '%v'`, name, label, field.Type)
+		if name == field.Name {
+			name = fmt.Sprintf(`%v2`, name)
+			return i.checkName(name)
 		}
 	}
-	return nil, fmt.Errorf(`there is no '%v' field in the record`, name)
+	return name
 }

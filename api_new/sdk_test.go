@@ -2,7 +2,9 @@ package api_new_test
 
 import (
 	"github.com/tlarsen7572/goalteryx/api_new"
+	"strconv"
 	"testing"
+	"time"
 )
 
 type TestImplementation struct {
@@ -82,6 +84,26 @@ func (i *TestInputTool) OnComplete() {
 	})
 	i.OutputConfig = output
 	i.Output.Open(output)
+
+	for index := 0; index < 10; index++ {
+		output.BlobFields[`Field1`].SetBlob([]byte{byte(index)})
+		output.BoolFields[`Field2`].SetBool(index%2 == 0)
+		output.IntFields[`Field3`].SetInt(index)
+		output.IntFields[`Field4`].SetInt(index)
+		output.IntFields[`Field5`].SetInt(index)
+		output.IntFields[`Field6`].SetInt(index)
+		output.FloatFields[`Field7`].SetFloat(float64(index))
+		output.FloatFields[`Field8`].SetFloat(float64(index))
+		output.FloatFields[`Field9`].SetFloat(float64(index))
+		output.StringFields[`Field10`].SetString(strconv.Itoa(index))
+		output.StringFields[`Field11`].SetString(strconv.Itoa(index))
+		output.StringFields[`Field12`].SetString(strconv.Itoa(index))
+		output.StringFields[`Field13`].SetString(strconv.Itoa(index))
+		output.DateTimeFields[`Field14`].SetDateTime(time.Date(2020, 1, index, 0, 0, 0, 0, time.UTC))
+		output.DateTimeFields[`Field15`].SetDateTime(time.Date(2020, 1, index, 0, 0, 0, 0, time.UTC))
+		output.BlobFields[`Field16`].SetBlob([]byte{byte(index)})
+		i.Output.Write()
+	}
 }
 
 func TestRegister(t *testing.T) {
