@@ -48,13 +48,13 @@ func (a *outputAnchor) Metadata() *OutgoingRecordInfo {
 	return a.metaData
 }
 
-func (a *outputAnchor) Open(config *OutgoingRecordInfo) {
-	a.metaData = config
-	xmlStr := config.toXml(a.Name())
+func (a *outputAnchor) Open(info *OutgoingRecordInfo) {
+	a.metaData = info
+	xmlStr := info.toXml(a.Name())
 	openOutgoingAnchor(a.data, xmlStr)
 }
 
-func (a *outputAnchor) Write(record Record) {
+func (a *outputAnchor) Write() {
 	panic("implement me")
 }
 

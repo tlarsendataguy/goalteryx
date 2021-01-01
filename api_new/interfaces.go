@@ -44,7 +44,7 @@ type OutputAnchor interface {
 	IsOpen() bool
 	Metadata() *OutgoingRecordInfo
 	Open(info *OutgoingRecordInfo)
-	Write(Record)
+	Write()
 	UpdateProgress(float64)
 }
 
