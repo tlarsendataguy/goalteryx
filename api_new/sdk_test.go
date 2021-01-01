@@ -64,7 +64,7 @@ func (i *TestInputTool) OnRecordPacket(_ api_new.InputConnection) {
 
 func (i *TestInputTool) OnComplete() {
 	source := `source`
-	output := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
+	output, _ := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
 		api_new.NewBlobField(`Field1`, source, 100),
 		api_new.NewBoolField(`Field2`, source),
 		api_new.NewByteField(`Field3`, source),

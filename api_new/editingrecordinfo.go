@@ -132,9 +132,8 @@ func (i *EditingRecordInfo) checkName(name string) string {
 }
 
 func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
-	fields := make([]*outgoingField, i.NumFields())
 	info := &OutgoingRecordInfo{
-		outgoingFields: fields,
+		outgoingFields: nil,
 		BlobFields:     make(map[string]OutgoingBlobField),
 		BoolFields:     make(map[string]OutgoingBoolField),
 		DateTimeFields: make(map[string]OutgoingDateTimeField),
@@ -144,7 +143,7 @@ func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 	}
 	var outgoing *outgoingField
 
-	for index, field := range i.fields {
+	for _, field := range i.fields {
 		switch field.Type {
 		case `Bool`:
 			outgoing = NewBoolField(field.Name, field.Source)()
@@ -198,7 +197,7 @@ func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 			panic(fmt.Sprintf(`field %v has an invalid field type (%v) for generating an OutgoingRecordInfo`, field.Name, field.Type))
 		}
 		outgoing.CopyFrom = field.GetBytes
-		fields[index] = outgoing
+		info.outgoingFields = append(info.outgoingFields, outgoing)
 	}
 	return info
 }

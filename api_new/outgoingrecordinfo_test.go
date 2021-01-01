@@ -7,7 +7,7 @@ import (
 )
 
 func TestDataSize(t *testing.T) {
-	info := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
+	info, _ := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
 		api_new.NewBoolField(`Field1`, `source`),
 	})
 	size := info.DataSize()
@@ -17,7 +17,7 @@ func TestDataSize(t *testing.T) {
 }
 
 func TestVarDataSize(t *testing.T) {
-	info := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
+	info, _ := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
 		api_new.NewV_StringField(`Field1`, `source`, 100000),
 	})
 	field := info.StringFields[`Field1`]
@@ -37,5 +37,23 @@ func TestVarDataSize(t *testing.T) {
 	size = info.DataSize()
 	if size != 212 {
 		t.Fatalf(`expected size 212 but got %v`, size)
+	}
+}
+
+func TestDuplicateFieldNames(t *testing.T) {
+	info, fieldNames := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
+		api_new.NewBoolField(`Field1`, `source`),
+		api_new.NewBoolField(`Field1`, `source`),
+	})
+	_, ok := info.BoolFields[`Field1`]
+	if !ok {
+		t.Fatalf(`expected Field1 but got no field`)
+	}
+	_, ok = info.BoolFields[`Field12`]
+	if !ok {
+		t.Fatalf(`expected Field12 but got no field`)
+	}
+	if fieldNames[0] != `Field1` || fieldNames[1] != `Field12` {
+		t.Fatalf(`expected [Field1 Field12] but got %v`, fieldNames)
 	}
 }

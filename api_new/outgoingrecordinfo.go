@@ -645,10 +645,9 @@ type OutgoingBlobField interface {
 	GetCurrentBlob() ([]byte, bool)
 }
 
-func NewOutgoingRecordInfo(fields []NewOutgoingField) *OutgoingRecordInfo {
-	outgoingFields := make([]*outgoingField, len(fields))
+func NewOutgoingRecordInfo(fields []NewOutgoingField) (*OutgoingRecordInfo, []string) {
 	info := &OutgoingRecordInfo{
-		outgoingFields: outgoingFields,
+		outgoingFields: nil,
 		BlobFields:     make(map[string]OutgoingBlobField),
 		BoolFields:     make(map[string]OutgoingBoolField),
 		DateTimeFields: make(map[string]OutgoingDateTimeField),
@@ -656,9 +655,14 @@ func NewOutgoingRecordInfo(fields []NewOutgoingField) *OutgoingRecordInfo {
 		IntFields:      make(map[string]OutgoingIntField),
 		StringFields:   make(map[string]OutgoingStringField),
 	}
-	for index, createField := range fields {
+	var fieldNames []string
+
+	for _, createField := range fields {
 		field := createField()
-		outgoingFields[index] = field
+		name := checkName(info, field.Name)
+		field.Name = name
+		info.outgoingFields = append(info.outgoingFields, field)
+		fieldNames = append(fieldNames, name)
 		switch field.Type {
 		case `Bool`:
 			info.BoolFields[field.Name] = field
@@ -674,7 +678,7 @@ func NewOutgoingRecordInfo(fields []NewOutgoingField) *OutgoingRecordInfo {
 			info.BlobFields[field.Name] = field
 		}
 	}
-	return info
+	return info, fieldNames
 }
 
 type OutgoingRecordInfo struct {
@@ -718,11 +722,11 @@ func (i *OutgoingRecordInfo) toXml(connName string) string {
 	return fmt.Sprintf(`<MetaInfo connection="%v"><RecordInfo>%v</RecordInfo></MetaInfo>`, connName, string(xmlBytes))
 }
 
-func (i *OutgoingRecordInfo) checkName(name string) string {
-	for _, field := range i.outgoingFields {
+func checkName(info *OutgoingRecordInfo, name string) string {
+	for _, field := range info.outgoingFields {
 		if name == field.Name {
 			name = fmt.Sprintf(`%v2`, name)
-			return i.checkName(name)
+			return checkName(info, name)
 		}
 	}
 	return name
