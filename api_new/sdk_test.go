@@ -202,4 +202,7 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 	if outputConfig != implementation.OutputConfig {
 		t.Fatalf(`expected same instance but got %v and %v`, outputConfig, implementation.OutputConfig)
 	}
+	if length := len(collector.Data); length != 16 {
+		t.Fatalf(`expected 16 fields but got %v`, length)
+	}
 }

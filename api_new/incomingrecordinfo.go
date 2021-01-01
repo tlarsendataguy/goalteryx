@@ -38,6 +38,14 @@ type IncomingField struct {
 	GetBytes BytesGetter
 }
 
+type IncomingFieldBase struct {
+	Name   string
+	Type   string
+	Source string
+	Size   int
+	Scale  int
+}
+
 type IncomingIntField struct {
 	Name     string
 	Type     string
@@ -88,6 +96,20 @@ type IncomingRecordInfo struct {
 
 func (i IncomingRecordInfo) NumFields() int {
 	return len(i.fields)
+}
+
+func (i IncomingRecordInfo) Fields() []IncomingFieldBase {
+	fields := make([]IncomingFieldBase, len(i.fields))
+	for index, field := range i.fields {
+		fields[index] = IncomingFieldBase{
+			Name:   field.Name,
+			Type:   field.Type,
+			Source: field.Source,
+			Size:   field.Size,
+			Scale:  field.Scale,
+		}
+	}
+	return fields
 }
 
 func (i IncomingRecordInfo) Clone() *EditingRecordInfo {

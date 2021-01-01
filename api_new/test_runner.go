@@ -26,15 +26,53 @@ func (r *FileTestRunner) CaptureOutgoingAnchor(name string) *RecordCollector {
 }
 
 type RecordCollector struct {
-	Config IncomingRecordInfo
-	Name   string
+	Config       IncomingRecordInfo
+	Name         string
+	Data         map[string][]interface{}
+	boolFields   map[string]BoolGetter
+	intFields    map[string]IntGetter
+	floatFields  map[string]FloatGetter
+	stringFields map[string]StringGetter
+	timeFields   map[string]TimeGetter
+	blobFields   map[string]BytesGetter
 }
 
-func (r *RecordCollector) Init(provider Provider) {}
+func (r *RecordCollector) Init(_ Provider) {
+	r.Data = make(map[string][]interface{})
+	r.boolFields = make(map[string]BoolGetter)
+	r.intFields = make(map[string]IntGetter)
+	r.floatFields = make(map[string]FloatGetter)
+	r.stringFields = make(map[string]StringGetter)
+	r.timeFields = make(map[string]TimeGetter)
+	r.blobFields = make(map[string]BytesGetter)
+}
 
 func (r *RecordCollector) OnInputConnectionOpened(connection InputConnection) {
 	r.Name = connection.Name()
 	r.Config = connection.Metadata()
+	for _, field := range r.Config.Fields() {
+		r.Data[field.Name] = []interface{}{}
+		switch field.Type {
+		case `Bool`:
+			boolField, _ := r.Config.GetBoolField(field.Name)
+			r.boolFields[field.Name] = boolField.GetValue
+		case `Byte`, `Int16`, `Int32`, `Int64`:
+			intField, _ := r.Config.GetIntField(field.Name)
+			r.intFields[field.Name] = intField.GetValue
+		case `Float`, `Double`, `FixedDecimal`:
+			floatField, _ := r.Config.GetFloatField(field.Name)
+			r.floatFields[field.Name] = floatField.GetValue
+		case `String`, `WString`, `V_String`, `V_WString`:
+			stringField, _ := r.Config.GetStringField(field.Name)
+			r.stringFields[field.Name] = stringField.GetValue
+		case `Date`, `DateTime`:
+			timeField, _ := r.Config.GetTimeField(field.Name)
+			r.timeFields[field.Name] = timeField.GetValue
+		case `Blob`, `SpatialObj`:
+			blobField, _ := r.Config.GetBlobField(field.Name)
+			r.blobFields[field.Name] = blobField.GetValue
+		}
+	}
 }
 
 func (r *RecordCollector) OnRecordPacket(connection InputConnection) {
