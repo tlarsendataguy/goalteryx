@@ -29,11 +29,11 @@ func (t *TestImplementation) Init(provider api_new.Provider) {
 	t.Output = provider.GetOutputAnchor(`Output`)
 }
 
-func (t *TestImplementation) OnInputConnectionOpened(connection api_new.InputConnection) {
+func (t *TestImplementation) OnInputConnectionOpened(_ api_new.InputConnection) {
 	t.DidOnInputConnectionOpened = true
 }
 
-func (t *TestImplementation) OnRecordPacket(connection api_new.InputConnection) {
+func (t *TestImplementation) OnRecordPacket(_ api_new.InputConnection) {
 	t.DidOnRecordPacket = true
 }
 
@@ -52,33 +52,34 @@ func (i *TestInputTool) Init(provider api_new.Provider) {
 	i.Output = provider.GetOutputAnchor(`Output`)
 }
 
-func (i *TestInputTool) OnInputConnectionOpened(connection api_new.InputConnection) {
+func (i *TestInputTool) OnInputConnectionOpened(_ api_new.InputConnection) {
 	panic("This should never be called")
 }
 
-func (i *TestInputTool) OnRecordPacket(connection api_new.InputConnection) {
+func (i *TestInputTool) OnRecordPacket(_ api_new.InputConnection) {
 	panic("This should never be called")
 }
 
 func (i *TestInputTool) OnComplete() {
-	editor := &api_new.EditingRecordInfo{}
-	editor.AddBlobField(`Field1`, `source`, 100)
-	editor.AddBoolField(`Field2`, `source`)
-	editor.AddByteField(`Field3`, `source`)
-	editor.AddInt16Field(`Field4`, `source`)
-	editor.AddInt32Field(`Field5`, `source`)
-	editor.AddInt64Field(`Field6`, `source`)
-	editor.AddFloatField(`Field7`, `source`)
-	editor.AddDoubleField(`Field8`, `source`)
-	editor.AddFixedDecimalField(`Field9`, `source`, 19, 2)
-	editor.AddStringField(`Field10`, `source`, 100)
-	editor.AddWStringField(`Field11`, `source`, 100)
-	editor.AddV_StringField(`Field12`, `source`, 100000)
-	editor.AddV_WStringField(`Field13`, `source`, 100000)
-	editor.AddDateField(`Field14`, `source`)
-	editor.AddDateTimeField(`Field15`, `source`)
-	editor.AddSpatialObjField(`Field16`, `source`, 1000000)
-	output := editor.GenerateOutgoingRecordInfo()
+	source := `source`
+	output := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
+		api_new.NewBlobField(`Field1`, source, 100),
+		api_new.NewBoolField(`Field2`, source),
+		api_new.NewByteField(`Field3`, source),
+		api_new.NewInt16Field(`Field4`, source),
+		api_new.NewInt32Field(`Field5`, source),
+		api_new.NewInt64Field(`Field6`, source),
+		api_new.NewFloatField(`Field7`, source),
+		api_new.NewDoubleField(`Field8`, source),
+		api_new.NewFixedDecimalField(`Field9`, source, 19, 2),
+		api_new.NewStringField(`Field10`, source, 100),
+		api_new.NewWStringField(`Field11`, source, 100),
+		api_new.NewV_StringField(`Field12`, source, 100000),
+		api_new.NewV_WStringField(`Field13`, source, 100000),
+		api_new.NewDateField(`Field14`, source),
+		api_new.NewDateTimeField(`Field15`, source),
+		api_new.NewSpatialObjField(`Field16`, source, 1000000),
+	})
 	i.OutputConfig = output
 	i.Output.Open(output)
 }

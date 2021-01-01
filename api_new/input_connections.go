@@ -18,9 +18,9 @@ func (i *ImpInputConnection) Metadata() IncomingRecordInfo {
 }
 
 func (i *ImpInputConnection) Read() RecordPacket {
-	panic("implement me")
+	return NewRecordPacket(RecordCache(i.data.recordCache), int(i.data.recordCachePosition), int(i.data.fixedSize), i.data.hasVarFields == 1)
 }
 
 func (i *ImpInputConnection) Progress() float64 {
-	panic("implement me")
+	return i.data.percent
 }
