@@ -123,6 +123,18 @@ void PI_Close(void * handle, bool bHasErrors) {
 long PI_PushAllRecords(void * handle, __int64 nRecordLimit){
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
     goOnComplete(plugin);
+    struct OutputAnchor *anchor = plugin->outputAnchors;
+    while (anchor != NULL) {
+        struct OutputConn *conn = anchor->firstChild;
+        while (anchor->isOpen == 1 && conn != NULL) {
+            if (conn->isOpen == 1) {
+                conn->ii->pII_Close(conn->ii->handle);
+                conn->isOpen == 0;
+            }
+            conn = conn->nextConnection;
+        }
+        anchor = anchor->nextAnchor;
+    }
 }
 
 struct InputAnchor* createInputAnchor(wchar_t* name) {
@@ -299,6 +311,9 @@ void II_UpdateProgress(void * handle, double dPercent) {
 
 void II_Close(void * handle) {
     struct InputConnection *input = (struct InputConnection*)handle;
+    if (input->recordCachePosition > 0) {
+        goOnRecordPacket(input);
+    }
     struct PluginSharedMemory *plugin = input->plugin;
     plugin->closedInputConnections++;
 
@@ -313,5 +328,29 @@ void II_Free(void * handle) {
 }
 
 void callWriteRecords(struct OutputAnchor *anchor) {
-
+    struct OutputConn *conn = anchor->firstChild;
+    if (conn == NULL) {
+        anchor->recordCachePosition = 0;
+        return;
+    }
+    char *record;
+    uint32_t written = 0;
+    while (written < anchor->recordCachePosition) {
+        record = &anchor->recordCache[written];
+        while (conn != NULL) {
+            if (conn->isOpen == 0) {
+                continue;
+            }
+            long result = conn->ii->pII_PushRecord(conn->ii->handle, record);
+            if (result == 0) {
+                conn->ii->pII_Close(conn->ii->handle);
+                conn->isOpen = 0;
+            }
+        }
+        written += anchor->fixedSize;
+        if (anchor->hasVarFields == 1) {
+            uint32_t varLen = uint32FromRecordPosition(record, written);
+            written += 4 + varLen;
+        }
+    }
 }

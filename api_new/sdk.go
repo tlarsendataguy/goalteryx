@@ -248,7 +248,10 @@ func goOnInputConnectionOpened(handle unsafe.Pointer) {
 
 //export goOnRecordPacket
 func goOnRecordPacket(handle unsafe.Pointer) {
-
+	data := (*goInputConnectionData)(handle)
+	connection := &ImpInputConnection{data: data}
+	implementation := tools[data.plugin]
+	implementation.OnRecordPacket(connection)
 }
 
 //export goOnSingleRecord
@@ -261,6 +264,11 @@ func goOnComplete(handle unsafe.Pointer) {
 	data := (*goPluginSharedMemory)(handle)
 	implementation := tools[data]
 	implementation.OnComplete()
+	for anchor := data.outputAnchors; anchor != nil; anchor = anchor.nextAnchor {
+		if anchor.recordCachePosition > 0 {
+			callWriteRecords(unsafe.Pointer(anchor))
+		}
+	}
 }
 
 func callWriteRecords(handle unsafe.Pointer) {
@@ -268,5 +276,5 @@ func callWriteRecords(handle unsafe.Pointer) {
 }
 
 func allocateCache(size int) unsafe.Pointer {
-	return C.malloc(C.int(size))
+	return C.malloc(C.ulonglong(size))
 }

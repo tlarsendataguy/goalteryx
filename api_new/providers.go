@@ -59,6 +59,8 @@ func (a *outputAnchor) Open(info *OutgoingRecordInfo) {
 	if info.HasVarFields() {
 		a.data.hasVarFields = 1
 	}
+	a.data.recordCache = allocateCache(cacheSize)
+	a.data.recordCacheSize = uint32(cacheSize)
 	xmlStr := info.toXml(a.Name())
 	openOutgoingAnchor(a.data, xmlStr)
 }
