@@ -10,6 +10,8 @@ import (
 	"unsafe"
 )
 
+const cacheSize int = 4194304
+
 type goPluginSharedMemory struct {
 	toolId                 uint32
 	toolConfig             unsafe.Pointer
@@ -27,8 +29,11 @@ type goOutputAnchorData struct {
 	isOpen              byte
 	firstChild          *goOutputConnectionData
 	nextAnchor          *goOutputAnchorData
+	fixedSize           uint32
+	hasVarFields        byte
 	recordCache         unsafe.Pointer
 	recordCachePosition uint32
+	recordCacheSize     uint32
 }
 
 type goOutputConnectionData struct {
@@ -54,6 +59,7 @@ type goInputConnectionData struct {
 	hasVarFields        byte
 	recordCache         unsafe.Pointer
 	recordCachePosition uint32
+	recordCacheSize     uint32
 }
 
 var tools = map[*goPluginSharedMemory]Plugin{}
@@ -255,4 +261,12 @@ func goOnComplete(handle unsafe.Pointer) {
 	data := (*goPluginSharedMemory)(handle)
 	implementation := tools[data]
 	implementation.OnComplete()
+}
+
+func callWriteRecords(handle unsafe.Pointer) {
+	C.callWriteRecords((*C.struct_OutputAnchor)(handle))
+}
+
+func allocateCache(size int) unsafe.Pointer {
+	return C.malloc(C.int(size))
 }

@@ -19,8 +19,11 @@ const int cacheSize = 4194304; //4mb
 **             ii (struct IncomingInterface*)
 **             nextConnection (struct OutputConn*)
 **         nextAnchor (struct OutputAnchor*)
+**         fixedSize (uint32_t)
+**         hasVarFields (char)
 **         recordCache (char *)
 **         recordCachePosition (uint32_t)
+**         recordCacheSize (uint32_t)
 **     totalInputConnections (uint32_t)
 **     closedInputConnections (uint32_t)
 **     inputAnchors (struct InputAnchor*)
@@ -36,6 +39,7 @@ const int cacheSize = 4194304; //4mb
 **             hasVarFields (char)
 **             recordCache (char *)
 **             recordCachePosition (uint32_t)
+**             recordCacheSize (uint32_t)
 **         nextAnchor (struct InputAnchor*)
 */
 
@@ -166,6 +170,7 @@ long PI_AddIncomingConnection(void * handle, wchar_t * pIncomingConnectionType, 
     connection->hasVarFields = 0;
     connection->recordCache = NULL;
     connection->recordCachePosition = 0;
+    connection->recordCacheSize = 0;
 
     plugin->totalInputConnections++;
 
@@ -222,6 +227,7 @@ struct OutputAnchor* createOutgoingAnchor(wchar_t* name) {
     anchor->nextAnchor = NULL;
     anchor->recordCache = NULL;
     anchor->recordCachePosition = 0;
+    anchor->recordCacheSize = 0;
 
     return anchor;
 }
@@ -303,5 +309,9 @@ void II_Close(void * handle) {
 }
 
 void II_Free(void * handle) {
+
+}
+
+void callWriteRecords(struct OutputAnchor *anchor) {
 
 }

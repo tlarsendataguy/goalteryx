@@ -24,3 +24,12 @@ func utf16ToBytes(value []uint16) []byte {
 	rawHeader.Cap = bytesLen
 	return bytes
 }
+
+func ptrToBytes(value unsafe.Pointer, start int, length int) []byte {
+	var bytes []byte
+	rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	rawHeader.Data = uintptr(value) + uintptr(start)
+	rawHeader.Len = length
+	rawHeader.Cap = length
+	return bytes
+}

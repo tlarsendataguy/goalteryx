@@ -1,5 +1,10 @@
 package api_new
 
+import (
+	"encoding/binary"
+	"unsafe"
+)
+
 type provider struct {
 	sharedMemory  *goPluginSharedMemory
 	io            Io
@@ -50,14 +55,66 @@ func (a *outputAnchor) Metadata() *OutgoingRecordInfo {
 
 func (a *outputAnchor) Open(info *OutgoingRecordInfo) {
 	a.metaData = info
+	a.data.fixedSize = uint32(info.FixedSize())
+	if info.HasVarFields() {
+		a.data.hasVarFields = 1
+	}
 	xmlStr := info.toXml(a.Name())
 	openOutgoingAnchor(a.data, xmlStr)
 }
 
 func (a *outputAnchor) Write() {
-	return
+	nextRecordSize := a.metaData.DataSize()
+	fixedPosition := int(a.data.recordCachePosition)
+	varPosition := int(a.data.fixedSize) + 4
+	varLen := 0
+	if fixedPosition+nextRecordSize >= cacheSize {
+		callWriteRecords(unsafe.Pointer(a.data))
+		fixedPosition = 0
+	}
+	cache := ptrToBytes(a.data.recordCache, fixedPosition, nextRecordSize)
+	for _, field := range a.metaData.outgoingFields {
+		if field.isFixedLen {
+			copy(cache, field.CurrentValue)
+			continue
+		}
+		varWritten := varBytesToCache(field.CurrentValue, cache, fixedPosition, varPosition)
+		fixedPosition += 4
+		varLen += varWritten
+		varPosition += varWritten
+	}
 }
 
 func (a *outputAnchor) UpdateProgress(progress float64) {
 	panic("implement me")
+}
+
+func varBytesToCache(varBytes []byte, cache []byte, fixedPosition int, varPosition int) int {
+	varWritten := len(varBytes)
+	varDataLen := uint32(varWritten)
+
+	// Small string optimization
+	if varDataLen < 4 {
+		varDataLen <<= 28
+		fixedBytes := make([]byte, 4)
+		copy(fixedBytes, varBytes)
+		varDataUint32 := binary.LittleEndian.Uint32(fixedBytes) | varDataLen
+		binary.LittleEndian.PutUint32(cache[fixedPosition:fixedPosition+4], varDataUint32)
+		return 0
+	}
+
+	binary.LittleEndian.PutUint32(cache[fixedPosition:fixedPosition+4], uint32(varPosition-fixedPosition))
+
+	if varDataLen < 128 {
+		cache[varPosition] = byte(varDataLen*2) | 1 // Alteryx seems to multiply all var lens by 2
+		varPosition += 1
+		varWritten += 1
+	} else {
+		binary.LittleEndian.PutUint32(cache[varPosition:varPosition+4], varDataLen*2) // Alteryx seems to multiply all var lens by 2
+		varPosition += 4
+		varWritten += 4
+	}
+
+	copy(cache[varPosition:], varBytes)
+	return varWritten
 }

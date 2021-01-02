@@ -15,6 +15,7 @@ struct InputConnection {
     char                       hasVarFields;
     char*                      recordCache;
     uint32_t                   recordCachePosition;
+    uint32_t                   recordCacheSize;
 };
 
 struct InputAnchor {
@@ -35,8 +36,11 @@ struct OutputAnchor {
     char                 isOpen;
     struct OutputConn*   firstChild;
     struct OutputAnchor* nextAnchor;
+    uint32_t             fixedSize;
+    char                 hasVarFields;
     char*                recordCache;
     uint32_t             recordCachePosition;
+    uint32_t             recordCacheSize;
 };
 
 struct PluginSharedMemory {
@@ -79,3 +83,4 @@ void goOnInputConnectionOpened(void * handle);
 void goOnRecordPacket(void * handle);
 void goOnSingleRecord(void * handle, void * record);
 void goOnComplete(void * handle);
+void callWriteRecords(struct OutputAnchor *anchor);

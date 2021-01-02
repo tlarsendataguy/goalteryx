@@ -691,6 +691,29 @@ type OutgoingRecordInfo struct {
 	StringFields   map[string]OutgoingStringField
 }
 
+func (i *OutgoingRecordInfo) FixedSize() int {
+	fixedSize := 0
+	for _, field := range i.outgoingFields {
+		if field.isFixedLen {
+			fixedSize += field.dataSize()
+			continue
+		}
+		fixedSize += 4
+	}
+	return fixedSize
+}
+
+func (i *OutgoingRecordInfo) HasVarFields() bool {
+	varFields := 0
+	for _, field := range i.outgoingFields {
+		if field.isFixedLen {
+			continue
+		}
+		varFields++
+	}
+	return varFields > 0
+}
+
 func (i *OutgoingRecordInfo) DataSize() int {
 	totalSize := 0
 	varFields := 0
