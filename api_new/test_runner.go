@@ -76,9 +76,41 @@ func (r *RecordCollector) OnInputConnectionOpened(connection InputConnection) {
 }
 
 func (r *RecordCollector) OnRecordPacket(connection InputConnection) {
-	panic("implement me")
+	packet := connection.Read()
+	for packet.Next() {
+		record := packet.Record()
+		for name, getter := range r.blobFields {
+			r.Data[name] = append(r.Data[name], getter(record))
+		}
+		for name, getter := range r.boolFields {
+			value, isNull := getter(record)
+			r.appendDataToField(name, value, isNull)
+		}
+		for name, getter := range r.intFields {
+			value, isNull := getter(record)
+			r.appendDataToField(name, value, isNull)
+		}
+		for name, getter := range r.floatFields {
+			value, isNull := getter(record)
+			r.appendDataToField(name, value, isNull)
+		}
+		for name, getter := range r.stringFields {
+			value, isNull := getter(record)
+			r.appendDataToField(name, value, isNull)
+		}
+		for name, getter := range r.timeFields {
+			value, isNull := getter(record)
+			r.appendDataToField(name, value, isNull)
+		}
+	}
 }
 
-func (r *RecordCollector) OnComplete() {
-	panic("implement me")
+func (r *RecordCollector) OnComplete() {}
+
+func (r *RecordCollector) appendDataToField(fieldName string, value interface{}, isNull bool) {
+	if isNull {
+		r.Data[fieldName] = append(r.Data[fieldName], nil)
+	} else {
+		r.Data[fieldName] = append(r.Data[fieldName], value)
+	}
 }

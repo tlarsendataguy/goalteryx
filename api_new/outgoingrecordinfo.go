@@ -704,14 +704,13 @@ func (i *OutgoingRecordInfo) FixedSize() int {
 }
 
 func (i *OutgoingRecordInfo) HasVarFields() bool {
-	varFields := 0
 	for _, field := range i.outgoingFields {
 		if field.isFixedLen {
 			continue
 		}
-		varFields++
+		return true
 	}
-	return varFields > 0
+	return false
 }
 
 func (i *OutgoingRecordInfo) DataSize() int {

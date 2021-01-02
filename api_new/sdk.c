@@ -237,6 +237,8 @@ struct OutputAnchor* createOutgoingAnchor(wchar_t* name) {
     anchor->isOpen = 0;
     anchor->firstChild = NULL;
     anchor->nextAnchor = NULL;
+    anchor->fixedSize = 0;
+    anchor->hasVarFields = 0;
     anchor->recordCache = NULL;
     anchor->recordCachePosition = 0;
     anchor->recordCacheSize = 0;
@@ -286,7 +288,7 @@ long II_PushRecord(void * handle, char * pRecord) {
     uint32_t totalSize = input->fixedSize;
     if (input->hasVarFields == 1) {
         uint32_t varSize = uint32FromRecordPosition(pRecord, totalSize);
-        totalSize += varSize;
+        totalSize += 4 + varSize;
     }
 
     if (input->recordCachePosition + totalSize > cacheSize && input->recordCachePosition > 0) {

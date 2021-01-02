@@ -243,6 +243,37 @@ func goOnInputConnectionOpened(handle unsafe.Pointer) {
 	inputConnection := &ImpInputConnection{
 		data: data,
 	}
+	var hasVarFields byte = 0
+	var fixedSize uint32 = 0
+	for _, field := range inputConnection.Metadata().Fields() {
+		switch field.Type {
+		case `Bool`:
+			fixedSize += 1
+		case `Byte`:
+			fixedSize += 2
+		case `Int16`:
+			fixedSize += 3
+		case `Int32`, `Float`:
+			fixedSize += 5
+		case `Int64`, `Double`:
+			fixedSize += 9
+		case `FixedDecimal`:
+			fixedSize += uint32(field.Size) + 1
+		case `Date`:
+			fixedSize += 11
+		case `DateTime`:
+			fixedSize += 20
+		case `String`:
+			fixedSize += uint32(field.Size) + 1
+		case `W_String`:
+			fixedSize += uint32(field.Size*2) + 1
+		case `V_String`, `V_WString`, `Blob`, `SpatialObj`:
+			fixedSize += 4
+			hasVarFields = 1
+		}
+	}
+	data.fixedSize = fixedSize
+	data.hasVarFields = hasVarFields
 	plugin.OnInputConnectionOpened(inputConnection)
 }
 

@@ -78,13 +78,25 @@ func (a *outputAnchor) Write() {
 	for _, field := range a.metaData.outgoingFields {
 		if field.isFixedLen {
 			copy(cache, field.CurrentValue)
+			fixedPosition += len(field.CurrentValue)
 			continue
 		}
-		varWritten := varBytesToCache(field.CurrentValue, cache, fixedPosition, varPosition)
+		if field.CurrentValue[0] == 1 {
+			copy(cache, []byte{1, 0, 0, 0})
+			fixedPosition += 4
+			continue
+		}
+		if len(field.CurrentValue) == 0 {
+			copy(cache, []byte{0, 0, 0, 0})
+			fixedPosition += 4
+			continue
+		}
+		varWritten := varBytesToCache(field.CurrentValue, cache[1:], fixedPosition, varPosition)
 		fixedPosition += 4
 		varLen += varWritten
 		varPosition += varWritten
 	}
+	a.data.recordCachePosition += uint32(nextRecordSize)
 }
 
 func (a *outputAnchor) UpdateProgress(progress float64) {
