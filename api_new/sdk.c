@@ -1,4 +1,5 @@
 #include "sdk.h"
+#include <stdio.h>
 
 const int cacheSize = 4194304; //4mb
 
@@ -285,6 +286,10 @@ uint32_t uint32FromRecordPosition(char * record, uint32_t position) {
 
 long II_PushRecord(void * handle, char * pRecord) {
     struct InputConnection *input = (struct InputConnection*)handle;
+    if (NULL == input->recordCache) {
+        input->recordCache = malloc(cacheSize);
+        input->recordCacheSize = cacheSize;
+    }
     uint32_t totalSize = input->fixedSize;
     if (input->hasVarFields == 1) {
         uint32_t varSize = uint32FromRecordPosition(pRecord, totalSize);
@@ -292,17 +297,18 @@ long II_PushRecord(void * handle, char * pRecord) {
     }
 
     if (input->recordCachePosition + totalSize > cacheSize && input->recordCachePosition > 0) {
-        goOnRecordPacket(input);
+        goOnRecordPacket(handle);
         input->recordCachePosition = 0;
     }
 
     if (totalSize > cacheSize) {
-        goOnSingleRecord(input, pRecord);
+        goOnSingleRecord(handle, pRecord);
         return 1;
     }
 
-    memcpy(&input->recordCache[input->recordCachePosition], pRecord, totalSize);
+    memcpy(input->recordCache+input->recordCachePosition, pRecord, totalSize);
     input->recordCachePosition += totalSize;
+    printf("got record of size %d making a total record cache position of %d\n", totalSize, input->recordCachePosition);
     return 1;
 }
 
@@ -331,16 +337,18 @@ void II_Free(void * handle) {
 
 void callWriteRecords(struct OutputAnchor *anchor) {
     struct OutputConn *conn = anchor->firstChild;
-    if (conn == NULL) {
+    if (NULL == conn) {
         anchor->recordCachePosition = 0;
         return;
     }
     char *record;
     uint32_t written = 0;
     while (written < anchor->recordCachePosition) {
+        conn = anchor->firstChild;
         record = &anchor->recordCache[written];
         while (conn != NULL) {
             if (conn->isOpen == 0) {
+                conn = conn->nextConnection;
                 continue;
             }
             long result = conn->ii->pII_PushRecord(conn->ii->handle, record);
@@ -348,6 +356,7 @@ void callWriteRecords(struct OutputAnchor *anchor) {
                 conn->ii->pII_Close(conn->ii->handle);
                 conn->isOpen = 0;
             }
+            conn = conn->nextConnection;
         }
         written += anchor->fixedSize;
         if (anchor->hasVarFields == 1) {

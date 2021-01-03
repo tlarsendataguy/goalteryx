@@ -245,7 +245,8 @@ func goOnInputConnectionOpened(handle unsafe.Pointer) {
 	}
 	var hasVarFields byte = 0
 	var fixedSize uint32 = 0
-	for _, field := range inputConnection.Metadata().Fields() {
+	fields := inputConnection.Metadata().fields
+	for _, field := range fields {
 		switch field.Type {
 		case `Bool`:
 			fixedSize += 1
@@ -265,7 +266,7 @@ func goOnInputConnectionOpened(handle unsafe.Pointer) {
 			fixedSize += 20
 		case `String`:
 			fixedSize += uint32(field.Size) + 1
-		case `W_String`:
+		case `WString`:
 			fixedSize += uint32(field.Size*2) + 1
 		case `V_String`, `V_WString`, `Blob`, `SpatialObj`:
 			fixedSize += 4

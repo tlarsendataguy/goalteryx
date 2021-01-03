@@ -2,6 +2,7 @@ package api_new
 
 import (
 	"encoding/binary"
+	"fmt"
 	"unsafe"
 )
 
@@ -67,34 +68,44 @@ func (a *outputAnchor) Open(info *OutgoingRecordInfo) {
 
 func (a *outputAnchor) Write() {
 	nextRecordSize := a.metaData.DataSize()
-	fixedPosition := int(a.data.recordCachePosition)
-	varPosition := int(a.data.fixedSize) + 4
+	dataStartsAt := int(a.data.recordCachePosition)
+	currentFixedPosition := 0
+	currentVarPosition := int(a.data.fixedSize) + 4
 	varLen := 0
-	if fixedPosition+nextRecordSize >= cacheSize {
+	hasVar := false
+	if dataStartsAt+nextRecordSize > cacheSize {
 		callWriteRecords(unsafe.Pointer(a.data))
-		fixedPosition = 0
+		dataStartsAt = 0
 	}
-	cache := ptrToBytes(a.data.recordCache, fixedPosition, nextRecordSize)
+	cache := ptrToBytes(a.data.recordCache, dataStartsAt, nextRecordSize)
 	for _, field := range a.metaData.outgoingFields {
 		if field.isFixedLen {
 			copy(cache, field.CurrentValue)
-			fixedPosition += len(field.CurrentValue)
+			currentFixedPosition += len(field.CurrentValue)
 			continue
 		}
+		hasVar = true
 		if field.CurrentValue[0] == 1 {
 			copy(cache, []byte{1, 0, 0, 0})
-			fixedPosition += 4
+			currentFixedPosition += 4
 			continue
 		}
 		if len(field.CurrentValue) == 0 {
 			copy(cache, []byte{0, 0, 0, 0})
-			fixedPosition += 4
+			currentFixedPosition += 4
 			continue
 		}
-		varWritten := varBytesToCache(field.CurrentValue, cache[1:], fixedPosition, varPosition)
-		fixedPosition += 4
+		varWritten := varBytesToCache(field.CurrentValue[1:], cache, currentFixedPosition, currentVarPosition)
+		currentFixedPosition += 4
 		varLen += varWritten
-		varPosition += varWritten
+		currentVarPosition += varWritten
+	}
+	if hasVar {
+		binary.LittleEndian.PutUint32(cache[currentFixedPosition:currentFixedPosition+4], uint32(varLen))
+		currentFixedPosition += 4
+	}
+	if varLen+currentFixedPosition != nextRecordSize {
+		panic(fmt.Sprintf(`mismatch between actual write of %v and calculated write of %v`, varLen+currentFixedPosition, nextRecordSize))
 	}
 	a.data.recordCachePosition += uint32(nextRecordSize)
 }

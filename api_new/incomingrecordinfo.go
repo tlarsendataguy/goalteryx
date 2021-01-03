@@ -464,6 +464,9 @@ func bytesToWString(getBytes BytesGetter, size int) StringGetter {
 		}
 		utf16Bytes := bytesToUtf16(bytes)
 		utf16Bytes = truncateAtNullUtf16(utf16Bytes)
+		if len(utf16Bytes) == 0 {
+			return ``, false
+		}
 		value := string(utf16.Decode(utf16Bytes))
 		return value, false
 	}
@@ -484,6 +487,9 @@ func bytesToV_WString(getBytes BytesGetter, _ int) StringGetter {
 		bytes := getBytes(record)
 		if bytes == nil {
 			return ``, true
+		}
+		if len(bytes) == 0 {
+			return ``, false
 		}
 		utf16Bytes := bytesToUtf16(bytes)
 		value := string(utf16.Decode(utf16Bytes))
