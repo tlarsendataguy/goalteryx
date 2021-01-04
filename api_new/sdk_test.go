@@ -1,6 +1,7 @@
 package api_new_test
 
 import (
+	"bytes"
 	"github.com/tlarsen7572/goalteryx/api_new"
 	"strconv"
 	"testing"
@@ -232,8 +233,53 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 		t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field3`])
 	}
 	for i := 0; i < 10; i++ {
+		if !bytes.Equal(collector.Data[`Field1`][i].([]byte), []byte{byte(i)}) {
+			t.Fatalf(`expected [[0] [1] [2] [3] [4] [5] [6] [7] [8] [9]] but got %v`, collector.Data[`Field1`])
+		}
+		if collector.Data[`Field2`][i] != (i%2 == 0) {
+			t.Fatalf(`expected [true false true false true false true false true false] but got %v`, collector.Data[`Field2`])
+		}
 		if collector.Data[`Field3`][i] != i {
 			t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field3`])
+		}
+		if collector.Data[`Field4`][i] != i {
+			t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field4`])
+		}
+		if collector.Data[`Field5`][i] != i {
+			t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field5`])
+		}
+		if collector.Data[`Field6`][i] != i {
+			t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field6`])
+		}
+		if collector.Data[`Field7`][i] != float64(i) {
+			t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field7`])
+		}
+		if collector.Data[`Field8`][i] != float64(i) {
+			t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field8`])
+		}
+		if collector.Data[`Field9`][i] != float64(i) {
+			t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field9`])
+		}
+		if collector.Data[`Field10`][i] != strconv.Itoa(i) {
+			t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field10`])
+		}
+		if collector.Data[`Field11`][i] != strconv.Itoa(i) {
+			t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field11`])
+		}
+		if collector.Data[`Field12`][i] != strconv.Itoa(i) {
+			t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field12`])
+		}
+		if collector.Data[`Field13`][i] != strconv.Itoa(i) {
+			t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field13`])
+		}
+		if collector.Data[`Field14`][i] != time.Date(2020, 1, i, 0, 0, 0, 0, time.UTC) {
+			t.Fatalf(`expected [2019-12-31 00:00:00 +0000 UTC 2020-01-01 00:00:00 +0000 UTC 2020-01-02 00:00:00 +0000 UTC 2020-01-03 00:00:00 +0000 UTC 2020-01-04 00:00:00 +0000 UTC 2020-01-05 00:00:00 +0000 UTC 2020-01-06 00:00:00 +0000 UTC 2020-01-07 00:00:00 +0000 UTC 2020-01-08 00:00:00 +0000 UTC 2020-01-09 00:00:00 +0000 UTC] but got %v`, collector.Data[`Field14`])
+		}
+		if collector.Data[`Field15`][i] != time.Date(2020, 1, i, 0, 0, 0, 0, time.UTC) {
+			t.Fatalf(`expected [2019-12-31 00:00:00 +0000 UTC 2020-01-01 00:00:00 +0000 UTC 2020-01-02 00:00:00 +0000 UTC 2020-01-03 00:00:00 +0000 UTC 2020-01-04 00:00:00 +0000 UTC 2020-01-05 00:00:00 +0000 UTC 2020-01-06 00:00:00 +0000 UTC 2020-01-07 00:00:00 +0000 UTC 2020-01-08 00:00:00 +0000 UTC 2020-01-09 00:00:00 +0000 UTC] but got %v`, collector.Data[`Field15`])
+		}
+		if !bytes.Equal(collector.Data[`Field16`][i].([]byte), []byte{byte(i)}) {
+			t.Fatalf(`expected [[0] [1] [2] [3] [4] [5] [6] [7] [8] [9]] but got %v`, collector.Data[`Field16`])
 		}
 	}
 }
