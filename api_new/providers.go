@@ -80,18 +80,18 @@ func (a *outputAnchor) Write() {
 	cache := ptrToBytes(a.data.recordCache, dataStartsAt, nextRecordSize)
 	for _, field := range a.metaData.outgoingFields {
 		if field.isFixedLen {
-			copy(cache, field.CurrentValue)
+			copy(cache[currentFixedPosition:], field.CurrentValue)
 			currentFixedPosition += len(field.CurrentValue)
 			continue
 		}
 		hasVar = true
 		if field.CurrentValue[0] == 1 {
-			copy(cache, []byte{1, 0, 0, 0})
+			copy(cache[currentFixedPosition:], []byte{1, 0, 0, 0})
 			currentFixedPosition += 4
 			continue
 		}
 		if len(field.CurrentValue) == 0 {
-			copy(cache, []byte{0, 0, 0, 0})
+			copy(cache[currentFixedPosition:], []byte{0, 0, 0, 0})
 			currentFixedPosition += 4
 			continue
 		}
