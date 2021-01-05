@@ -66,13 +66,17 @@ func (a *outputAnchor) Open(info *OutgoingRecordInfo) {
 	openOutgoingAnchor(a.data, xmlStr)
 }
 
+func (a *outputAnchor) writeCache() {
+	callWriteRecords(unsafe.Pointer(a.data))
+	a.data.recordCachePosition = 0
+}
+
 func (a *outputAnchor) Write() {
 	recordSize := a.metaData.DataSize()
 
 	if recordSize > a.data.recordCacheSize {
 		if a.data.recordCachePosition > 0 {
-			callWriteRecords(unsafe.Pointer(a.data))
-			a.data.recordCachePosition = 0
+			a.writeCache()
 		}
 
 		if a.data.recordCacheSize > 0 {
@@ -91,8 +95,7 @@ func (a *outputAnchor) Write() {
 	varLen := 0
 	hasVar := false
 	if a.data.recordCachePosition+recordSize > a.data.recordCacheSize {
-		callWriteRecords(unsafe.Pointer(a.data))
-		a.data.recordCachePosition = 0
+		a.writeCache()
 	}
 	cache := ptrToBytes(a.data.recordCache, a.data.recordCachePosition, int(recordSize))
 	for _, field := range a.metaData.outgoingFields {
