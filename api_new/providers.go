@@ -67,17 +67,38 @@ func (a *outputAnchor) Open(info *OutgoingRecordInfo) {
 }
 
 func (a *outputAnchor) Write() {
-	nextRecordSize := a.metaData.DataSize()
+	recordSize := a.metaData.DataSize()
+	currentCacheSize := int(a.data.recordCacheSize)
 	dataStartsAt := int(a.data.recordCachePosition)
+
+	if recordSize > currentCacheSize {
+		if dataStartsAt > 0 {
+			callWriteRecords(unsafe.Pointer(a.data))
+			dataStartsAt = 0
+			a.data.recordCachePosition = 0
+		}
+
+		if currentCacheSize > 0 {
+			freeCache(a.data.recordCache)
+		}
+		newCacheSize := cacheSize
+		if recordSize > newCacheSize {
+			newCacheSize = recordSize
+		}
+		a.data.recordCache = allocateCache(newCacheSize)
+		a.data.recordCacheSize = uint32(newCacheSize)
+	}
+
 	currentFixedPosition := 0
 	currentVarPosition := int(a.data.fixedSize) + 4
 	varLen := 0
 	hasVar := false
-	if dataStartsAt+nextRecordSize > cacheSize {
+	if dataStartsAt+recordSize > currentCacheSize {
 		callWriteRecords(unsafe.Pointer(a.data))
 		dataStartsAt = 0
+		a.data.recordCachePosition = 0
 	}
-	cache := ptrToBytes(a.data.recordCache, dataStartsAt, nextRecordSize)
+	cache := ptrToBytes(a.data.recordCache, dataStartsAt, recordSize)
 	for _, field := range a.metaData.outgoingFields {
 		if field.isFixedLen {
 			copy(cache[currentFixedPosition:], field.CurrentValue)
@@ -104,10 +125,10 @@ func (a *outputAnchor) Write() {
 		binary.LittleEndian.PutUint32(cache[currentFixedPosition:currentFixedPosition+4], uint32(varLen))
 		currentFixedPosition += 4
 	}
-	if varLen+currentFixedPosition != nextRecordSize {
-		panic(fmt.Sprintf(`mismatch between actual write of %v and calculated write of %v`, varLen+currentFixedPosition, nextRecordSize))
+	if varLen+currentFixedPosition != recordSize {
+		panic(fmt.Sprintf(`mismatch between actual write of %v and calculated write of %v`, varLen+currentFixedPosition, recordSize))
 	}
-	a.data.recordCachePosition += uint32(nextRecordSize)
+	a.data.recordCachePosition += uint32(recordSize)
 }
 
 func (a *outputAnchor) UpdateProgress(progress float64) {

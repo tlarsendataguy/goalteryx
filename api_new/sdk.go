@@ -286,11 +286,6 @@ func goOnRecordPacket(handle unsafe.Pointer) {
 	implementation.OnRecordPacket(connection)
 }
 
-//export goOnSingleRecord
-func goOnSingleRecord(handle unsafe.Pointer, record unsafe.Pointer) {
-
-}
-
 //export goOnComplete
 func goOnComplete(handle unsafe.Pointer) {
 	data := (*goPluginSharedMemory)(handle)
@@ -309,4 +304,8 @@ func callWriteRecords(handle unsafe.Pointer) {
 
 func allocateCache(size int) unsafe.Pointer {
 	return C.malloc(C.ulonglong(size))
+}
+
+func freeCache(cache unsafe.Pointer) {
+	C.free(cache)
 }

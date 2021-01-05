@@ -81,6 +81,5 @@ void II_Close(void * handle);
 void II_Free(void * handle);
 void goOnInputConnectionOpened(void * handle);
 void goOnRecordPacket(void * handle);
-void goOnSingleRecord(void * handle, void * record);
 void goOnComplete(void * handle);
 void callWriteRecords(struct OutputAnchor *anchor);

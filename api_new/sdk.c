@@ -1,4 +1,5 @@
 #include "sdk.h"
+#include <stdio.h>
 
 const int cacheSize = 4194304; //4mb
 
@@ -285,24 +286,34 @@ uint32_t uint32FromRecordPosition(char * record, uint32_t position) {
 
 long II_PushRecord(void * handle, char * pRecord) {
     struct InputConnection *input = (struct InputConnection*)handle;
-    if (NULL == input->recordCache) {
-        input->recordCache = malloc(cacheSize);
-        input->recordCacheSize = cacheSize;
-    }
     uint32_t totalSize = input->fixedSize;
     if (input->hasVarFields == 1) {
         uint32_t varSize = uint32FromRecordPosition(pRecord, totalSize);
         totalSize += 4 + varSize;
     }
 
-    if (input->recordCachePosition + totalSize > cacheSize && input->recordCachePosition > 0) {
-        goOnRecordPacket(handle);
-        input->recordCachePosition = 0;
+    if (totalSize > input->recordCacheSize) {
+        if (input->recordCachePosition > 0) {
+            goOnRecordPacket(handle);
+            input->recordCachePosition = 0;
+        }
+
+        if (input->recordCacheSize > 0) {
+            free(input->recordCache);
+        }
+
+        uint32_t newCacheSize = cacheSize;
+        if (totalSize > newCacheSize) {
+            newCacheSize = totalSize;
+        }
+
+        input->recordCache = malloc(newCacheSize);
+        input->recordCacheSize = newCacheSize;
     }
 
-    if (totalSize > cacheSize) {
-        goOnSingleRecord(handle, pRecord);
-        return 1;
+    if (input->recordCachePosition + totalSize > input->recordCacheSize) {
+        goOnRecordPacket(handle);
+        input->recordCachePosition = 0;
     }
 
     memcpy(input->recordCache+input->recordCachePosition, pRecord, totalSize);
