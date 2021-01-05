@@ -71,6 +71,18 @@ func (a *outputAnchor) writeCache() {
 	a.data.recordCachePosition = 0
 }
 
+func (a *outputAnchor) reallocateCache(recordSize uint32) {
+	if a.data.recordCacheSize > 0 {
+		freeCache(a.data.recordCache)
+	}
+	newCacheSize := cacheSize
+	if recordSize > newCacheSize {
+		newCacheSize = recordSize
+	}
+	a.data.recordCache = allocateCache(newCacheSize)
+	a.data.recordCacheSize = newCacheSize
+}
+
 func (a *outputAnchor) Write() {
 	recordSize := a.metaData.DataSize()
 
@@ -78,16 +90,7 @@ func (a *outputAnchor) Write() {
 		if a.data.recordCachePosition > 0 {
 			a.writeCache()
 		}
-
-		if a.data.recordCacheSize > 0 {
-			freeCache(a.data.recordCache)
-		}
-		newCacheSize := cacheSize
-		if recordSize > newCacheSize {
-			newCacheSize = recordSize
-		}
-		a.data.recordCache = allocateCache(newCacheSize)
-		a.data.recordCacheSize = newCacheSize
+		a.reallocateCache(recordSize)
 	}
 
 	currentFixedPosition := 0
