@@ -1,5 +1,4 @@
 #include "sdk.h"
-#include <stdio.h>
 
 const int cacheSize = 4194304; //4mb
 
@@ -308,7 +307,6 @@ long II_PushRecord(void * handle, char * pRecord) {
 
     memcpy(input->recordCache+input->recordCachePosition, pRecord, totalSize);
     input->recordCachePosition += totalSize;
-    printf("got record of size %d making a total record cache position of %d\n", totalSize, input->recordCachePosition);
     return 1;
 }
 

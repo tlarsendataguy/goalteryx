@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/tlarsen7572/goalteryx/api_new"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -105,6 +106,33 @@ func (i *TestInputTool) OnComplete() {
 		output.BlobFields[`Field16`].SetBlob([]byte{byte(index)})
 		i.Output.Write()
 	}
+}
+
+type InputRecordLargerThanCache struct {
+	Output api_new.OutputAnchor
+}
+
+func (i *InputRecordLargerThanCache) Init(provider api_new.Provider) {
+	i.Output = provider.GetOutputAnchor(`Output`)
+}
+
+func (i *InputRecordLargerThanCache) OnInputConnectionOpened(connection api_new.InputConnection) {
+	panic("this should never be called")
+}
+
+func (i *InputRecordLargerThanCache) OnRecordPacket(connection api_new.InputConnection) {
+	panic("this should never be called")
+}
+
+func (i *InputRecordLargerThanCache) OnComplete() {
+	info, _ := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
+		api_new.NewV_WStringField(`Field1`, `source`, 1000000000),
+	})
+	i.Output.Open(info)
+	info.StringFields[`Field1`].SetString(strings.Repeat(`ABCDEFGHIJKLMNOPQRSTUVWXYZ`, 200000))
+	i.Output.Write()
+	info.StringFields[`Field1`].SetString(`zyxwvutsrqponmlkjihgfedcba`)
+	i.Output.Write()
 }
 
 func TestRegister(t *testing.T) {
@@ -281,5 +309,18 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 		if !bytes.Equal(collector.Data[`Field16`][i].([]byte), []byte{byte(i)}) {
 			t.Fatalf(`expected [[0] [1] [2] [3] [4] [5] [6] [7] [8] [9]] but got %v`, collector.Data[`Field16`])
 		}
+	}
+}
+
+func TestRecordLargerThanCache(t *testing.T) {
+	implementation := &InputRecordLargerThanCache{}
+	runner := api_new.RegisterToolTest(implementation, 1, ``)
+	collector := runner.CaptureOutgoingAnchor(`Output`)
+	runner.SimulateInputTool()
+	if collector.Data[`Field1`][0] != strings.Repeat(`ABCDEFGHIJKLMNOPQRSTUVWXYZ`, 200000) {
+		t.Fatalf(`The first record did not have the expected value`)
+	}
+	if value := collector.Data[`Field1`][1]; value != `zyxwvutsrqponmlkjihgfedcba` {
+		t.Fatalf(`expected second record to be 'zyxwvutsrqponmlkjihgfedcba' but got '%v'`, value)
 	}
 }
