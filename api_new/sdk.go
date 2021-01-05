@@ -10,7 +10,7 @@ import (
 	"unsafe"
 )
 
-const cacheSize int = 4194304
+const cacheSize uint32 = 4194304
 
 type goPluginSharedMemory struct {
 	toolId                 uint32
@@ -302,7 +302,7 @@ func callWriteRecords(handle unsafe.Pointer) {
 	C.callWriteRecords((*C.struct_OutputAnchor)(handle))
 }
 
-func allocateCache(size int) unsafe.Pointer {
+func allocateCache(size uint32) unsafe.Pointer {
 	return C.malloc(C.ulonglong(size))
 }
 

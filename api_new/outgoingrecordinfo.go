@@ -713,25 +713,26 @@ func (i *OutgoingRecordInfo) HasVarFields() bool {
 	return false
 }
 
-func (i *OutgoingRecordInfo) DataSize() int {
-	totalSize := 0
+func (i *OutgoingRecordInfo) DataSize() uint32 {
+	var totalSize uint32 = 0
 	varFields := 0
 	for _, field := range i.outgoingFields {
+		fieldSize := uint32(field.dataSize())
 		if field.isFixedLen {
-			totalSize += field.dataSize()
+			totalSize += fieldSize
 			continue
 		}
 		varFields++
-		size := field.dataSize() - 1
-		if field.CurrentValue[0] == 1 || size < 4 {
+		fieldSize -= 1
+		if field.CurrentValue[0] == 1 || fieldSize < 4 {
 			totalSize += 4 // everything fits into the fixed portion of record
 			continue
 		}
-		if size < 127 {
-			totalSize += 5 + size // 4 bytes in fixed portion of record and 1 byte for len
+		if fieldSize < 127 {
+			totalSize += 5 + fieldSize // 4 bytes in fixed portion of record and 1 byte for len
 			continue
 		}
-		totalSize += 8 + size // 4 bytes in fixed portion of record and 4 bytes for len
+		totalSize += 8 + fieldSize // 4 bytes in fixed portion of record and 4 bytes for len
 	}
 	if varFields > 0 {
 		totalSize += 4 // 4 byte integer for the length of the variable portion of record
