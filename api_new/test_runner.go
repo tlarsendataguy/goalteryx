@@ -80,7 +80,12 @@ func (r *RecordCollector) OnRecordPacket(connection InputConnection) {
 	for packet.Next() {
 		record := packet.Record()
 		for name, getter := range r.blobFields {
-			r.Data[name] = append(r.Data[name], getter(record))
+			value := getter(record)
+			if value == nil {
+				r.Data[name] = append(r.Data[name], nil)
+			} else {
+				r.Data[name] = append(r.Data[name], value)
+			}
 		}
 		for name, getter := range r.boolFields {
 			value, isNull := getter(record)

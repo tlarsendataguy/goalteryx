@@ -2,6 +2,7 @@ package api_new_test
 
 import (
 	"bytes"
+	"fmt"
 	"github.com/tlarsen7572/goalteryx/api_new"
 	"strconv"
 	"strings"
@@ -116,11 +117,11 @@ func (i *InputRecordLargerThanCache) Init(provider api_new.Provider) {
 	i.Output = provider.GetOutputAnchor(`Output`)
 }
 
-func (i *InputRecordLargerThanCache) OnInputConnectionOpened(connection api_new.InputConnection) {
+func (i *InputRecordLargerThanCache) OnInputConnectionOpened(_ api_new.InputConnection) {
 	panic("this should never be called")
 }
 
-func (i *InputRecordLargerThanCache) OnRecordPacket(connection api_new.InputConnection) {
+func (i *InputRecordLargerThanCache) OnRecordPacket(_ api_new.InputConnection) {
 	panic("this should never be called")
 }
 
@@ -129,10 +130,61 @@ func (i *InputRecordLargerThanCache) OnComplete() {
 		api_new.NewV_WStringField(`Field1`, `source`, 1000000000),
 	})
 	i.Output.Open(info)
+	info.StringFields[`Field1`].SetString(`hello world`)
+	i.Output.Write()
 	info.StringFields[`Field1`].SetString(strings.Repeat(`ABCDEFGHIJKLMNOPQRSTUVWXYZ`, 200000))
 	i.Output.Write()
 	info.StringFields[`Field1`].SetString(`zyxwvutsrqponmlkjihgfedcba`)
 	i.Output.Write()
+}
+
+type InputWithNulls struct {
+	output api_new.OutputAnchor
+}
+
+func (i *InputWithNulls) Init(provider api_new.Provider) {
+	i.output = provider.GetOutputAnchor(`Output`)
+}
+
+func (i *InputWithNulls) OnInputConnectionOpened(_ api_new.InputConnection) {
+	panic("this should never be called")
+}
+
+func (i *InputWithNulls) OnRecordPacket(_ api_new.InputConnection) {
+	panic("this should never be called")
+}
+
+func (i *InputWithNulls) OnComplete() {
+	info, _ := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
+		api_new.NewBoolField(`Field1`, `source`),
+		api_new.NewInt32Field(`Field2`, `source`),
+		api_new.NewDoubleField(`Field3`, `source`),
+		api_new.NewStringField(`Field4`, `source`, 100),
+		api_new.NewDateField(`Field5`, `source`),
+		api_new.NewBlobField(`Field6`, `source`, 1000000),
+	})
+	i.output.Open(info)
+	info.BoolFields[`Field1`].SetBool(true)
+	info.IntFields[`Field2`].SetInt(12)
+	info.FloatFields[`Field3`].SetFloat(123.4)
+	info.StringFields[`Field4`].SetString(`hello world`)
+	info.DateTimeFields[`Field5`].SetDateTime(time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
+	info.BlobFields[`Field6`].SetBlob([]byte{1, 2, 3})
+	i.output.Write()
+	info.BoolFields[`Field1`].SetNullBool()
+	info.IntFields[`Field2`].SetNullInt()
+	info.FloatFields[`Field3`].SetNullFloat()
+	info.StringFields[`Field4`].SetNullString()
+	info.DateTimeFields[`Field5`].SetNullDateTime()
+	info.BlobFields[`Field6`].SetNullBlob()
+	i.output.Write()
+	info.BoolFields[`Field1`].SetBool(true)
+	info.IntFields[`Field2`].SetInt(12)
+	info.FloatFields[`Field3`].SetFloat(123.4)
+	info.StringFields[`Field4`].SetString(`hello world`)
+	info.DateTimeFields[`Field5`].SetDateTime(time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
+	info.BlobFields[`Field6`].SetBlob([]byte{1, 2, 3})
+	i.output.Write()
 }
 
 func TestRegister(t *testing.T) {
@@ -317,10 +369,35 @@ func TestRecordLargerThanCache(t *testing.T) {
 	runner := api_new.RegisterToolTest(implementation, 1, ``)
 	collector := runner.CaptureOutgoingAnchor(`Output`)
 	runner.SimulateInputTool()
-	if collector.Data[`Field1`][0] != strings.Repeat(`ABCDEFGHIJKLMNOPQRSTUVWXYZ`, 200000) {
-		t.Fatalf(`The first record did not have the expected value`)
+	if value := collector.Data[`Field1`][0]; value != `hello world` {
+		t.Fatalf(`expected first record to be 'hello world' but got '%v'`, value)
 	}
-	if value := collector.Data[`Field1`][1]; value != `zyxwvutsrqponmlkjihgfedcba` {
-		t.Fatalf(`expected second record to be 'zyxwvutsrqponmlkjihgfedcba' but got '%v'`, value)
+	if collector.Data[`Field1`][1] != strings.Repeat(`ABCDEFGHIJKLMNOPQRSTUVWXYZ`, 200000) {
+		t.Fatalf(`The second record did not have the expected value`)
+	}
+	if value := collector.Data[`Field1`][2]; value != `zyxwvutsrqponmlkjihgfedcba` {
+		t.Fatalf(`expected third record to be 'zyxwvutsrqponmlkjihgfedcba' but got '%v'`, value)
+	}
+}
+
+func TestRecordsWithNulls(t *testing.T) {
+	implementation := &InputWithNulls{}
+	runner := api_new.RegisterToolTest(implementation, 1, ``)
+	collector := runner.CaptureOutgoingAnchor(`Output`)
+	runner.SimulateInputTool()
+
+	for row := 0; row < 3; row++ {
+		for field := 1; field < 7; field++ {
+			fieldName := fmt.Sprintf(`Field%v`, field)
+			if row%2 == 0 {
+				if collector.Data[fieldName][row] == nil {
+					t.Fatalf(`expected non-nil in %v row %v but got nil`, fieldName, row)
+				}
+			} else {
+				if value := collector.Data[fieldName][row]; value != nil {
+					t.Fatalf(`expected nil in %v row %v but got %v`, fieldName, row, value)
+				}
+			}
+		}
 	}
 }
