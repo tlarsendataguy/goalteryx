@@ -61,6 +61,7 @@ void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, wchar_t * na
 void simulateInputLifecycle(struct PluginInterface *pluginInterface);
 void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, wchar_t *pMessage);
 void outputToolProgress(struct EngineInterface * engine, int nToolID, double progress);
+void sendProgressToAnchor(struct OutputAnchor *anchor, double progress);
 void* getInitVar(struct EngineInterface * engine, wchar_t *pVar);
 void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
 struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wchar_t * name);

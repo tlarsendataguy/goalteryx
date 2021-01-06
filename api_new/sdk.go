@@ -102,6 +102,10 @@ func sendToolProgressToEngine(data *goPluginSharedMemory, progress float64) {
 	C.outputToolProgress((*C.struct_EngineInterface)(data.engine), (C.int)(data.toolId), (C.double)(progress))
 }
 
+func sendProgressToAnchor(anchor *goOutputAnchorData, progress float64) {
+	C.sendProgressToAnchor((*C.struct_OutputAnchor)(unsafe.Pointer(anchor)), (C.double)(progress))
+}
+
 func getInitVarToEngine(data *goPluginSharedMemory, initVar string) string {
 	initVarPtr := stringToUtf16Ptr(initVar)
 	resultPtr := C.getInitVar((*C.struct_EngineInterface)(data.engine), initVarPtr)

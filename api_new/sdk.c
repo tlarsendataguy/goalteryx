@@ -73,6 +73,16 @@ void outputToolProgress(struct EngineInterface * engine, int nToolID, double pro
     engine->pOutputToolProgress(engine, nToolID, progress);
 }
 
+void sendProgressToAnchor(struct OutputAnchor *anchor, double progress) {
+    struct OutputConn *conn = anchor->firstChild;
+    while (conn != NULL) {
+        if (conn->isOpen == 1) {
+            conn->ii->pII_UpdateProgress(conn->ii->handle, progress);
+        }
+        conn = conn->nextConnection;
+    }
+}
+
 void* getInitVar(struct EngineInterface * engine, wchar_t *pVar) {
     return engine->pGetInitVar(engine, pVar);
 }

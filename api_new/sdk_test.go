@@ -44,6 +44,7 @@ func (t *TestImplementation) OnRecordPacket(_ api_new.InputConnection) {
 
 func (t *TestImplementation) OnComplete() {
 	t.DidOnComplete = true
+	t.Output.UpdateProgress(1)
 }
 
 type TestInputTool struct {
@@ -107,6 +108,7 @@ func (i *TestInputTool) OnComplete() {
 		output.BlobFields[`Field16`].SetBlob([]byte{byte(index)})
 		i.Output.Write()
 	}
+	i.Output.UpdateProgress(1)
 }
 
 type InputRecordLargerThanCache struct {
@@ -296,6 +298,7 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 	runner := api_new.RegisterToolTest(implementation, 1, ``)
 	collector := runner.CaptureOutgoingAnchor(`Output`)
 	runner.SimulateInputTool()
+
 	if collector.Name != `Output` {
 		t.Fatalf(`expected 'Output' but got '%v'`, collector.Name)
 	}
@@ -361,6 +364,9 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 		if !bytes.Equal(collector.Data[`Field16`][i].([]byte), []byte{byte(i)}) {
 			t.Fatalf(`expected [[0] [1] [2] [3] [4] [5] [6] [7] [8] [9]] but got %v`, collector.Data[`Field16`])
 		}
+	}
+	if progress := collector.Input.Progress(); progress != 1.0 {
+		t.Fatalf(`expected 1.0 but got %v`, progress)
 	}
 }
 

@@ -134,7 +134,7 @@ func (a *outputAnchor) Write() {
 }
 
 func (a *outputAnchor) UpdateProgress(progress float64) {
-	panic("implement me")
+	sendProgressToAnchor(a.data, progress)
 }
 
 func varBytesToCache(varBytes []byte, cache []byte, fixedPosition int, varPosition int) int {

@@ -29,6 +29,7 @@ type RecordCollector struct {
 	Config       IncomingRecordInfo
 	Name         string
 	Data         map[string][]interface{}
+	Input        InputConnection
 	boolFields   map[string]BoolGetter
 	intFields    map[string]IntGetter
 	floatFields  map[string]FloatGetter
@@ -48,6 +49,7 @@ func (r *RecordCollector) Init(_ Provider) {
 }
 
 func (r *RecordCollector) OnInputConnectionOpened(connection InputConnection) {
+	r.Input = connection
 	r.Name = connection.Name()
 	r.Config = connection.Metadata()
 	for _, field := range r.Config.Fields() {
