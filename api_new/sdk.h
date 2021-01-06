@@ -31,16 +31,18 @@ struct OutputConn {
 };
 
 struct OutputAnchor {
-    wchar_t*             name;
-    wchar_t*             metadata;
-    char                 isOpen;
-    struct OutputConn*   firstChild;
-    struct OutputAnchor* nextAnchor;
-    uint32_t             fixedSize;
-    char                 hasVarFields;
-    char*                recordCache;
-    uint32_t             recordCachePosition;
-    uint32_t             recordCacheSize;
+    wchar_t*                   name;
+    wchar_t*                   metadata;
+    uint32_t                   browseEverywhereId;
+    char                       isOpen;
+    struct PluginSharedMemory* plugin;
+    struct OutputConn*         firstChild;
+    struct OutputAnchor*       nextAnchor;
+    uint32_t                   fixedSize;
+    char                       hasVarFields;
+    char*                      recordCache;
+    uint32_t                   recordCachePosition;
+    uint32_t                   recordCacheSize;
 };
 
 struct PluginSharedMemory {

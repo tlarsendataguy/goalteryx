@@ -14,7 +14,9 @@ const int cacheSize = 4194304; //4mb
 **     outputAnchors (struct OutputAnchor*)
 **         name (wchar_t *)
 **         metadata (wchar_t *)
+**         browseEverywhereId (uint32_t)
 **         isOpen (char)
+**         plugin (struct PluginSharedMemory*)
 **         firstChild (struct OutputConn*)
 **             isOpen (char)
 **             ii (struct IncomingInterface*)
@@ -115,7 +117,37 @@ void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineI
     return plugin;
 }
 
+void appendOutgoingConnection(struct OutputAnchor* anchor, struct IncomingConnectionInterface* ii) {
+    struct OutputConn* conn = malloc(sizeof(struct OutputConn));
+    conn->isOpen = 1;
+    conn->ii = ii;
+    conn->nextConnection = NULL;
+
+    if (NULL == anchor->firstChild) {
+        anchor->firstChild = conn;
+        return;
+    }
+
+    struct OutputConn *childConn = anchor->firstChild;
+    while (childConn->nextConnection != NULL) {
+        childConn = childConn->nextConnection;
+    }
+    childConn->nextConnection = conn;
+    if (anchor->isOpen == 1) {
+        long result = ii->pII_Init(ii->handle, anchor->metadata);
+        if (result == 0) {
+            conn->isOpen = 0;
+        }
+    }
+}
+
 void openOutgoingAnchor(struct OutputAnchor *anchor, wchar_t * config) {
+    if (anchor->plugin->engine != NULL && anchor->browseEverywhereId > 0) {
+        struct EngineInterface* engine = anchor->plugin->engine;
+        struct IncomingConnectionInterface* ii = engine->pBrowseEverywhereGetII(engine->handle, anchor->browseEverywhereId, anchor->plugin->toolId, anchor->name);
+        appendOutgoingConnection(anchor, ii);
+    }
+
     anchor->isOpen = 1;
     struct OutputConn * conn = anchor->firstChild;
     while (NULL != conn) {
@@ -217,34 +249,11 @@ struct OutputAnchor* getOutputAnchorByName(struct OutputAnchor* anchor, wchar_t*
     return getOutputAnchorByName(anchor->nextAnchor, name);
 }
 
-void appendOutgoingConnection(struct OutputAnchor* anchor, struct IncomingConnectionInterface* ii) {
-    struct OutputConn* conn = malloc(sizeof(struct OutputConn));
-    conn->isOpen = 1;
-    conn->ii = ii;
-    conn->nextConnection = NULL;
-
-    if (NULL == anchor->firstChild) {
-        anchor->firstChild = conn;
-        return;
-    }
-
-    struct OutputConn *childConn = anchor->firstChild;
-    while (childConn->nextConnection != NULL) {
-        childConn = childConn->nextConnection;
-    }
-    childConn->nextConnection = conn;
-    if (anchor->isOpen == 1) {
-        long result = ii->pII_Init(ii->handle, anchor->metadata);
-        if (result == 0) {
-            conn->isOpen = 0;
-        }
-    }
-}
-
 struct OutputAnchor* createOutgoingAnchor(wchar_t* name) {
     struct OutputAnchor* anchor = malloc(sizeof(struct OutputAnchor));
     anchor->name = name;
     anchor->metadata = NULL;
+    anchor->browseEverywhereId = 0;
     anchor->isOpen = 0;
     anchor->firstChild = NULL;
     anchor->nextAnchor = NULL;
@@ -259,6 +268,10 @@ struct OutputAnchor* createOutgoingAnchor(wchar_t* name) {
 
 struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wchar_t * name) {
     struct OutputAnchor* anchor = createOutgoingAnchor(name);
+    anchor->plugin = plugin;
+    if (plugin->engine != NULL) {
+        anchor->browseEverywhereId = plugin->engine->pBrowseEverywhereReserveAnchor(plugin->engine->handle, plugin->toolId);
+    }
 
     if (NULL == plugin->outputAnchors) {
         plugin->outputAnchors = anchor;

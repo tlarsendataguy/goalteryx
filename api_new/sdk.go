@@ -26,7 +26,9 @@ type goPluginSharedMemory struct {
 type goOutputAnchorData struct {
 	name                unsafe.Pointer
 	metadata            unsafe.Pointer
+	browseEverywhereId  uint32
 	isOpen              byte
+	plugin              *goPluginSharedMemory
 	firstChild          *goOutputConnectionData
 	nextAnchor          *goOutputAnchorData
 	fixedSize           uint32
