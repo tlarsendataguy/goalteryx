@@ -14,8 +14,8 @@ func Preprocess(value []byte) []byte {
 }
 
 type preprocessor struct {
+	sourceIndex    int
 	value          []byte
-	currentByte    byte
 	destIndex      int
 	isQuoted       bool
 	isEscaped      bool
@@ -24,82 +24,119 @@ type preprocessor struct {
 }
 
 func (p *preprocessor) preprocess(value []byte) []byte {
+	p.resetFor(value)
+	for p.processByte() {
+	}
+	return value[:p.destIndex]
+}
+
+func (p *preprocessor) resetFor(value []byte) {
+	p.sourceIndex = 0
 	p.value = value
 	p.destIndex = 0
 	p.isQuoted = false
 	p.isEscaped = false
 	p.extraSpaceLen = 0
 	p.lastCharIsPipe = false
-
-	for _, currentByte := range p.value {
-		p.currentByte = currentByte
-		p.processByte()
-
-	}
-	return value[:p.destIndex]
 }
 
-func (p *preprocessor) processByte() {
-	if p.currentByte == escape {
-		if p.isEscaped {
-			p.value[p.destIndex] = escape
-			p.destIndex++
-			p.isEscaped = false
-		} else {
-			p.extraSpaceLen = 0
-			p.lastCharIsPipe = false
-			p.isEscaped = true
-		}
-		return
+func (p *preprocessor) processByte() bool {
+	if p.sourceIndex >= len(p.value) {
+		return false
+	}
+
+	currentByte := p.value[p.sourceIndex]
+	p.sourceIndex++
+
+	if currentByte == escape {
+		return p.processEscape()
 	}
 
 	if p.isEscaped {
-		switch p.currentByte {
-		case 'r':
-			p.value[p.destIndex] = '\r'
-		case 'n':
-			p.value[p.destIndex] = '\n'
-		case dblQuote:
-			p.value[p.destIndex] = dblQuote
-		default:
-			panic(fmt.Sprintf(`invalid escape sequence \%v`, string(p.currentByte)))
-		}
+		return p.processCharAfterEscape(currentByte)
+	}
+
+	if currentByte == dblQuote {
+		return p.processDoubleQuote()
+	}
+
+	if currentByte == space {
+		return p.processSpace()
+	}
+
+	if p.whiteSpaceIsSignificant(currentByte) {
+		p.catchUpSignificantWhitespace()
+	}
+
+	return p.processNormalChar(currentByte)
+}
+
+func (p *preprocessor) processEscape() bool {
+	if p.isEscaped {
+		p.value[p.destIndex] = escape
 		p.destIndex++
 		p.isEscaped = false
-		return
-	}
-
-	if p.currentByte == dblQuote {
-		p.isQuoted = !p.isQuoted
+	} else {
 		p.extraSpaceLen = 0
 		p.lastCharIsPipe = false
-		return
+		p.isEscaped = true
 	}
+	return true
+}
 
-	if p.currentByte == space {
-		if p.isQuoted {
-			p.value[p.destIndex] = p.currentByte
-			p.destIndex++
-		} else {
-			p.extraSpaceLen++
-		}
-		return
+func (p *preprocessor) processCharAfterEscape(currentByte byte) bool {
+	switch currentByte {
+	case 'r':
+		p.value[p.destIndex] = '\r'
+	case 'n':
+		p.value[p.destIndex] = '\n'
+	case dblQuote:
+		p.value[p.destIndex] = dblQuote
+	default:
+		panic(fmt.Sprintf(`invalid escape sequence \%v at position %v`, string(currentByte), p.sourceIndex))
 	}
+	p.destIndex++
+	p.isEscaped = false
+	return true
+}
 
-	if p.extraSpaceLen > 0 && p.currentByte != pipe && !p.lastCharIsPipe {
-		for index := 0; index < p.extraSpaceLen; index++ {
-			p.value[p.destIndex] = space
-			p.destIndex++
-		}
-	}
+func (p *preprocessor) processDoubleQuote() bool {
+	p.isQuoted = !p.isQuoted
 	p.extraSpaceLen = 0
-	if p.currentByte == pipe && !p.isQuoted {
+	p.lastCharIsPipe = false
+	return true
+}
+
+func (p *preprocessor) processSpace() bool {
+	if p.isQuoted {
+		p.value[p.destIndex] = space
+		p.destIndex++
+	} else {
+		p.extraSpaceLen++
+	}
+	return true
+}
+
+func (p *preprocessor) processNormalChar(currentByte byte) bool {
+	p.extraSpaceLen = 0
+	if currentByte == pipe && !p.isQuoted {
 		p.lastCharIsPipe = true
 		p.value[p.destIndex] = null
 	} else {
 		p.lastCharIsPipe = false
-		p.value[p.destIndex] = p.currentByte
+		p.value[p.destIndex] = currentByte
 	}
 	p.destIndex++
+	return true
+}
 
+func (p *preprocessor) whiteSpaceIsSignificant(currentByte byte) bool {
+	return p.extraSpaceLen > 0 && currentByte != pipe && !p.lastCharIsPipe
+}
+
+func (p *preprocessor) catchUpSignificantWhitespace() {
+	for index := 0; index < p.extraSpaceLen; index++ {
+		p.value[p.destIndex] = space
+		p.destIndex++
+	}
 }
