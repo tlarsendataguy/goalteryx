@@ -14,6 +14,7 @@ func Preprocess(value []byte) []byte {
 }
 
 type preprocessor struct {
+	value          []byte
 	currentByte    byte
 	destIndex      int
 	isQuoted       bool
@@ -23,76 +24,82 @@ type preprocessor struct {
 }
 
 func (p *preprocessor) preprocess(value []byte) []byte {
+	p.value = value
 	p.destIndex = 0
 	p.isQuoted = false
 	p.isEscaped = false
 	p.extraSpaceLen = 0
 	p.lastCharIsPipe = false
 
-	for sourceIndex, currentByte := range value {
+	for _, currentByte := range p.value {
 		p.currentByte = currentByte
+		p.processByte()
 
-		if p.currentByte == escape {
-			if p.isEscaped {
-				value[p.destIndex] = escape
-				p.destIndex++
-				p.isEscaped = false
-			} else {
-				p.extraSpaceLen = 0
-				p.lastCharIsPipe = false
-				p.isEscaped = true
-			}
-			continue
-		}
-
-		if p.isEscaped {
-			switch p.currentByte {
-			case 'r':
-				value[p.destIndex] = '\r'
-			case 'n':
-				value[p.destIndex] = '\n'
-			case dblQuote:
-				value[p.destIndex] = dblQuote
-			default:
-				panic(fmt.Sprintf(`invalid escape sequence \%v at position %v`, string(p.currentByte), sourceIndex))
-			}
-			p.destIndex++
-			p.isEscaped = false
-			continue
-		}
-
-		if p.currentByte == dblQuote {
-			p.isQuoted = !p.isQuoted
-			p.extraSpaceLen = 0
-			p.lastCharIsPipe = false
-			continue
-		}
-
-		if p.currentByte == space {
-			if p.isQuoted {
-				value[p.destIndex] = p.currentByte
-				p.destIndex++
-			} else {
-				p.extraSpaceLen++
-			}
-			continue
-		}
-
-		if p.extraSpaceLen > 0 && p.currentByte != pipe && !p.lastCharIsPipe {
-			for index := 0; index < p.extraSpaceLen; index++ {
-				value[p.destIndex] = space
-				p.destIndex++
-			}
-		}
-		p.extraSpaceLen = 0
-		if p.currentByte == pipe && !p.isQuoted {
-			p.lastCharIsPipe = true
-			value[p.destIndex] = null
-		} else {
-			p.lastCharIsPipe = false
-			value[p.destIndex] = p.currentByte
-		}
-		p.destIndex++
 	}
 	return value[:p.destIndex]
+}
+
+func (p *preprocessor) processByte() {
+	if p.currentByte == escape {
+		if p.isEscaped {
+			p.value[p.destIndex] = escape
+			p.destIndex++
+			p.isEscaped = false
+		} else {
+			p.extraSpaceLen = 0
+			p.lastCharIsPipe = false
+			p.isEscaped = true
+		}
+		return
+	}
+
+	if p.isEscaped {
+		switch p.currentByte {
+		case 'r':
+			p.value[p.destIndex] = '\r'
+		case 'n':
+			p.value[p.destIndex] = '\n'
+		case dblQuote:
+			p.value[p.destIndex] = dblQuote
+		default:
+			panic(fmt.Sprintf(`invalid escape sequence \%v`, string(p.currentByte)))
+		}
+		p.destIndex++
+		p.isEscaped = false
+		return
+	}
+
+	if p.currentByte == dblQuote {
+		p.isQuoted = !p.isQuoted
+		p.extraSpaceLen = 0
+		p.lastCharIsPipe = false
+		return
+	}
+
+	if p.currentByte == space {
+		if p.isQuoted {
+			p.value[p.destIndex] = p.currentByte
+			p.destIndex++
+		} else {
+			p.extraSpaceLen++
+		}
+		return
+	}
+
+	if p.extraSpaceLen > 0 && p.currentByte != pipe && !p.lastCharIsPipe {
+		for index := 0; index < p.extraSpaceLen; index++ {
+			p.value[p.destIndex] = space
+			p.destIndex++
+		}
+	}
+	p.extraSpaceLen = 0
+	if p.currentByte == pipe && !p.isQuoted {
+		p.lastCharIsPipe = true
+		p.value[p.destIndex] = null
+	} else {
+		p.lastCharIsPipe = false
+		p.value[p.destIndex] = p.currentByte
+	}
+	p.destIndex++
+
 }
