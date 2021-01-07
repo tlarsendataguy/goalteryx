@@ -14,7 +14,7 @@ func Preprocess(value []byte) []byte {
 }
 
 type preprocessor struct {
-	length         int
+	currentByte    byte
 	destIndex      int
 	isQuoted       bool
 	isEscaped      bool
@@ -23,77 +23,76 @@ type preprocessor struct {
 }
 
 func (p *preprocessor) preprocess(value []byte) []byte {
-	length := len(value)
-	destIndex := 0
-	isQuoted := false
-	isEscaped := false
-	extraSpaceLen := 0
-	lastCharIsPipe := false
+	p.destIndex = 0
+	p.isQuoted = false
+	p.isEscaped = false
+	p.extraSpaceLen = 0
+	p.lastCharIsPipe = false
 
-	for sourceIndex := 0; sourceIndex < length; sourceIndex++ {
-		currentByte := value[sourceIndex]
+	for sourceIndex, currentByte := range value {
+		p.currentByte = currentByte
 
-		if currentByte == escape {
-			if isEscaped {
-				value[destIndex] = escape
-				destIndex++
-				isEscaped = false
+		if p.currentByte == escape {
+			if p.isEscaped {
+				value[p.destIndex] = escape
+				p.destIndex++
+				p.isEscaped = false
 			} else {
-				extraSpaceLen = 0
-				lastCharIsPipe = false
-				isEscaped = true
+				p.extraSpaceLen = 0
+				p.lastCharIsPipe = false
+				p.isEscaped = true
 			}
 			continue
 		}
 
-		if isEscaped {
-			switch currentByte {
+		if p.isEscaped {
+			switch p.currentByte {
 			case 'r':
-				value[destIndex] = '\r'
+				value[p.destIndex] = '\r'
 			case 'n':
-				value[destIndex] = '\n'
+				value[p.destIndex] = '\n'
 			case dblQuote:
-				value[destIndex] = dblQuote
+				value[p.destIndex] = dblQuote
 			default:
-				panic(fmt.Sprintf(`invalid escape sequence \%v at position %v`, string(currentByte), sourceIndex))
+				panic(fmt.Sprintf(`invalid escape sequence \%v at position %v`, string(p.currentByte), sourceIndex))
 			}
-			destIndex++
-			isEscaped = false
+			p.destIndex++
+			p.isEscaped = false
 			continue
 		}
 
-		if currentByte == dblQuote {
-			isQuoted = !isQuoted
-			extraSpaceLen = 0
-			lastCharIsPipe = false
+		if p.currentByte == dblQuote {
+			p.isQuoted = !p.isQuoted
+			p.extraSpaceLen = 0
+			p.lastCharIsPipe = false
 			continue
 		}
 
-		if currentByte == space {
-			if isQuoted {
-				value[destIndex] = currentByte
-				destIndex++
+		if p.currentByte == space {
+			if p.isQuoted {
+				value[p.destIndex] = p.currentByte
+				p.destIndex++
 			} else {
-				extraSpaceLen++
+				p.extraSpaceLen++
 			}
 			continue
 		}
 
-		if extraSpaceLen > 0 && currentByte != pipe && !lastCharIsPipe {
-			for index := 0; index < extraSpaceLen; index++ {
-				value[destIndex] = space
-				destIndex++
+		if p.extraSpaceLen > 0 && p.currentByte != pipe && !p.lastCharIsPipe {
+			for index := 0; index < p.extraSpaceLen; index++ {
+				value[p.destIndex] = space
+				p.destIndex++
 			}
 		}
-		extraSpaceLen = 0
-		if currentByte == pipe && !isQuoted {
-			lastCharIsPipe = true
-			value[destIndex] = null
+		p.extraSpaceLen = 0
+		if p.currentByte == pipe && !p.isQuoted {
+			p.lastCharIsPipe = true
+			value[p.destIndex] = null
 		} else {
-			lastCharIsPipe = false
-			value[destIndex] = currentByte
+			p.lastCharIsPipe = false
+			value[p.destIndex] = p.currentByte
 		}
-		destIndex++
+		p.destIndex++
 	}
-	return value[:destIndex]
+	return value[:p.destIndex]
 }
