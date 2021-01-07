@@ -1,9 +1,11 @@
 package api_new_test
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/tlarsen7572/goalteryx/api_new"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -187,6 +189,31 @@ func (i *InputWithNulls) OnComplete() {
 	info.DateTimeFields[`Field5`].SetDateTime(time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC))
 	info.BlobFields[`Field6`].SetBlob([]byte{1, 2, 3})
 	i.output.Write()
+}
+
+type PassThroughTool struct {
+	output api_new.OutputAnchor
+	info   *api_new.OutgoingRecordInfo
+}
+
+func (p *PassThroughTool) Init(provider api_new.Provider) {
+	p.output = provider.GetOutputAnchor(`Output`)
+}
+
+func (p *PassThroughTool) OnInputConnectionOpened(connection api_new.InputConnection) {
+	p.info = connection.Metadata().Clone().GenerateOutgoingRecordInfo()
+}
+
+func (p *PassThroughTool) OnRecordPacket(connection api_new.InputConnection) {
+	packet := connection.Read()
+	for packet.Next() {
+		p.info.CopyFrom(packet.Record())
+		p.output.Write()
+	}
+}
+
+func (p *PassThroughTool) OnComplete() {
+	//do nothing
 }
 
 func TestRegister(t *testing.T) {
@@ -405,5 +432,26 @@ func TestRecordsWithNulls(t *testing.T) {
 				}
 			}
 		}
+	}
+}
+
+/*
+func TestPassthroughSimulation(t *testing.T) {
+	implementation := &PassThroughTool{}
+	runner := api_new.RegisterToolTest(implementation, 1, ``)
+	collector := runner.CaptureOutgoingAnchor(`Output`)
+	source := runner.ConnectInput(`Input`, FileInput(`sdk_test_passthrough_simulation.txt`))
+	runner.SimulatePassthrough()
+}
+*/
+
+func TestDelimitedFile(t *testing.T) {
+	file, err := os.Open(`sdk_test_passthrough_simulation.txt`)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		t.Logf(`%v`, scanner.Text())
 	}
 }

@@ -1,0 +1,4 @@
+Field1|Field2|Field3|Field4|Field5|Field6|Field7|Field8           |Field9    |Field10    |Field11       |Field12         |Field13   |Field14            |Field15|Field16
+Bool  |Byte  |Int16 |Int32 |Int64 |Float |Double|FixedDecimal;19;2|String;100|WString;100|V_String;10000|V_WString;100000|Date      |DateTime           |Blob   |SpatialObj
+true  |2     |100   |1000  |10000 |12.34 |1.23  |     234.56      |"ABC"     |"Hello "   |" World"      |"abcdefg"       |2020-01-01|2020-01-02 03:04:05|       |
+false |-2    |-100  |-1000 |-10000|-12.34|-1.23 |    -234.56      |"DE|\"FG" |"HIJK"     |"LMNOP"       |"QRSTU\r\nVWXYZ"|2020-02-03|2020-01-02 13:14:15|       |

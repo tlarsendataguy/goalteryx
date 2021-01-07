@@ -740,6 +740,10 @@ func (i *OutgoingRecordInfo) DataSize() uint32 {
 	return totalSize
 }
 
+func (i *OutgoingRecordInfo) CopyFrom(record Record) {
+
+}
+
 func (i *OutgoingRecordInfo) toXml(connName string) string {
 	xmlBytes, _ := xml.Marshal(i.outgoingFields)
 	return fmt.Sprintf(`<MetaInfo connection="%v"><RecordInfo>%v</RecordInfo></MetaInfo>`, connName, string(xmlBytes))
