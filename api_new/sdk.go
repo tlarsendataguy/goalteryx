@@ -200,6 +200,7 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 		io:           io,
 		plugin:       data,
 		ayxInterface: pluginInterface,
+		inputs:       make(map[string]string),
 	}
 }
 

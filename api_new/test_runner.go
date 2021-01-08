@@ -8,10 +8,15 @@ type FileTestRunner struct {
 	io           *testIo
 	plugin       *goPluginSharedMemory
 	ayxInterface unsafe.Pointer
+	inputs       map[string]string
 }
 
-func (r *FileTestRunner) SimulateInputTool() {
-	simulateInputLifecycle(r.ayxInterface)
+func (r *FileTestRunner) SimulateLifecycle() {
+	if len(r.inputs) == 0 {
+		simulateInputLifecycle(r.ayxInterface)
+	} else {
+		return
+	}
 }
 
 func (r *FileTestRunner) CaptureOutgoingAnchor(name string) *RecordCollector {
@@ -23,6 +28,10 @@ func (r *FileTestRunner) CaptureOutgoingAnchor(name string) *RecordCollector {
 	callPiAddOutgoingConnection(r.plugin, name, ii)
 
 	return collector
+}
+
+func (r *FileTestRunner) ConnectInput(name string, dataFile string) {
+	r.inputs[name] = dataFile
 }
 
 type RecordCollector struct {

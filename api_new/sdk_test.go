@@ -1,11 +1,9 @@
 package api_new_test
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"github.com/tlarsen7572/goalteryx/api_new"
-	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -308,7 +306,7 @@ func TestSimulateInputTool(t *testing.T) {
 	if implementation.Output == nil {
 		t.Fatalf(`expected an output anchor but got nil`)
 	}
-	runner.SimulateInputTool()
+	runner.SimulateLifecycle()
 	if !implementation.DidOnComplete {
 		t.Fatalf(`did not run OnComplete but expected it to`)
 	}
@@ -324,7 +322,7 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 	implementation := &TestInputTool{}
 	runner := api_new.RegisterToolTest(implementation, 1, ``)
 	collector := runner.CaptureOutgoingAnchor(`Output`)
-	runner.SimulateInputTool()
+	runner.SimulateLifecycle()
 
 	if collector.Name != `Output` {
 		t.Fatalf(`expected 'Output' but got '%v'`, collector.Name)
@@ -401,7 +399,7 @@ func TestRecordLargerThanCache(t *testing.T) {
 	implementation := &InputRecordLargerThanCache{}
 	runner := api_new.RegisterToolTest(implementation, 1, ``)
 	collector := runner.CaptureOutgoingAnchor(`Output`)
-	runner.SimulateInputTool()
+	runner.SimulateLifecycle()
 	if value := collector.Data[`Field1`][0]; value != `hello world` {
 		t.Fatalf(`expected first record to be 'hello world' but got '%v'`, value)
 	}
@@ -417,7 +415,7 @@ func TestRecordsWithNulls(t *testing.T) {
 	implementation := &InputWithNulls{}
 	runner := api_new.RegisterToolTest(implementation, 1, ``)
 	collector := runner.CaptureOutgoingAnchor(`Output`)
-	runner.SimulateInputTool()
+	runner.SimulateLifecycle()
 
 	for row := 0; row < 3; row++ {
 		for field := 1; field < 7; field++ {
@@ -435,23 +433,13 @@ func TestRecordsWithNulls(t *testing.T) {
 	}
 }
 
-/*
 func TestPassthroughSimulation(t *testing.T) {
 	implementation := &PassThroughTool{}
 	runner := api_new.RegisterToolTest(implementation, 1, ``)
 	collector := runner.CaptureOutgoingAnchor(`Output`)
-	source := runner.ConnectInput(`Input`, FileInput(`sdk_test_passthrough_simulation.txt`))
-	runner.SimulatePassthrough()
-}
-*/
-
-func TestDelimitedFile(t *testing.T) {
-	file, err := os.Open(`sdk_test_passthrough_simulation.txt`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
-	}
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		t.Logf(`%v`, scanner.Text())
+	runner.ConnectInput(`Input`, `sdk_test_passthrough_simulation.txt`)
+	runner.SimulateLifecycle()
+	if len(collector.Data) != 16 {
+		t.Fatalf(`expected 16 fields but got %v`, len(collector.Data))
 	}
 }
