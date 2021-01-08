@@ -19,6 +19,11 @@ type Extractor struct {
 func NewExtractor(fieldNameBytes []byte, fieldTypeBytes []byte) *Extractor {
 	fieldNames := strings.Split(string(fieldNameBytes), "\000")
 	fieldTypes := strings.Split(string(fieldTypeBytes), "\000")
+
+	if len(fieldNames) != len(fieldTypes) {
+		panic(fmt.Sprintf(`the number of field names and types did not match; got %v field names but %v field types`, len(fieldNames), len(fieldTypes)))
+	}
+
 	fields := make([]b.FieldBase, len(fieldNames))
 	for index, fieldName := range fieldNames {
 		fieldType := strings.Split(fieldTypes[index], `;`)
@@ -33,20 +38,24 @@ func NewExtractor(fieldNameBytes []byte, fieldTypeBytes []byte) *Extractor {
 			}
 			size, err = strconv.Atoi(fieldType[1])
 			if err != nil {
-				panic(err.Error())
+				panic(fmt.Sprintf(`error parsing field type %v: %v`, fieldType, err.Error()))
 			}
 		case `FixedDecimal`:
 			if len(fieldType) < 3 {
-				panic(fmt.Sprintf(`field %v does not have a size or scale in its field type (%v)`, fieldName, fieldType))
+				panic(fmt.Sprintf(`field %v is missing size and/or scale in its field type (%v)`, fieldName, fieldType))
 			}
 			size, err = strconv.Atoi(fieldType[1])
 			if err != nil {
-				panic(err.Error())
+				panic(fmt.Sprintf(`error parsing field type %v: %v`, fieldType, err.Error()))
 			}
 			scale, err = strconv.Atoi(fieldType[2])
 			if err != nil {
-				panic(err.Error())
+				panic(fmt.Sprintf(`error parsing field type %v: %v`, fieldType, err.Error()))
 			}
+		case `Bool`, `Byte`, `Int16`, `Int32`, `Int64`, `Float`, `Double`, `Date`, `DateTime`:
+			// do nothing
+		default:
+			panic(fmt.Sprintf(`'%v' is not a valid field type`, fieldType[0]))
 		}
 
 		fields[index] = b.FieldBase{
@@ -133,8 +142,6 @@ func (e *Extractor) Extract(data []byte) FileData {
 				panic(err.Error())
 			}
 			blobFields[field.Name] = blobValue
-		default:
-			panic(fmt.Sprintf(`field %v has invalid type %v`, field.Name, field.Type))
 		}
 	}
 	return FileData{

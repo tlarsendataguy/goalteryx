@@ -6,7 +6,6 @@ import (
 	"github.com/tlarsen7572/goalteryx/api_new/import_file"
 	"os"
 	"reflect"
-	"strings"
 	"testing"
 	"time"
 )
@@ -170,23 +169,88 @@ func TestExtractData(t *testing.T) {
 	}
 }
 
-func TestParseFiles(t *testing.T) {
-	file, err := os.Open(`..\sdk_test_passthrough_simulation.txt`)
-	if err != nil {
-		t.Fatalf(`expected no error but got %v`, err.Error())
-	}
-	scanner := bufio.NewScanner(file)
-	if !scanner.Scan() {
-		t.Fatalf(`Scan() did not return field names`)
-	}
-	fieldNames := strings.Split(string(import_file.Preprocess(scanner.Bytes())), "\000")
-	t.Logf(`%v`, fieldNames)
+func TestPanicWhenFieldNameAndTypeDoNotEqual(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		expectedErr := `the number of field names and types did not match; got 2 field names but 1 field types`
+		if expectedErr != errText {
+			t.Fatalf("expected error message\n%v\nbut got\n%v", expectedErr, errText)
+		}
+		t.Logf(errText)
+	}(t)
 
-	if !scanner.Scan() {
-		t.Fatalf(`Scan() did not return field types`)
-	}
-	fieldTypes := strings.Split(string(import_file.Preprocess(scanner.Bytes())), "\000")
-	t.Logf(`%v`, fieldTypes)
+	import_file.NewExtractor([]byte("Field1\000Field2"), []byte(`Byte`))
+}
 
-	t.Logf(`%v`, strings.Split(fieldTypes[0], ";")[0])
+func TestPanicOnInvalidFieldType(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		expectedErr := `'Invalid' is not a valid field type`
+		if expectedErr != errText {
+			t.Fatalf("expected error message\n%v\nbut got\n%v", expectedErr, errText)
+		}
+		t.Logf(errText)
+	}(t)
+
+	import_file.NewExtractor([]byte("Field1"), []byte("Invalid"))
+}
+
+func TestPanicWhenSizeIsMissing(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	import_file.NewExtractor([]byte("Field1"), []byte("String"))
+}
+
+func TestPanicWhenSizeIsNotNumeric(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	import_file.NewExtractor([]byte("Field1"), []byte("String;notNumeric"))
+}
+
+func TestPanicWhenScaleIsMissing(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	import_file.NewExtractor([]byte("Field1"), []byte("FixedDecimal;10"))
+}
+
+func TestPanicWhenScaleIsNotNumeric(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	import_file.NewExtractor([]byte("Field1"), []byte("FixedDecimal;10;NotNumeric"))
 }
