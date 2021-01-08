@@ -73,6 +73,11 @@ func (e *Extractor) Fields() []b.FieldBase {
 }
 
 func (e *Extractor) Extract(data []byte) FileData {
+	dataStrings := strings.Split(string(data), "\000")
+	if len(dataStrings) != len(e.fields) {
+		panic(fmt.Sprintf(`%v fields required but %v fields were found in the record`, len(e.fields), len(dataStrings)))
+	}
+
 	boolFields := make(map[string]interface{})
 	intFields := make(map[string]interface{})
 	decimalFields := make(map[string]interface{})
@@ -80,7 +85,6 @@ func (e *Extractor) Extract(data []byte) FileData {
 	dateTimeFields := make(map[string]interface{})
 	blobFields := make(map[string]interface{})
 
-	dataStrings := strings.Split(string(data), "\000")
 	for index, field := range e.fields {
 		value := dataStrings[index]
 		switch field.Type {
@@ -95,20 +99,28 @@ func (e *Extractor) Extract(data []byte) FileData {
 			}
 			if value == `false` {
 				boolFields[field.Name] = false
+				continue
 			}
+			panic(fmt.Sprintf(`'%v' is not a valid boolean (expecting true, false, or blank)`, value))
 		case `Byte`, `Int16`, `Int32`, `Int64`:
 			if value == `` {
 				intFields[field.Name] = nil
 				continue
 			}
-			intValue, _ := strconv.Atoi(value)
+			intValue, err := strconv.Atoi(value)
+			if err != nil {
+				panic(fmt.Sprintf(`'%v' is not a valid integer`, value))
+			}
 			intFields[field.Name] = intValue
 		case `Float`, `Double`, `FixedDecimal`:
 			if value == `` {
 				decimalFields[field.Name] = nil
 				continue
 			}
-			floatValue, _ := strconv.ParseFloat(value, 64)
+			floatValue, err := strconv.ParseFloat(value, 64)
+			if err != nil {
+				panic(fmt.Sprintf(`'%v' is not a valid number`, value))
+			}
 			decimalFields[field.Name] = floatValue
 		case `String`, `WString`, `V_String`, `V_WString`:
 			stringFields[field.Name] = value
@@ -119,7 +131,7 @@ func (e *Extractor) Extract(data []byte) FileData {
 			}
 			dateValue, err := time.Parse(dateFormat, value)
 			if err != nil {
-				panic(err.Error())
+				panic(fmt.Sprintf(`'%v' is not a valid date, expecting a format of 'YYYY-mm-dd'`, value))
 			}
 			dateTimeFields[field.Name] = dateValue
 		case `DateTime`:
@@ -129,7 +141,7 @@ func (e *Extractor) Extract(data []byte) FileData {
 			}
 			dateValue, err := time.Parse(dateTimeFormat, value)
 			if err != nil {
-				panic(err.Error())
+				panic(fmt.Sprintf(`'%v' is not a valid date, expecting a format of 'YYYY-mm-dd HH:MM:SS'`, value))
 			}
 			dateTimeFields[field.Name] = dateValue
 		case `Blob`, `SpatialObj`:
@@ -139,7 +151,7 @@ func (e *Extractor) Extract(data []byte) FileData {
 			}
 			blobValue, err := base64.StdEncoding.DecodeString(value)
 			if err != nil {
-				panic(err.Error())
+				panic(fmt.Sprintf(`'%v' is not a valid base64 string: %v`, value, err.Error()))
 			}
 			blobFields[field.Name] = blobValue
 		}

@@ -254,3 +254,101 @@ func TestPanicWhenScaleIsNotNumeric(t *testing.T) {
 
 	import_file.NewExtractor([]byte("Field1"), []byte("FixedDecimal;10;NotNumeric"))
 }
+
+func TestPanicWhenDataHasIncorrectNumberOfFields(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1\000Field2"), []byte("Bool\000Byte"))
+	extractor.Extract([]byte("true"))
+}
+
+func TestPanicWhenBoolHasInvalidValue(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Bool"))
+	extractor.Extract([]byte("not a bool"))
+}
+
+func TestPanicWhenIntHasInvalidValue(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Byte"))
+	extractor.Extract([]byte("not an integer"))
+}
+
+func TestPanicWhenDecimalHasInvalidValue(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Double"))
+	extractor.Extract([]byte("not a decimal"))
+}
+
+func TestPanicWhenDateHasInvalidValue(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Date"))
+	extractor.Extract([]byte("not a date"))
+}
+
+func TestPanicWhenDateTimeHasInvalidValue(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1"), []byte("DateTime"))
+	extractor.Extract([]byte("not a datetime"))
+}
+
+func TestPanicWhenBlobHasInvalidValue(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Blob;100"))
+	extractor.Extract([]byte("not a base64 string"))
+}
