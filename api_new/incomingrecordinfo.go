@@ -5,6 +5,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	b "github.com/tlarsen7572/goalteryx/api_new/field_base"
 	"math"
 	"strconv"
 	"time"
@@ -36,14 +37,6 @@ type IncomingField struct {
 	Size     int    `xml:"size,attr"`
 	Scale    int    `xml:"scale,attr"`
 	GetBytes BytesGetter
-}
-
-type IncomingFieldBase struct {
-	Name   string
-	Type   string
-	Source string
-	Size   int
-	Scale  int
 }
 
 type IncomingIntField struct {
@@ -98,10 +91,10 @@ func (i IncomingRecordInfo) NumFields() int {
 	return len(i.fields)
 }
 
-func (i IncomingRecordInfo) Fields() []IncomingFieldBase {
-	fields := make([]IncomingFieldBase, len(i.fields))
+func (i IncomingRecordInfo) Fields() []b.FieldBase {
+	fields := make([]b.FieldBase, len(i.fields))
 	for index, field := range i.fields {
-		fields[index] = IncomingFieldBase{
+		fields[index] = b.FieldBase{
 			Name:   field.Name,
 			Type:   field.Type,
 			Source: field.Source,
