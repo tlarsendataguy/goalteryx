@@ -55,8 +55,8 @@ type FilePusher struct {
 }
 
 func (f *FilePusher) Init(provider Provider) {
-	f.output = provider.GetOutputAnchor(`Output`)
 	f.provider = provider
+	f.output = provider.GetOutputAnchor(`Output`)
 }
 
 func (f *FilePusher) OnInputConnectionOpened(_ InputConnection) {

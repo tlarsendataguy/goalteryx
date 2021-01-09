@@ -745,7 +745,11 @@ func (i *OutgoingRecordInfo) DataSize() uint32 {
 }
 
 func (i *OutgoingRecordInfo) CopyFrom(record Record) {
-
+	for _, field := range i.outgoingFields {
+		if field.CopyFrom != nil {
+			copy(field.CurrentValue, field.CopyFrom(record))
+		}
+	}
 }
 
 func (i *OutgoingRecordInfo) toXml(connName string) string {

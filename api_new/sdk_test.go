@@ -211,9 +211,7 @@ func (p *PassThroughTool) OnRecordPacket(connection api_new.InputConnection) {
 	}
 }
 
-func (p *PassThroughTool) OnComplete() {
-	//do nothing
-}
+func (p *PassThroughTool) OnComplete() {}
 
 func TestRegister(t *testing.T) {
 	config := `<Configuration></Configuration>`
@@ -442,5 +440,8 @@ func TestPassthroughSimulation(t *testing.T) {
 	runner.SimulateLifecycle()
 	if len(collector.Data) != 16 {
 		t.Fatalf(`expected 16 fields but got %v`, len(collector.Data))
+	}
+	if recordCount := len(collector.Data[`Field1`]); recordCount != 3 {
+		t.Fatalf(`expected 3 records but got %v`, recordCount)
 	}
 }

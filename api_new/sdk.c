@@ -165,10 +165,7 @@ void PI_Close(void * handle, bool bHasErrors) {
     // do nothing
 }
 
-long PI_PushAllRecords(void * handle, __int64 nRecordLimit){
-    struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
-    goOnComplete(plugin);
-    struct OutputAnchor *anchor = plugin->outputAnchors;
+void closeAllOutputAnchors(struct OutputAnchor *anchor) {
     while (anchor != NULL) {
         struct OutputConn *conn = anchor->firstChild;
         while (anchor->isOpen == 1 && conn != NULL) {
@@ -180,6 +177,12 @@ long PI_PushAllRecords(void * handle, __int64 nRecordLimit){
         }
         anchor = anchor->nextAnchor;
     }
+}
+
+long PI_PushAllRecords(void * handle, __int64 nRecordLimit){
+    struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
+    goOnComplete(plugin);
+    closeAllOutputAnchors(plugin->outputAnchors);
 }
 
 struct InputAnchor* createInputAnchor(wchar_t* name) {
@@ -363,6 +366,7 @@ void II_Close(void * handle) {
         return;
     }
     goOnComplete(plugin);
+    closeAllOutputAnchors(plugin->outputAnchors);
 }
 
 void II_Free(void * handle) {
