@@ -1,21 +1,26 @@
 package api_new
 
 import (
-	"unsafe"
+	"bufio"
+	"fmt"
+	"github.com/tlarsen7572/goalteryx/api_new/import_file"
+	"os"
+	"time"
 )
 
 type FileTestRunner struct {
-	io           *testIo
-	plugin       *goPluginSharedMemory
-	ayxInterface unsafe.Pointer
-	inputs       map[string]string
+	io     *testIo
+	plugin *goPluginSharedMemory
+	inputs map[string]*FilePusher
 }
 
 func (r *FileTestRunner) SimulateLifecycle() {
 	if len(r.inputs) == 0 {
-		simulateInputLifecycle(r.ayxInterface)
+		simulateInputLifecycle(r.plugin.ayxInterface)
 	} else {
-		return
+		for _, pusher := range r.inputs {
+			simulateInputLifecycle(pusher.sharedMemory.ayxInterface)
+		}
 	}
 }
 
@@ -31,7 +36,146 @@ func (r *FileTestRunner) CaptureOutgoingAnchor(name string) *RecordCollector {
 }
 
 func (r *FileTestRunner) ConnectInput(name string, dataFile string) {
-	r.inputs[name] = dataFile
+	pusher := &FilePusher{file: dataFile}
+	sharedMemory := registerTestHarness(pusher)
+	pusher.sharedMemory = sharedMemory
+
+	ii := generateIncomingConnectionInterface()
+	callPiAddIncomingConnection(r.plugin, name, ii)
+	callPiAddOutgoingConnection(sharedMemory, `Output`, ii)
+
+	r.inputs[name] = pusher
+}
+
+type FilePusher struct {
+	file         string
+	sharedMemory *goPluginSharedMemory
+	output       OutputAnchor
+	provider     Provider
+}
+
+func (f *FilePusher) Init(provider Provider) {
+	f.output = provider.GetOutputAnchor(`Output`)
+	f.provider = provider
+}
+
+func (f *FilePusher) OnInputConnectionOpened(_ InputConnection) {
+	panic("this should never be called")
+}
+
+func (f *FilePusher) OnRecordPacket(_ InputConnection) {
+	panic("this should never be called")
+}
+
+func (f *FilePusher) OnComplete() {
+	file, err := os.Open(f.file)
+	if err != nil {
+		panic(fmt.Sprintf(`error opening data file: %v`, err.Error()))
+	}
+
+	scanner := bufio.NewScanner(file)
+	success := scanner.Scan()
+	if !success {
+		return
+	}
+	fieldNames := import_file.Preprocess(scanner.Bytes())
+	success = scanner.Scan()
+	if !success {
+		return
+	}
+	fieldTypes := import_file.Preprocess(scanner.Bytes())
+
+	extractor := import_file.NewExtractor(fieldNames, fieldTypes)
+	infoEditor := &EditingRecordInfo{}
+	source := `FilePusher`
+
+	for _, field := range extractor.Fields() {
+		switch field.Type {
+		case `Bool`:
+			infoEditor.AddBoolField(field.Name, source)
+		case `Byte`:
+			infoEditor.AddByteField(field.Name, source)
+		case `Int16`:
+			infoEditor.AddInt16Field(field.Name, source)
+		case `Int32`:
+			infoEditor.AddInt32Field(field.Name, source)
+		case `Int64`:
+			infoEditor.AddInt64Field(field.Name, source)
+		case `Float`:
+			infoEditor.AddFloatField(field.Name, source)
+		case `Double`:
+			infoEditor.AddDoubleField(field.Name, source)
+		case `FixedDecimal`:
+			infoEditor.AddFixedDecimalField(field.Name, source, field.Size, field.Scale)
+		case `Date`:
+			infoEditor.AddDateField(field.Name, source)
+		case `DateTime`:
+			infoEditor.AddDateTimeField(field.Name, source)
+		case `String`:
+			infoEditor.AddStringField(field.Name, source, field.Size)
+		case `WString`:
+			infoEditor.AddWStringField(field.Name, source, field.Size)
+		case `V_String`:
+			infoEditor.AddV_StringField(field.Name, source, field.Size)
+		case `V_WString`:
+			infoEditor.AddV_WStringField(field.Name, source, field.Size)
+		case `Blob`:
+			infoEditor.AddBlobField(field.Name, source, field.Size)
+		case `SpatialObj`:
+			infoEditor.AddSpatialObjField(field.Name, source, field.Size)
+		}
+	}
+	outInfo := infoEditor.GenerateOutgoingRecordInfo()
+	f.output.Open(outInfo)
+
+	for scanner.Scan() {
+		preprocessed := import_file.Preprocess(scanner.Bytes())
+		data := extractor.Extract(preprocessed)
+		for fieldName, value := range data.BlobFields {
+			if value == nil {
+				outInfo.BlobFields[fieldName].SetNullBlob()
+			} else {
+				outInfo.BlobFields[fieldName].SetBlob(value.([]byte))
+			}
+		}
+		for fieldName, value := range data.BoolFields {
+			if value == nil {
+				outInfo.BoolFields[fieldName].SetNullBool()
+			} else {
+				outInfo.BoolFields[fieldName].SetBool(value.(bool))
+			}
+		}
+		for fieldName, value := range data.IntFields {
+			if value == nil {
+				outInfo.IntFields[fieldName].SetNullInt()
+			} else {
+				outInfo.IntFields[fieldName].SetInt(value.(int))
+			}
+		}
+		for fieldName, value := range data.DecimalFields {
+			if value == nil {
+				outInfo.FloatFields[fieldName].SetNullFloat()
+			} else {
+				outInfo.FloatFields[fieldName].SetFloat(value.(float64))
+			}
+		}
+		for fieldName, value := range data.DateTimeFields {
+			if value == nil {
+				outInfo.DateTimeFields[fieldName].SetNullDateTime()
+			} else {
+				outInfo.DateTimeFields[fieldName].SetDateTime(value.(time.Time))
+			}
+		}
+		for fieldName, value := range data.StringFields {
+			if value == nil {
+				outInfo.StringFields[fieldName].SetNullString()
+			} else {
+				outInfo.StringFields[fieldName].SetString(value.(string))
+			}
+		}
+		f.output.Write()
+	}
+	f.output.UpdateProgress(1.0)
 }
 
 type RecordCollector struct {

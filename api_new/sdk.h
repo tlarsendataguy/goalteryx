@@ -50,6 +50,7 @@ struct PluginSharedMemory {
     wchar_t*                toolConfig;
     uint32_t                toolConfigLen;
     struct EngineInterface* engine;
+    struct PluginInterface* ayxInterface;
     struct OutputAnchor*    outputAnchors;
     uint32_t                totalInputConnections;
     uint32_t                closedInputConnections;

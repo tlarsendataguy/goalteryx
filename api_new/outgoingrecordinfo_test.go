@@ -57,3 +57,16 @@ func TestDuplicateFieldNames(t *testing.T) {
 		t.Fatalf(`expected [Field1 Field12] but got %v`, fieldNames)
 	}
 }
+
+func TestSetStringsToEmptyString(t *testing.T) {
+	info, _ := api_new.NewOutgoingRecordInfo([]api_new.NewOutgoingField{
+		api_new.NewStringField(`Field1`, `source`, 100),
+		api_new.NewWStringField(`Field2`, `source`, 100),
+		api_new.NewV_StringField(`Field3`, `source`, 100),
+		api_new.NewV_WStringField(`Field4`, `source`, 100),
+	})
+	info.StringFields[`Field1`].SetString(``)
+	info.StringFields[`Field2`].SetString(``)
+	info.StringFields[`Field3`].SetString(``)
+	info.StringFields[`Field4`].SetString(``)
+}

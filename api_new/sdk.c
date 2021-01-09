@@ -11,6 +11,7 @@ const int cacheSize = 4194304; //4mb
 **     toolConfig (wchar_t *)
 **     toolConfigLen (uint32_t)
 **     engine (struct EngineInterface*)
+**     ayxInterface (struct PluginInterface*)
 **     outputAnchors (struct OutputAnchor*)
 **         name (wchar_t *)
 **         metadata (wchar_t *)
@@ -103,6 +104,7 @@ void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineI
     plugin->toolConfig = pXmlProperties;
     plugin->toolConfigLen = getLenFromUtf16Ptr(pXmlProperties);
     plugin->engine = pEngineInterface;
+    plugin->ayxInterface = r_pluginInterface;
     plugin->outputAnchors = NULL;
     plugin->totalInputConnections = 0;
     plugin->closedInputConnections = 0;

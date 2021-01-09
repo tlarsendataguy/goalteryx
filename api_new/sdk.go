@@ -17,6 +17,7 @@ type goPluginSharedMemory struct {
 	toolConfig             unsafe.Pointer
 	toolConfigLen          uint32
 	engine                 unsafe.Pointer
+	ayxInterface           unsafe.Pointer
 	outputAnchors          *goOutputAnchorData
 	totalInputConnections  uint32
 	closedInputConnections uint32
@@ -197,10 +198,9 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 	}
 	registerAndInit(plugin, data, toolProvider)
 	return &FileTestRunner{
-		io:           io,
-		plugin:       data,
-		ayxInterface: pluginInterface,
-		inputs:       make(map[string]string),
+		io:     io,
+		plugin: data,
+		inputs: make(map[string]*FilePusher),
 	}
 }
 

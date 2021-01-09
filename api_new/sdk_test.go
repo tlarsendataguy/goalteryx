@@ -200,6 +200,7 @@ func (p *PassThroughTool) Init(provider api_new.Provider) {
 
 func (p *PassThroughTool) OnInputConnectionOpened(connection api_new.InputConnection) {
 	p.info = connection.Metadata().Clone().GenerateOutgoingRecordInfo()
+	p.output.Open(p.info)
 }
 
 func (p *PassThroughTool) OnRecordPacket(connection api_new.InputConnection) {
