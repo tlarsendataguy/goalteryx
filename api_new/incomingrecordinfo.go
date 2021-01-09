@@ -286,7 +286,7 @@ func bytesToByte(getBytes BytesGetter) IntGetter {
 		if bytes[1] == 1 {
 			return 0, true
 		}
-		return int(bytes[0]), false
+		return int(int8(bytes[0])), false
 	}
 }
 
@@ -296,7 +296,7 @@ func bytesToInt16(getBytes BytesGetter) IntGetter {
 		if bytes[2] == 1 {
 			return 0, true
 		}
-		return int(binary.LittleEndian.Uint16(bytes)), false
+		return int(int16(binary.LittleEndian.Uint16(bytes))), false
 	}
 }
 
@@ -306,7 +306,7 @@ func bytesToInt32(getBytes BytesGetter) IntGetter {
 		if bytes[4] == 1 {
 			return 0, true
 		}
-		return int(binary.LittleEndian.Uint32(bytes)), false
+		return int(int32(binary.LittleEndian.Uint32(bytes))), false
 	}
 }
 
@@ -316,7 +316,7 @@ func bytesToInt64(getBytes BytesGetter) IntGetter {
 		if bytes[8] == 1 {
 			return 0, true
 		}
-		return int(binary.LittleEndian.Uint64(bytes)), false
+		return int(int64(binary.LittleEndian.Uint64(bytes))), false
 	}
 }
 
