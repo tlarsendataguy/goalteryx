@@ -313,6 +313,19 @@ func (f *outgoingField) dataSize() int {
 	return len(f.CurrentValue)
 }
 
+func (f *outgoingField) checkAndResize(requiredLen int) {
+	if requiredLen > cap(f.CurrentValue) {
+		f.CurrentValue = make([]byte, requiredLen)
+	}
+	f.CurrentValue = f.CurrentValue[:requiredLen]
+}
+
+func (f *outgoingField) setVarBytes(bytes []byte) {
+	requiredLen := len(bytes) + 1
+	f.checkAndResize(requiredLen)
+	copy(f.CurrentValue[1:], bytes)
+}
+
 func setNormalFieldNull(isNull byte, f *outgoingField) {
 	f.CurrentValue[f.Size] = isNull
 }
@@ -537,12 +550,7 @@ func setV_String(value string, f *outgoingField) {
 	if length := len(bytes); length > f.Size {
 		bytes = bytes[:f.Size]
 	}
-	requiredLen := len(bytes) + 1
-	if requiredLen > cap(f.CurrentValue) {
-		f.CurrentValue = make([]byte, requiredLen)
-	}
-	f.CurrentValue = f.CurrentValue[:requiredLen]
-	copy(f.CurrentValue[1:], value)
+	f.setVarBytes(bytes)
 }
 
 func getV_WString(f *outgoingField) string {
@@ -560,12 +568,7 @@ func setV_WString(value string, f *outgoingField) {
 		utf16Bytes = utf16Bytes[:f.Size]
 	}
 	bytes := utf16ToBytes(utf16Bytes)
-	requiredLen := len(bytes) + 1
-	if requiredLen > cap(f.CurrentValue) {
-		f.CurrentValue = make([]byte, requiredLen)
-	}
-	f.CurrentValue = f.CurrentValue[:requiredLen]
-	copy(f.CurrentValue[1:], bytes)
+	f.setVarBytes(bytes)
 }
 
 func (f *outgoingField) SetString(value string) {
@@ -589,12 +592,10 @@ func getBlob(f *outgoingField) []byte {
 }
 
 func setBlob(value []byte, f *outgoingField) {
-	requiredLen := len(value) + 1
-	if requiredLen > cap(f.CurrentValue) {
-		f.CurrentValue = make([]byte, requiredLen)
+	if length := len(value); length > f.Size {
+		value = value[:f.Size]
 	}
-	copy(f.CurrentValue[1:], value)
-	f.CurrentValue = f.CurrentValue[:requiredLen]
+	f.setVarBytes(value)
 }
 
 func (f *outgoingField) SetBlob(value []byte) {
