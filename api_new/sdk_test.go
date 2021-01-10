@@ -475,7 +475,7 @@ func TestPassthroughSimulation(t *testing.T) {
 	if expectedValues := []interface{}{`Hello `, `HIJK`, ``, `HIJK`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field10`]) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field10`])
 	}
-	if expectedValues := []interface{}{` World`, `LMNOP`, ``, `LMNOP`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field11`]) {
+	if expectedValues := []interface{}{` World`, `LMNOP`, ``, `LMN`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field11`]) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field11`])
 	}
 	if expectedValues := []interface{}{`abcdefg`, "QRSTU\r\nVWXYZ", ``, `qrstuvwxyz`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field12`]) {

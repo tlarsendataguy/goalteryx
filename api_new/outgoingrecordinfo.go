@@ -541,8 +541,8 @@ func setV_String(value string, f *outgoingField) {
 	if requiredLen > cap(f.CurrentValue) {
 		f.CurrentValue = make([]byte, requiredLen)
 	}
-	copy(f.CurrentValue[1:], value)
 	f.CurrentValue = f.CurrentValue[:requiredLen]
+	copy(f.CurrentValue[1:], value)
 }
 
 func getV_WString(f *outgoingField) string {
@@ -564,8 +564,8 @@ func setV_WString(value string, f *outgoingField) {
 	if requiredLen > cap(f.CurrentValue) {
 		f.CurrentValue = make([]byte, requiredLen)
 	}
-	copy(f.CurrentValue[1:], bytes)
 	f.CurrentValue = f.CurrentValue[:requiredLen]
+	copy(f.CurrentValue[1:], bytes)
 }
 
 func (f *outgoingField) SetString(value string) {
