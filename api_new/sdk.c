@@ -398,7 +398,7 @@ void callWriteRecords(struct OutputAnchor *anchor) {
         }
         written += anchor->fixedSize;
         if (anchor->hasVarFields == 1) {
-            uint32_t varLen = uint32FromRecordPosition(record, written);
+            uint32_t varLen = uint32FromRecordPosition(anchor->recordCache, written);
             written += 4 + varLen;
         }
     }

@@ -424,7 +424,7 @@ func getFixedDecimal(f *outgoingField) float64 {
 	valueStr := string(truncateAtNullByte(f.CurrentValue[:f.Size]))
 	value, err := strconv.ParseFloat(valueStr, 64)
 	if err != nil {
-		println(err.Error())
+		panic(err.Error())
 	}
 	return value
 }
@@ -747,7 +747,22 @@ func (i *OutgoingRecordInfo) DataSize() uint32 {
 func (i *OutgoingRecordInfo) CopyFrom(record Record) {
 	for _, field := range i.outgoingFields {
 		if field.CopyFrom != nil {
-			copy(field.CurrentValue, field.CopyFrom(record))
+			bytes := field.CopyFrom(record)
+			switch field.Type {
+			case `Blob`, `SpatialObj`, `V_String`, `V_WString`:
+				if bytes == nil {
+					field.CurrentValue[0] = 1
+					continue
+				}
+				requiredLen := len(bytes) + 1
+				if requiredLen > cap(field.CurrentValue) {
+					field.CurrentValue = make([]byte, requiredLen)
+				}
+				field.CurrentValue = field.CurrentValue[:requiredLen]
+				copy(field.CurrentValue[1:], bytes)
+			default:
+				copy(field.CurrentValue, bytes)
+			}
 		}
 	}
 }

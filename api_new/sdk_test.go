@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/tlarsen7572/goalteryx/api_new"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -441,7 +442,55 @@ func TestPassthroughSimulation(t *testing.T) {
 	if len(collector.Data) != 16 {
 		t.Fatalf(`expected 16 fields but got %v`, len(collector.Data))
 	}
-	if recordCount := len(collector.Data[`Field1`]); recordCount != 3 {
+	if recordCount := len(collector.Data[`Field1`]); recordCount != 4 {
 		t.Fatalf(`expected 3 records but got %v`, recordCount)
+	}
+	if expectedValues := []interface{}{true, false, nil, true}; !reflect.DeepEqual(expectedValues, collector.Data[`Field1`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field1`])
+	}
+	if expectedValues := []interface{}{2, -2, nil, 42}; !reflect.DeepEqual(expectedValues, collector.Data[`Field2`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field2`])
+	}
+	if expectedValues := []interface{}{100, -100, nil, -110}; !reflect.DeepEqual(expectedValues, collector.Data[`Field3`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field3`])
+	}
+	if expectedValues := []interface{}{1000, -1000, nil, 392}; !reflect.DeepEqual(expectedValues, collector.Data[`Field4`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field4`])
+	}
+	if expectedValues := []interface{}{10000, -10000, nil, 2340}; !reflect.DeepEqual(expectedValues, collector.Data[`Field5`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field5`])
+	}
+	if expectedValues := []interface{}{float64(float32(12.34)), float64(float32(-12.34)), nil, float64(float32(12))}; !reflect.DeepEqual(expectedValues, collector.Data[`Field6`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field6`])
+	}
+	if expectedValues := []interface{}{1.23, -1.23, nil, 41.22}; !reflect.DeepEqual(expectedValues, collector.Data[`Field7`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field7`])
+	}
+	if expectedValues := []interface{}{234.56, -234.56, nil, 98.2}; !reflect.DeepEqual(expectedValues, collector.Data[`Field8`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field8`])
+	}
+	if expectedValues := []interface{}{`ABC`, `DE|"FG`, ``, ``}; !reflect.DeepEqual(expectedValues, collector.Data[`Field9`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field9`])
+	}
+	if expectedValues := []interface{}{`Hello `, `HIJK`, ``, `HIJK`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field10`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field10`])
+	}
+	if expectedValues := []interface{}{` World`, `LMNOP`, ``, `LMNOP`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field11`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field11`])
+	}
+	if expectedValues := []interface{}{`abcdefg`, "QRSTU\r\nVWXYZ", ``, `qrstuvwxyz`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field12`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field12`])
+	}
+	if expectedValues := []interface{}{time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2020, 2, 3, 0, 0, 0, 0, time.UTC), nil, time.Date(2020, 2, 13, 0, 0, 0, 0, time.UTC)}; !reflect.DeepEqual(expectedValues, collector.Data[`Field13`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field13`])
+	}
+	if expectedValues := []interface{}{time.Date(2020, 1, 2, 3, 4, 5, 0, time.UTC), time.Date(2020, 1, 2, 13, 14, 15, 0, time.UTC), nil, time.Date(2020, 11, 2, 13, 14, 15, 0, time.UTC)}; !reflect.DeepEqual(expectedValues, collector.Data[`Field14`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field14`])
+	}
+	if expectedValues := []interface{}{nil, nil, nil, nil}; !reflect.DeepEqual(expectedValues, collector.Data[`Field15`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field15`])
+	}
+	if expectedValues := []interface{}{nil, nil, nil, nil}; !reflect.DeepEqual(expectedValues, collector.Data[`Field16`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field16`])
 	}
 }

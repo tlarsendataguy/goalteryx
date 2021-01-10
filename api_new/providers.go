@@ -108,12 +108,12 @@ func (a *outputAnchor) Write() {
 			continue
 		}
 		hasVar = true
-		if field.CurrentValue[0] == 1 {
+		if field.CurrentValue[0] == 1 { // null value
 			copy(cache[currentFixedPosition:], []byte{1, 0, 0, 0})
 			currentFixedPosition += 4
 			continue
 		}
-		if len(field.CurrentValue) == 0 {
+		if len(field.CurrentValue) == 1 { // empty value
 			copy(cache[currentFixedPosition:], []byte{0, 0, 0, 0})
 			currentFixedPosition += 4
 			continue
