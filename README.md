@@ -13,8 +13,8 @@ With the announced deprecation of the .NET SDK, a gap formed between the C/C++ a
 1. [Installation](#Installation)  
 2. [Building your custom tools](#Building-your-custom-tools)  
 3. [Sample tool](#Sample-tool)  
-4. [Registering your tool](#Registering-your-tool)  
-5. [Implementing the Plugin interface](#Implementing-the-Plugin-interface)  
+4. [Implementing the Plugin interface](#Implementing-the-Plugin-interface)  
+5. [Registering your tool](#Registering-your-tool)  
 6. [Using Provider](#Using-Provider)  
 7. [Using OutputAnchor](#Using-OutputAnchor)  
 8. [Using Io](#Using-Io)  
@@ -124,11 +124,84 @@ plugin.go contains the implementation of your plugin.  Your implementation must 
 
 [Back to table of contents](#Table-of-contents)
 
-## Registering your tool
+## Implementing the Plugin interface
 
 [Back to table of contents](#Table-of-contents)
 
-## Implementing the Plugin interface
+## Registering your tool
+
+Alteryx connects to custom tools through a C API function call.  All custom tools are expected to provide an entry point to the Alteryx engine that looks like the following:
+
+```
+long __declspec(dllexport) NameOfPluginEntryPoint(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
+```
+
+For custom Go tools, the easiest way to do this is to create a file called entry.h with the declared entry points.  If you plan on packaging multiple tools into the DLL, you can specify all of them in entry.h.  Example:
+
+```
+long __declspec(dllexport) FirstPlugin(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
+long __declspec(dllexport) SecondPlugin(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
+```
+
+Now that you have declared the plugin's entry point, you need to implement it.  The easiest way to do this is to create a file called entry.go that performs the necessary registration steps.  Example:
+
+```
+package main
+
+/*
+#include "entry.h"
+*/
+import "C"
+import (
+	"github.com/tlarsen7572/goalteryx/sdk"
+	"unsafe"
+)
+
+func main() {}
+
+//export PluginEntry
+func PluginEntry(toolId C.int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) C.long {
+	plugin := &Plugin{}
+	return C.long(sdk.RegisterTool(plugin, int(toolId), xmlProperties, engineInterface, pluginInterface))
+}
+```
+
+We start by importing the C package and including entry.h that we created earlier.  The next part of the file is an empty main function.  DLLs are expected to have a main function, but we do not make use of it so we can keep it empty.
+
+The next section implements our plugin's entry point.  It starts with a comment, `//export PluginEntry`, which has to match the declared function name from entry.h.  Immediately after the comment is the function itself, also with the same name as that declared in entry.h.
+
+The next line, `plugin := &Plugin{}`, creates a pointer of our plugin's struct.  We use that pointer in the `RegisterTool` function on the next line to actually register our tool and prepare it for use.
+
+If you have multiple tools, you can provide all of their implementations in entry.go.  Example:
+
+```
+package main
+
+/*
+#include "entry.h"
+*/
+import "C"
+import (
+	"github.com/tlarsen7572/goalteryx/sdk"
+	"unsafe"
+)
+
+func main() {}
+
+//export FirstPlugin
+func FirstPlugin(toolId C.int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) C.long {
+	plugin := &First{}
+	return C.long(sdk.RegisterTool(plugin, int(toolId), xmlProperties, engineInterface, pluginInterface))
+}
+
+//export SecondPlugin
+func SecondPlugin(toolId C.int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) C.long {
+	plugin := &Second{}
+	return C.long(sdk.RegisterTool(plugin, int(toolId), xmlProperties, engineInterface, pluginInterface))
+}
+```
+
+Registering your custom tools in this manner keeps all of the registration code neatly separated from your business logic and prevents your business logic from depending on the Unsafe and C packages.
 
 [Back to table of contents](#Table-of-contents)
 
