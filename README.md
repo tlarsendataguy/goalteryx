@@ -6,7 +6,7 @@ An unofficial SDK for building custom Alteryx tools with Go.
 
 ## Why a Go SDK?
 
-With the announced deprecation of the .NET SDK, a gap formed between the C/C++ and Python SDKs.  C/C++ are low-level languages requiring great care and expertise to ensure proper memory management.  Python is very approachable but is slower.  I wanted to build tools with a middle-ground language having decent performance and simplified memory management.  Go fit the bill and is my favorite language to code in.
+With the announced deprecation of the .NET SDK, a gap formed between the C/C++ and Python SDKs.  C/C++ are low-level languages requiring great care and expertise to ensure proper memory management.  Python is very approachable but is slower.  I wanted to build tools with a middle-ground language having decent performance and simplified memory management.  Go fit the bill and is my favorite language to code with.
 
 ## Table of contents
 
@@ -40,6 +40,87 @@ I build directly to the Plugins folder in the Alteryx installation folder of my 
 [Back to table of contents](#Table-of-contents)
 
 ## Sample tool
+
+The following 3 code files represent a basic tool in Alteryx that copies incoming records and pushes them through its output.
+
+#### entry.h
+
+```
+long __declspec(dllexport) PluginEntry(int nToolID,
+	void * pXmlProperties,
+	void *pEngineInterface,
+	void *r_pluginInterface);
+```
+
+entry.h declares your plugin's entry function for the Alteryx engine and is one half of registering your plugin.  See [Registering your tool](#Registering-your-tool) for more info.
+
+#### entry.go
+
+```
+package main
+
+/*
+#include "entry.h"
+*/
+import "C"
+import (
+	"github.com/tlarsen7572/goalteryx/sdk"
+	"unsafe"
+)
+
+func main() {}
+
+//export PluginEntry
+func PluginEntry(toolId C.int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) C.long {
+	plugin := &Plugin{}
+	return C.long(sdk.RegisterTool(plugin, int(toolId), xmlProperties, engineInterface, pluginInterface))
+}
+```
+
+entry.go is the second half of [plugin registration](#Registering-your-tool).
+
+#### plugin.go
+
+```
+package main
+
+import (
+	"fmt"
+	"github.com/tlarsen7572/goalteryx/sdk"
+)
+
+type Plugin struct {
+	provider sdk.Provider
+	output   sdk.OutputAnchor
+	outInfo  *sdk.OutgoingRecordInfo
+}
+
+func (p *Plugin) Init(provider sdk.Provider) {
+	provider.Io().Info(fmt.Sprintf(`Init tool %v`, provider.Environment().ToolId()))
+	p.provider = provider
+	p.output = provider.GetOutputAnchor(`Output`)
+}
+
+func (p *Plugin) OnInputConnectionOpened(connection sdk.InputConnection) {
+	p.provider.Io().Info(fmt.Sprintf(`got connection %v`, connection.Name()))
+	p.outInfo = connection.Metadata().Clone().GenerateOutgoingRecordInfo()
+	p.output.Open(p.outInfo)
+}
+
+func (p *Plugin) OnRecordPacket(connection sdk.InputConnection) {
+	packet := connection.Read()
+	for packet.Next() {
+		p.outInfo.CopyFrom(packet.Record())
+		p.output.Write()
+	}
+}
+
+func (p *Plugin) OnComplete() {
+	p.provider.Io().Info(`Done`)
+}
+```
+
+plugin.go contains the implementation of your plugin.  Your implementation must satisfy the [Plugin interface](#Implementing-the-Plugin-interface).  In this example the tool simply copies incoming records and pushes them to its output.
 
 [Back to table of contents](#Table-of-contents)
 
