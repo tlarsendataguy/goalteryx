@@ -48,6 +48,10 @@ func (p *preprocessor) processByte() bool {
 	currentByte := p.value[p.sourceIndex]
 	p.sourceIndex++
 
+	if currentByte == pipe {
+		return p.processPipe()
+	}
+
 	if currentByte == escape {
 		return p.processEscape()
 	}
@@ -69,6 +73,16 @@ func (p *preprocessor) processByte() bool {
 	}
 
 	return p.processNormalChar(currentByte)
+}
+
+func (p *preprocessor) processPipe() bool {
+	if p.isQuoted {
+		return p.processNormalChar('|')
+	}
+	p.lastCharIsPipe = true
+	p.value[p.destIndex] = null
+	p.destIndex++
+	return true
 }
 
 func (p *preprocessor) processEscape() bool {
@@ -104,6 +118,8 @@ func (p *preprocessor) processDoubleQuote() bool {
 	p.isQuoted = !p.isQuoted
 	p.extraSpaceLen = 0
 	p.lastCharIsPipe = false
+	p.value[p.destIndex] = '"'
+	p.destIndex++
 	return true
 }
 
@@ -119,13 +135,8 @@ func (p *preprocessor) processSpace() bool {
 
 func (p *preprocessor) processNormalChar(currentByte byte) bool {
 	p.extraSpaceLen = 0
-	if currentByte == pipe && !p.isQuoted {
-		p.lastCharIsPipe = true
-		p.value[p.destIndex] = null
-	} else {
-		p.lastCharIsPipe = false
-		p.value[p.destIndex] = currentByte
-	}
+	p.lastCharIsPipe = false
+	p.value[p.destIndex] = currentByte
 	p.destIndex++
 	return true
 }

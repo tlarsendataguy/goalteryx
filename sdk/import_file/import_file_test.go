@@ -12,9 +12,10 @@ import (
 
 const fieldNames string = "Field1\000Field2\000Field3\000Field4\000Field5\000Field6\000Field7\000Field8\000Field9\000Field10\000Field11\000Field12\000Field13\000Field14\000Field15\000Field16"
 const fieldTypes string = "Bool\000Byte\000Int16\000Int32\000Int64\000Float\000Double\000FixedDecimal;19;2\000String;100\000WString;100\000V_String;10000\000V_WString;100000\000Date\000DateTime\000Blob;10\000SpatialObj;100"
-const record1 string = "true\0002\000100\0001000\00010000\00012.34\0001.23\000234.56\000ABC\000Hello \000 World\000abcdefg\0002020-01-01\0002020-01-02 03:04:05\000\000"
-const record2 string = "false\000-2\000-100\000-1000\000-10000\000-12.34\000-1.23\000-234.56\000DE|\"FG\000HIJK\000LMNOP\000QRSTU\r\nVWXYZ\0002020-02-03\0002020-01-02 13:14:15\000\000"
+const record1 string = "true\0002\000100\0001000\00010000\00012.34\0001.23\000234.56\000\"ABC\"\000\"Hello \"\000\" World\"\000\"abcdefg\"\0002020-01-01\0002020-01-02 03:04:05\000\000"
+const record2 string = "false\000-2\000-100\000-1000\000-10000\000-12.34\000-1.23\000-234.56\000\"DE|\"FG\"\000HIJK\000LMNOP\000\"QRSTU\r\nVWXYZ\"\0002020-02-03\0002020-01-02 13:14:15\000\000"
 const record3 string = "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
+const record4 string = "true\00042\000-110\000392\0002340\00012\00041.22\00098.2\000\"\"\000\"HIJK\"\000LMN\000\"qrstuvwxyz\"\0002020-02-13\0002020-11-02 13:14:15\000\000"
 
 func TestPreprocessTextFile(t *testing.T) {
 	file, err := os.Open(`..\sdk_test_passthrough_simulation.txt`)
@@ -146,16 +147,16 @@ func TestExtractData(t *testing.T) {
 	if value := data.DecimalFields[`Field8`]; value != nil {
 		t.Fatalf(`expected nil but got %v`, value)
 	}
-	if value := data.StringFields[`Field9`]; value != `` {
+	if value := data.StringFields[`Field9`]; value != nil {
 		t.Fatalf(`expected '' but got %v`, value)
 	}
-	if value := data.StringFields[`Field10`]; value != `` {
+	if value := data.StringFields[`Field10`]; value != nil {
 		t.Fatalf(`expected '' but got %v`, value)
 	}
-	if value := data.StringFields[`Field11`]; value != `` {
+	if value := data.StringFields[`Field11`]; value != nil {
 		t.Fatalf(`expected '' but got %v`, value)
 	}
-	if value := data.StringFields[`Field12`]; value != `` {
+	if value := data.StringFields[`Field12`]; value != nil {
 		t.Fatalf(`expected '' but got %v`, value)
 	}
 	if value := data.DateTimeFields[`Field13`]; value != nil {
@@ -166,6 +167,11 @@ func TestExtractData(t *testing.T) {
 	}
 	if value := data.BlobFields[`Field15`]; value != nil {
 		t.Fatalf(`expected nil but got %v`, value)
+	}
+
+	data = extractor.Extract([]byte(record4))
+	if value := data.StringFields[`Field9`]; value != `` {
+		t.Fatalf(`expected '' but got %v`, value)
 	}
 }
 
@@ -283,6 +289,20 @@ func TestPanicWhenBoolHasInvalidValue(t *testing.T) {
 	extractor.Extract([]byte("not a bool"))
 }
 
+func TestPanicWhenBoolHasQuotedValue(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Bool"))
+	extractor.Extract([]byte(`"true"`))
+}
+
 func TestPanicWhenIntHasInvalidValue(t *testing.T) {
 	defer func(t *testing.T) {
 		err := recover()
@@ -297,6 +317,20 @@ func TestPanicWhenIntHasInvalidValue(t *testing.T) {
 	extractor.Extract([]byte("not an integer"))
 }
 
+func TestPanicWhenIntHasQuotedValue(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Int16"))
+	extractor.Extract([]byte(`"123"`))
+}
+
 func TestPanicWhenDecimalHasInvalidValue(t *testing.T) {
 	defer func(t *testing.T) {
 		err := recover()
@@ -309,6 +343,20 @@ func TestPanicWhenDecimalHasInvalidValue(t *testing.T) {
 
 	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Double"))
 	extractor.Extract([]byte("not a decimal"))
+}
+
+func TestPanicWhenDecimalHasQuotedValue(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Double"))
+	extractor.Extract([]byte(`"123.45"`))
 }
 
 func TestPanicWhenDateHasInvalidValue(t *testing.T) {
@@ -339,6 +387,20 @@ func TestPanicWhenDateTimeHasInvalidValue(t *testing.T) {
 	extractor.Extract([]byte("not a datetime"))
 }
 
+func TestPanicWhenDateHasQuotedValue(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Date"))
+	extractor.Extract([]byte(`"2020-01-01"`))
+}
+
 func TestPanicWhenBlobHasInvalidValue(t *testing.T) {
 	defer func(t *testing.T) {
 		err := recover()
@@ -351,4 +413,18 @@ func TestPanicWhenBlobHasInvalidValue(t *testing.T) {
 
 	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Blob;100"))
 	extractor.Extract([]byte("not a base64 string"))
+}
+
+func TestPanicWhenBlobHasQuotedValue(t *testing.T) {
+	defer func(t *testing.T) {
+		err := recover()
+		if err == nil {
+			t.Fatalf(`no panic happened but one was expected`)
+		}
+		errText := err.(string)
+		t.Logf(errText)
+	}(t)
+
+	extractor := import_file.NewExtractor([]byte("Field1"), []byte("Blob;100"))
+	extractor.Extract([]byte(`""`))
 }

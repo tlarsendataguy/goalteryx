@@ -123,6 +123,15 @@ func (e *Extractor) Extract(data []byte) FileData {
 			}
 			decimalFields[field.Name] = floatValue
 		case `String`, `WString`, `V_String`, `V_WString`:
+			length := len(value)
+			if length == 0 {
+				stringFields[field.Name] = nil
+				continue
+			}
+			if value[0] == '"' && value[length-1] == '"' {
+				stringFields[field.Name] = value[1 : length-1]
+				continue
+			}
 			stringFields[field.Name] = value
 		case `Date`:
 			if value == `` {

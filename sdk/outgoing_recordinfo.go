@@ -755,6 +755,7 @@ func (i *OutgoingRecordInfo) CopyFrom(record Record) {
 					field.CurrentValue[0] = 1
 					continue
 				}
+				field.CurrentValue[0] = 0
 				requiredLen := len(bytes) + 1
 				if requiredLen > cap(field.CurrentValue) {
 					field.CurrentValue = make([]byte, requiredLen)

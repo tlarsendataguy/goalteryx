@@ -469,16 +469,16 @@ func TestPassthroughSimulation(t *testing.T) {
 	if expectedValues := []interface{}{234.56, -234.56, nil, 98.2}; !reflect.DeepEqual(expectedValues, collector.Data[`Field8`]) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field8`])
 	}
-	if expectedValues := []interface{}{`ABC`, `DE|"FG`, ``, ``}; !reflect.DeepEqual(expectedValues, collector.Data[`Field9`]) {
+	if expectedValues := []interface{}{`ABC`, `DE|"FG`, nil, ``}; !reflect.DeepEqual(expectedValues, collector.Data[`Field9`]) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field9`])
 	}
-	if expectedValues := []interface{}{`Hello `, `HIJK`, ``, `HIJK`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field10`]) {
+	if expectedValues := []interface{}{`Hello `, `HIJK`, nil, `HIJK`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field10`]) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field10`])
 	}
-	if expectedValues := []interface{}{` World`, `LMNOP`, ``, `LMN`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field11`]) {
+	if expectedValues := []interface{}{` World`, `LMNOP`, nil, `LMN`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field11`]) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field11`])
 	}
-	if expectedValues := []interface{}{`abcdefg`, "QRSTU\r\nVWXYZ", ``, `qrstuvwxyz`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field12`]) {
+	if expectedValues := []interface{}{`abcdefg`, "QRSTU\r\nVWXYZ", nil, `qrstuvwxyz`}; !reflect.DeepEqual(expectedValues, collector.Data[`Field12`]) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field12`])
 	}
 	if expectedValues := []interface{}{time.Date(2020, 1, 1, 0, 0, 0, 0, time.UTC), time.Date(2020, 2, 3, 0, 0, 0, 0, time.UTC), nil, time.Date(2020, 2, 13, 0, 0, 0, 0, time.UTC)}; !reflect.DeepEqual(expectedValues, collector.Data[`Field13`]) {
