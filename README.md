@@ -19,7 +19,7 @@ With the announced deprecation of the .NET SDK, a gap formed between the C/C++ a
 7. [Using OutputAnchor](#Using-OutputAnchor)  
 8. [Using Io](#Using-Io)  
 9. [Using Environment](#Using-Environment)  
-10. [Using InputAnchor](#Using-InputAnchor)  
+10. [Using InputConnection](#Using-InputConnection)  
 11. [RecordInfo](#RecordInfo)  
 12. [Using RecordPacket](#Using-RecordPacket)  
 
@@ -126,6 +126,59 @@ plugin.go contains the implementation of your plugin.  Your implementation must 
 
 ## Implementing the Plugin interface
 
+Plugins must implement the Plugin interface:
+
+```
+type Plugin interface {
+	Init(Provider)
+	OnInputConnectionOpened(InputConnection)
+	OnRecordPacket(InputConnection)
+	OnComplete()
+}
+```
+
+The `Init` function is called immediately after the tool is registered and allows you to initialize your tool.  Your tool is given a [Provider](#Using-Provider), which allows you to retrieve your tool's configuration, interact with the Alteryx engine, retrieve environment information, and obtain output anchors for passing records to downstream tools.
+
+The `OnInputConnectionOpened` function is called when an upstream tool is connected to your custom tool.  Your tool is given an [InputConnection](#Using-InputConnection), which allows you to retrieve the connection's name and metadata.  If your custom tool is an input tool this function will not be called.
+
+The `OnRecordPacket` function is called when your custom tool recieves records from an upstream tool.  Your tool is given an [InputConnection](#Using-InputConnection), which allows you to check the incoming connection name, iterate through the incoming records, and retrieve the progress of the incoming datastream.  As with `OnInputConnectionOpened`, this function is not called if your custom tool is an input tool.
+
+The `OnComplete` function is called at the end of your custom tool's lifecycle.  For tools which receive data from upstream tools, this happens after all incoming connections have been closed by the upstream tools.  For input tools, this happens when Alteryx is ready for your tool to start processing and sending data.
+
+Below is an example of a struct that implements the Plugin interface:
+
+```
+import (
+	"github.com/tlarsen7572/goalteryx/sdk"
+)
+
+type Plugin struct {
+	provider sdk.Provider
+	output   sdk.OutputAnchor
+	outInfo  *sdk.OutgoingRecordInfo
+}
+
+func (p *Plugin) Init(provider sdk.Provider) {
+	p.provider = provider
+	p.output = provider.GetOutputAnchor(`Output`)
+}
+
+func (p *Plugin) OnInputConnectionOpened(connection sdk.InputConnection) {
+	p.outInfo = connection.Metadata().Clone().GenerateOutgoingRecordInfo()
+	p.output.Open(p.outInfo)
+}
+
+func (p *Plugin) OnRecordPacket(connection sdk.InputConnection) {
+	packet := connection.Read()
+	for packet.Next() {
+		p.outInfo.CopyFrom(packet.Record())
+		p.output.Write()
+	}
+}
+
+func (p *Plugin) OnComplete() {}
+```
+
 [Back to table of contents](#Table-of-contents)
 
 ## Registering your tool
@@ -221,7 +274,7 @@ Registering your custom tools in this manner keeps all of the registration code 
 
 [Back to table of contents](#Table-of-contents)
 
-## Using InputAnchor
+## Using InputConnection
 
 [Back to table of contents](#Table-of-contents)
 
