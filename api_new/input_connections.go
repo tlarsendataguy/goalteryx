@@ -1,5 +1,12 @@
 package api_new
 
+type InputConnection interface {
+	Name() string
+	Metadata() IncomingRecordInfo
+	Read() RecordPacket
+	Progress() float64
+}
+
 type ImpInputConnection struct {
 	data *goInputConnectionData
 }

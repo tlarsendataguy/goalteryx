@@ -4,7 +4,13 @@ import (
 	"unsafe"
 )
 
+type RecordPacket interface {
+	Next() bool
+	Record() Record
+}
+
 type RecordCache unsafe.Pointer
+type Record = unsafe.Pointer
 
 func NewRecordPacket(cache RecordCache, size int, fixedLen int, hasVarData bool) RecordPacket {
 	return &impRecordPacket{
