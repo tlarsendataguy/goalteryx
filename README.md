@@ -20,6 +20,8 @@ With the announced deprecation of the .NET SDK, a gap formed between the C/C++ a
 8. [Using Io](https://github.com/tlarsen7572/goalteryx#Using-Io)  
 9. [Using Environment](https://github.com/tlarsen7572/goalteryx#Using-Environment)  
 10. [Using InputAnchor](https://github.com/tlarsen7572/goalteryx#Using-InputAnchor)  
+11. [RecordInfo](https://github.com/tlarsen7572/goalteryx#RecordInfo)  
+12. [Using RecordPacket](https://github.com/tlarsen7572/goalteryx#Using-RecordPacket)  
 
 ## Installation
 
@@ -66,5 +68,13 @@ I build directly to the Plugins folder in the Alteryx installation folder of my 
 [Back to table of contents](https://github.com/tlarsen7572/goalteryx#Table-of-contents)
 
 ## Using InputAnchor
+
+[Back to table of contents](https://github.com/tlarsen7572/goalteryx#Table-of-contents)
+
+## RecordInfo
+
+[Back to table of contents](https://github.com/tlarsen7572/goalteryx#Table-of-contents)
+
+## Using RecordPacket
 
 [Back to table of contents](https://github.com/tlarsen7572/goalteryx#Table-of-contents)
