@@ -260,6 +260,25 @@ Registering your custom tools in this manner keeps all of the registration code 
 
 ## Using Provider
 
+Provider is used for obtaining information about your custom tool, sending messages to the Alteryx engine, and retrieving environmental information and variables from the Alteryx engine.  It has the following interface:
+
+```
+type Provider interface {
+	ToolConfig() string
+	Io() Io
+	GetOutputAnchor(string) OutputAnchor
+	Environment() Environment
+}
+```
+
+The `ToolConfig` function returns the current configuration for your custom tool.  It is provided as a raw XML string rather than attempting to provide a generic XML navigator object.  As tool configurations are unique to each tool, it is recommended to use Go's built-in parsing capabilities to unmarshal the XML into custom structs fit for purpose.
+
+The `Io` function returns an [Io](#Using-Io), which is used primarily for sending messages to the Alteryx engine.
+
+The `GetOutputAnchor` function returns an [OutgoingAnchor](#Using-OutputAnchor) which you can use to send records to downstream tools.
+
+The `Environment` function returns an [Environment](#Environment), which you can use to obtain your custom tool's ID and retrieve environmental variables from the Alteryx engine.
+
 [Back to table of contents](#Table-of-contents)
 
 ## Using OutputAnchor
