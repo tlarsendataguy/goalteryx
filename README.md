@@ -10,16 +10,16 @@ With the announced deprecation of the .NET SDK, a gap formed between the C/C++ a
 
 ## Table of contents
 
-[Installation](https://github.com/tlarsen7572/goalteryx#Installation)
-[Building your custom tools](https://github.com/tlarsen7572/goalteryx#Building-your-custom-tools)
-[Sample tool](https://github.com/tlarsen7572/goalteryx#Sample-tool)
-[Registering your tool](https://github.com/tlarsen7572/goalteryx#Registering-your-tool)
-[Implementing the Plugin interface](https://github.com/tlarsen7572/goalteryx#Implementing-the-Plugin-interface)
-[Using Provider](https://github.com/tlarsen7572/goalteryx#Using-Provider)
-[Using OutputAnchor](https://github.com/tlarsen7572/goalteryx#Using-OutputAnchor)
-[Using Io](https://github.com/tlarsen7572/goalteryx#Using-Io)
-[Using Environment](https://github.com/tlarsen7572/goalteryx#Using-Environment)
-[Using InputAnchor](https://github.com/tlarsen7572/goalteryx#Using-InputAnchor)
+1. [Installation](https://github.com/tlarsen7572/goalteryx#Installation)  
+2. [Building your custom tools](https://github.com/tlarsen7572/goalteryx#Building-your-custom-tools)  
+3. [Sample tool](https://github.com/tlarsen7572/goalteryx#Sample-tool)  
+4. [Registering your tool](https://github.com/tlarsen7572/goalteryx#Registering-your-tool)  
+5. [Implementing the Plugin interface](https://github.com/tlarsen7572/goalteryx#Implementing-the-Plugin-interface)  
+6. [Using Provider](https://github.com/tlarsen7572/goalteryx#Using-Provider)  
+7. [Using OutputAnchor](https://github.com/tlarsen7572/goalteryx#Using-OutputAnchor)  
+8. [Using Io](https://github.com/tlarsen7572/goalteryx#Using-Io)  
+9. [Using Environment](https://github.com/tlarsen7572/goalteryx#Using-Environment)  
+10. [Using InputAnchor](https://github.com/tlarsen7572/goalteryx#Using-InputAnchor)  
 
 ## Installation
 
