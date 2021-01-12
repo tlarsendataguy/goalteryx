@@ -469,6 +469,32 @@ func (p *Plugin) OnRecordPacket(connection sdk.InputConnection) {
 func (p *Plugin) OnComplete() {}
 ```
 
+#### EditingRecordInfo
+
+`EditingRecordInfo` is used to edit incoming recordinfo's and then generate the final outgoing recordinfo once all edits are made.  It has the following interface:
+
+```
+NumFields() int
+Fields() []IncomingField
+AddBoolField(name string, source string, options ...AddFieldOptionSetter) string
+AddByteField(name string, source string, options ...AddFieldOptionSetter) string
+AddInt16Field(name string, source string, options ...AddFieldOptionSetter) string
+AddInt32Field(name string, source string, options ...AddFieldOptionSetter) string
+AddInt64Field(name string, source string, options ...AddFieldOptionSetter) string
+AddFloatField(name string, source string, options ...AddFieldOptionSetter) string
+AddDoubleField(name string, source string, options ...AddFieldOptionSetter) string
+AddFixedDecimalField(name string, source string, size int, scale int, options ...AddFieldOptionSetter) string
+AddStringField(name string, source string, size int, options ...AddFieldOptionSetter) string
+AddWStringField(name string, source string, size int, options ...AddFieldOptionSetter) string
+AddV_StringField(name string, source string, size int, options ...AddFieldOptionSetter) string
+AddV_WStringField(name string, source string, size int, options ...AddFieldOptionSetter) string
+AddDateField(name string, source string, options ...AddFieldOptionSetter) string
+AddDateTimeField(name string, source string, options ...AddFieldOptionSetter) string
+AddBlobField(name string, source string, size int, options ...AddFieldOptionSetter) string
+AddSpatialObjField(name string, source string, size int, options ...AddFieldOptionSetter) string
+GenerateOutgoingRecordInfo() *OutgoingRecordInfo
+```
+
 [Back to table of contents](#Table-of-contents)
 
 ## Using RecordPacket
