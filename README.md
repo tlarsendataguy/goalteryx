@@ -385,13 +385,89 @@ The `Name` function returns the name of the incoming connection.  This name shou
 
 The `Metadata` function returns the structure of the incoming data.  See [RecordInfo](#RecordInfo) for more information about using this interface.
 
-The `Read` function returns a `RecordPacket` containing a cache of records that have been pushed to your custom tool.  If you have multiple input connections, it is important to always first read the name of the input connection so you know how to process the incoming data.  Input connections are not guaranteed to arrive in any specific order, nor is it guaranteed that all of an input connection's records will arrive before another input connection starts sending its data.  The `Read` function should only be used during the `OnRecordPacket` function of the [Plugin](#Implementing-the-Plugin-Interface).
+The `Read` function returns a `RecordPacket` containing a cache of records that have been pushed to your custom tool.  If you have multiple input connections, it is important to always first read the name of the input connection so you know how to process the incoming data.  Input connections are not guaranteed to arrive in any specific order, nor is it guaranteed that all of an input connection's records will arrive before another input connection starts sending its data.  The `Read` function should only be used during the `OnRecordPacket` function of the [Plugin](#Implementing-the-Plugin-interface).
 
 The `Progress` function returns the percentage of records that have been passed through the `InputConnection`.
 
 [Back to table of contents](#Table-of-contents)
 
 ## RecordInfo
+
+There are 3 different `RecordInfo` structs that you may use during the lifecycle of your custom tool:
+
+[IncomingRecordInfo](#IncomingRecordInfo)  
+[EditingRecordInfo](#EditingRecordInfo)  
+[OutgoingRecordInfo](#OutgoingRecordInfo)  
+
+#### IncomingRecordInfo
+
+`IncomingRecordInfo` is provided during your [custom tool's](#Implementing-the-Plugin-interface) `OnInputConnectionOpened` and `OnRecordPacket` functions.  It provides for a way to inspect the structure of your incoming data and generate outgoing record information that can copy data from incoming datastreams.  `IncomingRecordInfo` has the following interface:
+
+```
+NumFields() int
+Fields() []b.FieldBase
+Clone() *EditingRecordInfo
+GetBlobField(name string) (IncomingBlobField, error)
+GetBoolField(name string) (IncomingBoolField, error)
+GetIntField(name string) (IncomingIntField, error)
+GetFloatField(name string) (IncomingFloatField, error)
+GetStringField(name string) (IncomingStringField, error)
+GetTimeField(name string) (IncomingTimeField, error)
+```
+
+The `NumFields` function returns the number of fields in the `IncomingRecordInfo`.
+
+The `Fields` function returns the list of fields.  Each field provides the name, type, source, size, and scale of the field.
+
+The `Clone` function clones the `IncomingRecordInfo` into an [EditingRecordInfo](#EditingRecordInfo).  Using the `Clone` function to build your outgoing recordinfo allows you to easily copy data from incoming records to your outgoing records.
+
+The `GetBlobField` function returns a struct that lets you extract blob values (slice of bytes) from an incoming record.  This function only returns correctly if the field type of the named field is 'Blob' or 'SpatialObj'.  If the field does not exist or is the incorrect type, an error is returned.
+
+The `GetBoolField` function returns a struct that lets you extract boolean values from an incoming record.  This function only returns correctly if the field type of the named field is 'Bool'.  If the field does not exist or is the incorrect type, an error is returned.
+
+The `GetIntField` function returns a struct that lets you extract integers from an incoming record.  This function only returns correctly if the field type of the named field is 'Byte', 'Int16', 'Int32', or 'Int64'.  If the field does not exist or is the incorrect type, an error is returned.
+
+The `GetFloatField` function returns a struct that lets you extract decimal numbers from an incoming record.  This function only returns correctly if the field type of the named field is 'Float', 'Double', or 'FixedDecimal'.  If the field does not exist or is the incorrect type, an error is returned.
+
+The `GetStringField` function returns a struct that lets you extract text values from an incoming record.  This function only returns correctly if the field type of the named field is 'String', 'WString', 'V_String', or 'V_WString'.  If the field does not exist or is the incorrect type, an error is returned.
+
+The `GetTimeField` function returns a struct that lets you extract temporal values from an incoming record.  This function only returns correctly if the field type of the named field is 'Date' or 'DateTime'.  If the field does not exist or is the incorrect type, an error is returned.
+
+Each of the GetXxxField functions returns a field struct that provides the name, type source, size (if applicable), and scale (if FixedDecimal).  The field struct also provides a `GetValue` function that allows you to retrieve the field's value.  The `GetValue` function signatures for the various incoming fields are as follows:
+
+IncomingBlobField: GetValue(Record) (value []byte, isNull bool)  
+IncomingBoolField: GetValue(Record) (value bool, isNull bool)  
+IncomingIntField: GetValue(Record) (value int, isNull bool)  
+IncomingFloatField: GetValue(Record) (value float64, isNull bool)  
+IncomingStringField: GetValue(Record) (value stirng, isNull bool)  
+IncomingTimeField: GetValue(Record) (value time.Time, isNull bool)  
+
+An example of a tool that uses GetXxxField to extract values from specific fields is below:
+
+```
+type Plugin struct {
+	field    sdk.IncomingStringField
+}
+
+func (p *Plugin) Init(provider sdk.Provider) {}
+
+func (p *Plugin) OnInputConnectionOpened(connection sdk.InputConnection) {
+	var err error
+	p.field, err = connection.Metadata().GetStringField(`MyField`)
+	if err != nil {
+		panic(`field not found or is of the wrong type`)
+	}
+}
+
+func (p *Plugin) OnRecordPacket(connection sdk.InputConnection) {
+	packet := connection.Read()
+	for packet.Next() {
+		value, isNull := p.field.GetValue(packet.Record())
+	}
+}
+
+func (p *Plugin) OnComplete() {}
+```
 
 [Back to table of contents](#Table-of-contents)
 
