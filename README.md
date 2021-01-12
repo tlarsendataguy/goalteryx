@@ -45,7 +45,7 @@ The following 3 code files represent a basic tool in Alteryx that copies incomin
 
 #### entry.h
 
-```
+```c
 long __declspec(dllexport) PluginEntry(int nToolID,
 	void * pXmlProperties,
 	void *pEngineInterface,
@@ -56,7 +56,7 @@ entry.h declares your plugin's entry function for the Alteryx engine and is one 
 
 #### entry.go
 
-```
+```go
 package main
 
 /*
@@ -81,7 +81,7 @@ entry.go is the second half of [plugin registration](#Registering-your-tool).
 
 #### plugin.go
 
-```
+```go
 package main
 
 import (
@@ -128,7 +128,7 @@ plugin.go contains the implementation of your plugin.  Your implementation must 
 
 Plugins must implement the Plugin interface:
 
-```
+```go
 type Plugin interface {
 	Init(Provider)
 	OnInputConnectionOpened(InputConnection)
@@ -147,7 +147,7 @@ The `OnComplete` function is called at the end of your custom tool's lifecycle. 
 
 Below is an example of a struct that implements the Plugin interface:
 
-```
+```go
 import (
 	"github.com/tlarsen7572/goalteryx/sdk"
 )
@@ -185,20 +185,20 @@ func (p *Plugin) OnComplete() {}
 
 Alteryx connects to custom tools through a C API function call.  All custom tools are expected to provide an entry point to the Alteryx engine that looks like the following:
 
-```
+```c
 long __declspec(dllexport) NameOfPluginEntryPoint(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
 ```
 
 For custom Go tools, the easiest way to do this is to create a file called entry.h with the declared entry points.  If you plan on packaging multiple tools into the DLL, you can specify all of them in entry.h.  Example:
 
-```
+```c
 long __declspec(dllexport) FirstPlugin(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
 long __declspec(dllexport) SecondPlugin(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
 ```
 
 Now that you have declared the plugin's entry point, you need to implement it.  The easiest way to do this is to create a file called entry.go that performs the necessary registration steps.  Example:
 
-```
+```go
 package main
 
 /*
@@ -227,7 +227,7 @@ The next line, `plugin := &Plugin{}`, creates a pointer of our plugin's struct. 
 
 If you have multiple tools, you can provide all of their implementations in entry.go.  Example:
 
-```
+```go
 package main
 
 /*
@@ -262,7 +262,7 @@ Registering your custom tools in this manner keeps all of the registration code 
 
 `Provider` is used for obtaining information about your custom tool, sending messages to the Alteryx engine, and retrieving environmental information and variables from the Alteryx engine.  It has the following interface:
 
-```
+```go
 type Provider interface {
 	ToolConfig() string
 	Io() Io
@@ -285,7 +285,7 @@ The `Environment` function returns an [Environment](#Environment), which you can
 
 `OutputAnchor` is the interface you use to send data to downstream tools.  It has the following interface:
 
-```
+```go
 type OutputAnchor interface {
 	Name() string
 	IsOpen() bool
@@ -314,7 +314,7 @@ The `UpdateProgress` function notifies downstream tools on the percentage comple
 
 `Io` is the interface you use to send messages to the Alteryx engine.  It has the following interface:
 
-```
+```go
 type Io interface {
 	Error(string)
 	Warn(string)
@@ -337,7 +337,7 @@ The `UpdateProgress` function notifies the Alteryx engine of the current percent
 
 `Environment` is the interface you use to retrieve environment variables from the Alteryx engine.  It has the following interface:
 
-```
+```go
 type Environment interface {
 	UpdateOnly() bool
 	UpdateMode() string
@@ -372,7 +372,7 @@ The `UpdateToolConfig` function provides a way for the custom tool to update its
 
 `InputConnection` is provided to the custom tool by the SDK and is the interface by which you interact with incoming connections and data.  It has the following interface:
 
-```
+```go
 type InputConnection interface {
 	Name() string
 	Metadata() IncomingRecordInfo
@@ -403,16 +403,16 @@ There are 3 different `RecordInfo` structs that you may use during the lifecycle
 
 `IncomingRecordInfo` is provided during your [custom tool's](#Implementing-the-Plugin-interface) `OnInputConnectionOpened` and `OnRecordPacket` functions.  It provides for a way to inspect the structure of your incoming data and generate outgoing record information that can copy data from incoming datastreams.  `IncomingRecordInfo` has the following interface:
 
-```
-NumFields() int
-Fields() []b.FieldBase
-Clone() *EditingRecordInfo
-GetBlobField(name string) (IncomingBlobField, error)
-GetBoolField(name string) (IncomingBoolField, error)
-GetIntField(name string) (IncomingIntField, error)
-GetFloatField(name string) (IncomingFloatField, error)
-GetStringField(name string) (IncomingStringField, error)
-GetTimeField(name string) (IncomingTimeField, error)
+```go
+func NumFields() int
+func Fields() []b.FieldBase
+func Clone() *EditingRecordInfo
+func GetBlobField(name string) (IncomingBlobField, error)
+func GetBoolField(name string) (IncomingBoolField, error)
+func GetIntField(name string) (IncomingIntField, error)
+func GetFloatField(name string) (IncomingFloatField, error)
+func GetStringField(name string) (IncomingStringField, error)
+func GetTimeField(name string) (IncomingTimeField, error)
 ```
 
 The `NumFields` function returns the number of fields in the `IncomingRecordInfo`.
@@ -444,7 +444,7 @@ IncomingTimeField: GetValue(Record) (value time.Time, isNull bool)
 
 An example of a tool that uses GetXxxField to extract values from specific fields is below:
 
-```
+```go
 type Plugin struct {
 	field    sdk.IncomingStringField
 }
@@ -473,26 +473,26 @@ func (p *Plugin) OnComplete() {}
 
 `EditingRecordInfo` is used to edit incoming recordinfo's and then generate the final outgoing recordinfo once all edits are made.  It has the following interface:
 
-```
-NumFields() int
-Fields() []IncomingField
-AddBoolField(name string, source string, options ...AddFieldOptionSetter) string
-AddByteField(name string, source string, options ...AddFieldOptionSetter) string
-AddInt16Field(name string, source string, options ...AddFieldOptionSetter) string
-AddInt32Field(name string, source string, options ...AddFieldOptionSetter) string
-AddInt64Field(name string, source string, options ...AddFieldOptionSetter) string
-AddFloatField(name string, source string, options ...AddFieldOptionSetter) string
-AddDoubleField(name string, source string, options ...AddFieldOptionSetter) string
-AddFixedDecimalField(name string, source string, size int, scale int, options ...AddFieldOptionSetter) string
-AddStringField(name string, source string, size int, options ...AddFieldOptionSetter) string
-AddWStringField(name string, source string, size int, options ...AddFieldOptionSetter) string
-AddV_StringField(name string, source string, size int, options ...AddFieldOptionSetter) string
-AddV_WStringField(name string, source string, size int, options ...AddFieldOptionSetter) string
-AddDateField(name string, source string, options ...AddFieldOptionSetter) string
-AddDateTimeField(name string, source string, options ...AddFieldOptionSetter) string
-AddBlobField(name string, source string, size int, options ...AddFieldOptionSetter) string
-AddSpatialObjField(name string, source string, size int, options ...AddFieldOptionSetter) string
-GenerateOutgoingRecordInfo() *OutgoingRecordInfo
+```go
+func NumFields() int
+func Fields() []IncomingField
+func AddBoolField(name string, source string, options ...AddFieldOptionSetter) string
+func AddByteField(name string, source string, options ...AddFieldOptionSetter) string
+func AddInt16Field(name string, source string, options ...AddFieldOptionSetter) string
+func AddInt32Field(name string, source string, options ...AddFieldOptionSetter) string
+func AddInt64Field(name string, source string, options ...AddFieldOptionSetter) string
+func AddFloatField(name string, source string, options ...AddFieldOptionSetter) string
+func AddDoubleField(name string, source string, options ...AddFieldOptionSetter) string
+func AddFixedDecimalField(name string, source string, size int, scale int, options ...AddFieldOptionSetter) string
+func AddStringField(name string, source string, size int, options ...AddFieldOptionSetter) string
+func AddWStringField(name string, source string, size int, options ...AddFieldOptionSetter) string
+func AddV_StringField(name string, source string, size int, options ...AddFieldOptionSetter) string
+func AddV_WStringField(name string, source string, size int, options ...AddFieldOptionSetter) string
+func AddDateField(name string, source string, options ...AddFieldOptionSetter) string
+func AddDateTimeField(name string, source string, options ...AddFieldOptionSetter) string
+func AddBlobField(name string, source string, size int, options ...AddFieldOptionSetter) string
+func AddSpatialObjField(name string, source string, size int, options ...AddFieldOptionSetter) string
+func GenerateOutgoingRecordInfo() *OutgoingRecordInfo
 ```
 
 [Back to table of contents](#Table-of-contents)
