@@ -370,6 +370,25 @@ The `UpdateToolConfig` function provides a way for the custom tool to update its
 
 ## Using InputConnection
 
+`InputConnection` is provided to the custom tool by the SDK and is the interface by which you interact with incoming connections and data.  It has the following interface:
+
+```
+type InputConnection interface {
+	Name() string
+	Metadata() IncomingRecordInfo
+	Read() RecordPacket
+	Progress() float64
+}
+```
+
+The `Name` function returns the name of the incoming connection.  This name should match the name of one of the input connections defined in the tool's Config.xml file.
+
+The `Metadata` function returns the structure of the incoming data.  See [RecordInfo](#RecordInfo) for more information about using this interface.
+
+The `Read` function returns a `RecordPacket` containing a cache of records that have been pushed to your custom tool.  If you have multiple input connections, it is important to always first read the name of the input connection so you know how to process the incoming data.  Input connections are not guaranteed to arrive in any specific order, nor is it guaranteed that all of an input connection's records will arrive before another input connection starts sending its data.  The `Read` function should only be used during the `OnRecordPacket` function of the [Plugin](#Implementing-the-Plugin-Interface).
+
+The `Progress` function returns the percentage of records that have been passed through the `InputConnection`.
+
 [Back to table of contents](#Table-of-contents)
 
 ## RecordInfo
