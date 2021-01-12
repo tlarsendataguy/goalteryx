@@ -312,9 +312,59 @@ The `UpdateProgress` function notifies downstream tools on the percentage comple
 
 ## Using Io
 
+`Io` is the interface you use to send messages to the Alteryx engine.  It has the following interface:
+
+```
+type Io interface {
+	Error(string)
+	Warn(string)
+	Info(string)
+	UpdateProgress(float64)
+}
+```
+
+The `Error` function sends an error to the Alteryx engine.  This shows up in Designer as an error.  When run in a unit test context, it prints an error message to stdout.
+
+The `Warn` function sends a warning to the Alteryx engine.  This shows up in Designer as a warning.  When run in a unit test context, it prints a warning message to stdout.
+
+The `Info` function sends a message to the Alteryx engine.  This shows up in Designer as an informational message.  When run in a unit test context, it prints the message to stdout.
+
+The `UpdateProgress` function notifies the Alteryx engine of the current percentage completion of the custom tool.  This is the overall completion of the tool as opposed to the datastream completion percentage in the `OutputAnchor.UpdateProgress()` method.
+
 [Back to table of contents](#Table-of-contents)
 
 ## Using Environment
+
+`Environment` is the interface you use to retrieve environment variables from the Alteryx engine.  It has the following interface:
+
+```
+type Environment interface {
+	UpdateOnly() bool
+	UpdateMode() string
+	DesignerVersion() string
+	WorkflowDir() string
+	AlteryxInstallDir() string
+	AlteryxLocale() string
+	ToolId() int
+	UpdateToolConfig(string)
+}
+```
+
+The `UpdateOnly` function identifies whether the Alteryx engine expects the tool to send data.  If the return value is `true`, the tool should not send records downstream.
+
+The `UpdateMode` function returns one of a blank string, 'Quick', or 'Full'.
+
+The `DesignerVersion` function returns the version of Designer being run.  If run in a unit test context, it returns the value 'TestHarness'.
+
+The `WorkflowDir` function returns the folder of the workflow the tool is being run in.
+
+The `AlteryxInstallDir` function returns the Alteryx installation folder.  If run in a unit test context, it returns an empty string.
+
+The `AlteryxLocale` function returns the locale/language setting of the current user.
+
+The `ToolId` function returns the ID of the custom tool in the current workflow.
+
+The `UpdateToolConfig` function provides a way for the custom tool to update its own configuration and send it back to Designer for persistance.
 
 [Back to table of contents](#Table-of-contents)
 
