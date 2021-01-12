@@ -260,7 +260,7 @@ Registering your custom tools in this manner keeps all of the registration code 
 
 ## Using Provider
 
-Provider is used for obtaining information about your custom tool, sending messages to the Alteryx engine, and retrieving environmental information and variables from the Alteryx engine.  It has the following interface:
+`Provider` is used for obtaining information about your custom tool, sending messages to the Alteryx engine, and retrieving environmental information and variables from the Alteryx engine.  It has the following interface:
 
 ```
 type Provider interface {
@@ -282,6 +282,31 @@ The `Environment` function returns an [Environment](#Environment), which you can
 [Back to table of contents](#Table-of-contents)
 
 ## Using OutputAnchor
+
+`OutputAnchor` is the interface you use to send data to downstream tools.  It has the following interface:
+
+```
+type OutputAnchor interface {
+	Name() string
+	IsOpen() bool
+	Metadata() *OutgoingRecordInfo
+	Open(info *OutgoingRecordInfo)
+	Write()
+	UpdateProgress(float64)
+}
+```
+
+The `Name` function returns the name of the output anchor and should match the name provided in the tool's Config.xml file.
+
+The `IsOpen` function tells whether the `Open` function has been called on the connection.
+
+The `Metadata` function returns a pointer to the `OutgoingRecordInfo` that the anchor was opened with.  If `Open` has not been called yet, the return value is nil.  See the section on [RecordInfo](#RecordInfo) for more information about how to use and generate `OutgoingRecordInfo` structs.
+
+The `Open` function opens the output anchor and sends metadata downstream to all connected tools.  The `OutgoingRecordInfo` you open the connection with is also where the `OutputAnchor` reads data from when Write() is called.
+
+The `Write` function writes the current values in the `OutgoingRecordInfo` to downstream tools.
+
+The `UpdateProgress` function notifies downstream tools on the percentage completion of the dataset being sent.  The value provided should be between 1 and 0, with 1 being 100% completed.
 
 [Back to table of contents](#Table-of-contents)
 
