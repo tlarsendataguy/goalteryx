@@ -41,24 +41,13 @@ I build directly to the Plugins folder in the Alteryx installation folder of my 
 
 ## Sample tool
 
-The following 3 code files represent a basic tool in Alteryx that copies incoming records and pushes them through its output.
-
-#### entry.h
-
-```c
-long PluginEntry(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
-```
-
-entry.h declares your plugin's entry function for the Alteryx engine and is one half of registering your plugin.  See [Registering your tool](#Registering-your-tool) for more info.
+The following 2 code files represent a basic tool in Alteryx that copies incoming records and pushes them through its output.
 
 #### entry.go
 
 ```go
 package main
 
-/*
-#include "entry.h"
-*/
 import "C"
 import (
 	"github.com/tlarsen7572/goalteryx/sdk"
@@ -74,7 +63,7 @@ func PluginEntry(toolId C.int, xmlProperties unsafe.Pointer, engineInterface uns
 }
 ```
 
-entry.go is the second half of [plugin registration](#Registering-your-tool).
+entry.go is used to register your plugin to the Alteryx engine.  See [plugin registration](#Registering-your-tool) for more info.
 
 #### plugin.go
 
@@ -186,21 +175,11 @@ Alteryx connects to custom tools through a C API function call.  All custom tool
 long NameOfPluginEntryPoint(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
 ```
 
-For custom Go tools, the easiest way to do this is to create a file called entry.h with the declared entry points.  If you plan on packaging multiple tools into the DLL, you can specify all of them in entry.h.  Example:
-
-```c
-long FirstPlugin(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
-long SecondPlugin(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
-```
-
-Now that you have declared the plugin's entry point, you need to implement it.  The easiest way to do this is to create a file called entry.go that performs the necessary registration steps.  Example:
+For custom Go tools, the easiest way to do this is by creating an entry file that imports the C package and exports the declared entry points that perform the necessary registration steps.  Example:
 
 ```go
 package main
 
-/*
-#include "entry.h"
-*/
 import "C"
 import (
 	"github.com/tlarsen7572/goalteryx/sdk"
@@ -216,20 +195,17 @@ func PluginEntry(toolId C.int, xmlProperties unsafe.Pointer, engineInterface uns
 }
 ```
 
-We start by importing the C package and including entry.h that we created earlier.  The next part of the file is an empty main function.  DLLs are expected to have a main function, but we do not make use of it so we can keep it empty.
+We start by importing the C and unsafe packages, as well as the SDK.  The next part of the file is an empty main function.  DLLs are expected to have a main function, but we do not make use of it, so we can keep it empty.
 
-The next section implements our plugin's entry point.  It starts with a comment, `//export PluginEntry`, which has to match the declared function name from entry.h.  Immediately after the comment is the function itself, also with the same name as that declared in entry.h.
+The next section implements our plugin's entry point.  It starts with a comment, `//export PluginEntry`, which has to match the declared entry point from the tool's Config.xml file.  Immediately after the comment is the function itself, with the signature the Alteryx engine is expecting.
 
-The next line, `plugin := &Plugin{}`, creates a pointer of our plugin's struct.  We use that pointer in the `RegisterTool` function on the next line to actually register our tool and prepare it for use.
+The next line, `plugin := &Plugin{}`, creates a pointer of our plugin's struct.  We use that pointer in the `RegisterTool` function to actually register our tool and prepare it for use.
 
-If you have multiple tools, you can provide all of their implementations in entry.go.  Example:
+If you have multiple tools, you can register all of them in entry.go.  Example:
 
 ```go
 package main
 
-/*
-#include "entry.h"
-*/
 import "C"
 import (
 	"github.com/tlarsen7572/goalteryx/sdk"
@@ -251,7 +227,7 @@ func SecondPlugin(toolId C.int, xmlProperties unsafe.Pointer, engineInterface un
 }
 ```
 
-Registering your custom tools in this manner keeps all of the registration code neatly separated from your business logic and prevents your business logic from depending on the Unsafe and C packages.
+Registering your custom tools in this manner keeps all the registration code neatly separated from your business logic and prevents your business logic from depending on the Unsafe and C packages.
 
 [Back to table of contents](#Table-of-contents)
 
