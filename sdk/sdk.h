@@ -70,7 +70,7 @@ void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineI
 struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wchar_t * name);
 void openOutgoingAnchor(struct OutputAnchor *anchor, wchar_t * config);
 void PI_Close(void * handle, bool bHasErrors);
-long PI_PushAllRecords(void * handle, __int64 nRecordLimit);
+long PI_PushAllRecords(void * handle, int64_t nRecordLimit);
 long PI_AddIncomingConnection(void * handle,
     wchar_t * pIncomingConnectionType,
     wchar_t * pIncomingConnectionName,
