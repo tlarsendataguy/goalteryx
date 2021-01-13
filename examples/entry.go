@@ -1,8 +1,5 @@
 package main
 
-/*
-#include "entry.h"
-*/
 import "C"
 import (
 	"github.com/tlarsen7572/goalteryx/sdk"
