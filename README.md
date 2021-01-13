@@ -21,7 +21,8 @@ With the announced deprecation of the .NET SDK, a gap formed between the C/C++ a
 9. [Using Environment](#Using-Environment)  
 10. [Using InputConnection](#Using-InputConnection)  
 11. [RecordInfo](#RecordInfo)  
-12. [Using RecordPacket](#Using-RecordPacket)  
+12. [Using RecordPacket](#Using-RecordPacket) 
+13. [Testing your tools](#Testing-your-tools)
 
 ## Installation
 
@@ -444,7 +445,7 @@ func (p *Plugin) OnComplete() {}
 
 #### EditingRecordInfo
 
-`EditingRecordInfo` is used to edit incoming recordinfo's and then generate the final outgoing recordinfo once all edits are made.  It has the following interface:
+`EditingRecordInfo` is used to edit an incoming recordinfo and then generate the final outgoing recordinfo once all edits are made.  It has the following interface:
 
 ```go
 func NumFields() int
@@ -468,8 +469,27 @@ func AddSpatialObjField(name string, source string, size int, options ...AddFiel
 func GenerateOutgoingRecordInfo() *OutgoingRecordInfo
 ```
 
+The `NumFields` function returns the number of fields currently in the recordinfo.
+
+The `Fields` function returns a list of basic field information of all of the fields currently in the recordinfo.
+
+The `AddXxxField` functions adds a new field to the recordinfo.  Each function represents a different storage type for the underlying data.  All functions require a name and source, with size and scale being required on specific field types such as strings and fixed decimal fields.  You may also provide a list of options when creating the field.  The currently supported options are:
+
+* `InsertAt(position int)`: Use this option to insert the field in the beginning or middle of the record.  For example, to insert a new Int32 field at the beginning of the recordinfo, use:
+	```
+	editor.AddInt32Field(`FieldName`, `some source`, sdk.InsertAt(0))
+	```
+
+The `GenerateOutgoingRecordInfo` function returns a pointer to an [OutgoingRecordInfo](#OutgoingRecordInfo) struct, which is used to open [OutputAnchors](#Using-OutputAnchor) and set values for writing to downstream tools.
+
+#### OutgoingRecordInfo
+
 [Back to table of contents](#Table-of-contents)
 
 ## Using RecordPacket
+
+[Back to table of contents](#Table-of-contents)
+
+## Testing your tools
 
 [Back to table of contents](#Table-of-contents)
