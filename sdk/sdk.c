@@ -1,5 +1,4 @@
 #include "sdk.h"
-#include <stdio.h>
 
 const int cacheSize = 4194304; //4mb
 
@@ -171,7 +170,7 @@ void closeAllOutputAnchors(struct OutputAnchor *anchor) {
         while (anchor->isOpen == 1 && conn != NULL) {
             if (conn->isOpen == 1) {
                 conn->ii->pII_Close(conn->ii->handle);
-                conn->isOpen == 0;
+                conn->isOpen = 0;
             }
             conn = conn->nextConnection;
         }
@@ -179,7 +178,7 @@ void closeAllOutputAnchors(struct OutputAnchor *anchor) {
     }
 }
 
-long PI_PushAllRecords(void * handle, __int64 nRecordLimit){
+long PI_PushAllRecords(void * handle, int64_t nRecordLimit){
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
     goOnComplete(plugin);
     closeAllOutputAnchors(plugin->outputAnchors);
