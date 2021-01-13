@@ -46,10 +46,7 @@ The following 3 code files represent a basic tool in Alteryx that copies incomin
 #### entry.h
 
 ```c
-long __declspec(dllexport) PluginEntry(int nToolID,
-	void * pXmlProperties,
-	void *pEngineInterface,
-	void *r_pluginInterface);
+long PluginEntry(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
 ```
 
 entry.h declares your plugin's entry function for the Alteryx engine and is one half of registering your plugin.  See [Registering your tool](#Registering-your-tool) for more info.
@@ -186,14 +183,14 @@ func (p *Plugin) OnComplete() {}
 Alteryx connects to custom tools through a C API function call.  All custom tools are expected to provide an entry point to the Alteryx engine that looks like the following:
 
 ```c
-long __declspec(dllexport) NameOfPluginEntryPoint(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
+long NameOfPluginEntryPoint(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
 ```
 
 For custom Go tools, the easiest way to do this is to create a file called entry.h with the declared entry points.  If you plan on packaging multiple tools into the DLL, you can specify all of them in entry.h.  Example:
 
 ```c
-long __declspec(dllexport) FirstPlugin(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
-long __declspec(dllexport) SecondPlugin(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
+long FirstPlugin(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
+long SecondPlugin(int nToolID, void * pXmlProperties, void *pEngineInterface, void *r_pluginInterface);
 ```
 
 Now that you have declared the plugin's entry point, you need to implement it.  The easiest way to do this is to create a file called entry.go that performs the necessary registration steps.  Example:
