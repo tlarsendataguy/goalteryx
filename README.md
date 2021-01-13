@@ -476,7 +476,7 @@ The `Fields` function returns a list of basic field information of all of the fi
 The `AddXxxField` functions adds a new field to the recordinfo.  Each function represents a different storage type for the underlying data.  All functions require a name and source, with size and scale being required on specific field types such as strings and fixed decimal fields.  You may also provide a list of options when creating the field.  The currently supported options are:
 
 * `InsertAt(position int)`: Use this option to insert the field in the beginning or middle of the record.  For example, to insert a new Int32 field at the beginning of the recordinfo, use:
-	```
+	```go
 	editor.AddInt32Field(`FieldName`, `some source`, sdk.InsertAt(0))
 	```
 
@@ -569,6 +569,31 @@ func (p *Plugin) OnComplete() {}
 [Back to table of contents](#Table-of-contents)
 
 ## Using RecordPacket
+
+`RecordPacket` is an abstraction used to iterate through the packet of records sent to your custom tool by upstream tools.  Records are recieved (and sent) in 4mb chunks.  This is done to minimize the number of calls between the Alteryx engine and the Go runtime, each of which has bookkeeping overhead.
+
+`RecordPacket` has the following interface:
+
+```go
+func Next() bool
+func Record() Record
+```
+
+The `Next` function tries to retrieve the next record in the packet.  If there are no more records, it returns false; otherwise, it returns true.
+
+The `Record` function returns the record retrieved during the call to `Next`.
+
+The easiest way to interact with `RecordPacket` is to iterate through it using a for loop:
+
+```go
+func iteratePacket(packet RecordPacket) {
+	for packet.Next() {
+		record := packet.Record()
+		
+		// do something with the record
+	}
+}
+```
 
 [Back to table of contents](#Table-of-contents)
 
