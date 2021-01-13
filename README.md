@@ -486,7 +486,7 @@ The `GenerateOutgoingRecordInfo` function returns a pointer to an [OutgoingRecor
 
 `OutgoingRecordInfo` is used to send metadata to downstream tools and store values that will be written to the custom tool's output anchors.  You can create an `OutgoingRecordInfo` from an `EditingRecordInfo` or by using the `NewOutgoingRecordInfo` function in the SDK.  The following example creates an `OutgoingRecordInfo` with a Bool field, an Int64 field, and a V_WString field:
 
-```
+```go
 recordInfo, fieldNames := sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
 	sdk.NewBoolField(`Field 1`, `source`),
 	sdk.NewInt64Field(`Field 2`, `source`),
