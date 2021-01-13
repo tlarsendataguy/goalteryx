@@ -484,6 +484,88 @@ The `GenerateOutgoingRecordInfo` function returns a pointer to an [OutgoingRecor
 
 #### OutgoingRecordInfo
 
+`OutgoingRecordInfo` is used to send metadata to downstream tools and store values that will be written to the custom tool's output anchors.  You can create an `OutgoingRecordInfo` from an `EditingRecordInfo` or by using the `NewOutgoingRecordInfo` function in the SDK.  The following example creates an `OutgoingRecordInfo` with a Bool field, an Int64 field, and a V_WString field:
+
+```
+recordInfo, fieldNames := sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
+	sdk.NewBoolField(`Field 1`, `source`),
+	sdk.NewInt64Field(`Field 2`, `source`),
+	sdk.NewV_WStringField(`Field 3`, `source`, 1000),
+})
+```
+
+If duplicate field names are specified in the list of `NewOutgoingField`, then `NewOutgoingRecordInfo()` will rename the duplicate fields.  The second return value from `NewOutgoingRecordInfo` contains the actual field names in the `OutgoingRecordInfo`.
+
+`OutgoingRecordInfo` has the following interface:
+
+```go
+func FixedSize() int
+func HasVarFields() int
+func DataSize() uint32
+func CopyFrom(Record)
+```
+
+The `FixedSize` function returns the size of the fixed portion of the `RecordInfo` data structure.
+
+The `HasVarFields` function identifies whether the recordinfo contains variable-length fields (V_String, V_WString, Blob, or SpatialObj).
+
+The `DataSize` functions returns the record size of the current values in the `OutgoingRecordInfo` struct.
+
+The `CopyFrom` function copies values from the incoming record into its current values.  This function only copies those fields which originated from an `IncomingRecordInfo` via the `Clone` method.
+
+The following code shows an end-to-end example of how to use the various recordinfo structs by implementing a custom tool that adds a record ID to the beginning of the record.
+
+```go
+package awesomeProject
+
+import (
+	"github.com/tlarsen7572/goalteryx/sdk"
+)
+
+type Plugin struct {
+	outputAnchor      sdk.OutputAnchor
+	outputInfo        *sdk.OutgoingRecordInfo
+	recordIdFieldName string
+	recordId          int
+}
+
+func (p *Plugin) Init(provider sdk.Provider) {
+	p.outputAnchor = provider.GetOutputAnchor(`Output`)
+	p.recordId = 0
+}
+
+func (p *Plugin) OnInputConnectionOpened(connection sdk.InputConnection) {
+	// convert the incoming recordinfo into an editor
+	editor := connection.Metadata().Clone()
+	
+	// add the record ID field
+	p.recordIdFieldName = editor.AddInt32Field(`RecordId`, `my custom tool`, sdk.InsertAt(0))
+	
+	// generate the outgoing recordinfo
+	p.outputInfo = editor.GenerateOutgoingRecordInfo()
+	
+	// open the output anchor with the metadata from the outgoing recordinfo
+	p.outputAnchor.Open(p.outputInfo)
+}
+
+func (p *Plugin) OnRecordPacket(connection sdk.InputConnection) {
+	packet := connection.Read()
+	for packet.Next() {
+		// copy data from the incoming record to the current values of the outgoing recordinfo
+		p.outputInfo.CopyFrom(packet.Record())
+		
+		// set the record ID field
+		p.outputInfo.IntFields[p.recordIdFieldName].SetInt(p.recordId)
+		
+		// write the current outgoing recordinfo values to downstream tools
+		p.outputAnchor.Write()
+		p.recordId++
+	}
+}
+
+func (p *Plugin) OnComplete() {}
+```
+
 [Back to table of contents](#Table-of-contents)
 
 ## Using RecordPacket
