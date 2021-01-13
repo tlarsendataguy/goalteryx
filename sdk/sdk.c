@@ -182,6 +182,7 @@ long PI_PushAllRecords(void * handle, int64_t nRecordLimit){
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
     goOnComplete(plugin);
     closeAllOutputAnchors(plugin->outputAnchors);
+    return 1;
 }
 
 struct InputAnchor* createInputAnchor(wchar_t* name) {
@@ -297,6 +298,7 @@ long PI_AddOutgoingConnection(void * handle, wchar_t * pOutgoingConnectionName, 
         anchor = appendOutgoingAnchor(plugin, pOutgoingConnectionName);
     }
     appendOutgoingConnection(anchor, pIncConnInt);
+    return 1;
 }
 
 long II_Init(void * handle, wchar_t * pXmlRecordMetaInfo) {

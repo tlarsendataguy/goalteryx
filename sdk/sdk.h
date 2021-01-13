@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <wchar.h>
+#include <string.h>
 #include "alteryx_api.h"
 
 struct InputConnection {
