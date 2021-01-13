@@ -404,3 +404,7 @@ void callWriteRecords(struct OutputAnchor *anchor) {
         }
     }
 }
+
+void* allocateCache(int size) {
+    return malloc(size);
+}

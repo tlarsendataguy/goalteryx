@@ -88,3 +88,4 @@ void goOnInputConnectionOpened(void * handle);
 void goOnRecordPacket(void * handle);
 void goOnComplete(void * handle);
 void callWriteRecords(struct OutputAnchor *anchor);
+void* allocateCache(int size);

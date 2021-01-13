@@ -90,7 +90,7 @@ func utf16PtrLen(utf16Ptr unsafe.Pointer) int {
 
 func stringToUtf16Ptr(value string) *C.wchar_t {
 	utf16Bytes := append(utf16.Encode([]rune(value)), 0)
-	return (*C.wchar_t)(&utf16Bytes[0])
+	return (*C.wchar_t)(unsafe.Pointer(&utf16Bytes[0]))
 }
 
 func simulateInputLifecycle(pluginInterface unsafe.Pointer) {
@@ -310,7 +310,7 @@ func callWriteRecords(handle unsafe.Pointer) {
 }
 
 func allocateCache(size uint32) unsafe.Pointer {
-	return C.malloc(C.ulonglong(size))
+	return C.allocateCache(C.int(size))
 }
 
 func freeCache(cache unsafe.Pointer) {
