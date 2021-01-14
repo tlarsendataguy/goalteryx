@@ -466,6 +466,8 @@ func AddDateField(name string, source string, options ...AddFieldOptionSetter) s
 func AddDateTimeField(name string, source string, options ...AddFieldOptionSetter) string
 func AddBlobField(name string, source string, size int, options ...AddFieldOptionSetter) string
 func AddSpatialObjField(name string, source string, size int, options ...AddFieldOptionSetter) string
+func RemoveFields(fieldNames ...string)
+func MoveField(name string, newIndex int) error
 func GenerateOutgoingRecordInfo() *OutgoingRecordInfo
 ```
 
@@ -479,6 +481,10 @@ The `AddXxxField` functions adds a new field to the recordinfo.  Each function r
 	```go
 	editor.AddInt32Field(`FieldName`, `some source`, sdk.InsertAt(0))
 	```
+
+The `RemoveFields` function removes the provided list of fields from the record, if they exist.
+
+The `MoveField` function moves a field to a different position in the record.  An error is returned if `newIndex` is out of bounds or if the name provided does not exist in the record.
 
 The `GenerateOutgoingRecordInfo` function returns a pointer to an [OutgoingRecordInfo](#OutgoingRecordInfo) struct, which is used to open [OutputAnchors](#Using-OutputAnchor) and set values for writing to downstream tools.
 

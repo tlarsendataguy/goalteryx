@@ -201,3 +201,31 @@ func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 	}
 	return info
 }
+
+func (i *EditingRecordInfo) RemoveFields(fieldNames ...string) {
+	for index := i.NumFields() - 1; index >= 0; index-- {
+		field := i.fields[index]
+		for _, toDelete := range fieldNames {
+			if field.Name == toDelete {
+				i.fields = append(i.fields[:index], i.fields[index+1:]...)
+				break
+			}
+		}
+	}
+}
+
+func (i *EditingRecordInfo) MoveField(name string, newIndex int) error {
+	if upperBound := i.NumFields() - 1; newIndex < 0 || newIndex > upperBound {
+		return fmt.Errorf(`index out of range, must be between 0 and %v`, upperBound)
+	}
+
+	fields := i.Fields()
+	for index, field := range fields {
+		if field.Name == name {
+			newFields := append(i.fields[:index], i.fields[index+1:]...)
+			newFields = append(newFields[:newIndex], append([]IncomingField{field}, newFields[newIndex:]...)...)
+			return nil
+		}
+	}
+	return fmt.Errorf(`field '%v' does not exist in the record`, name)
+}

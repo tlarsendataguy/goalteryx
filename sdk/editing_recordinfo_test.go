@@ -748,3 +748,73 @@ func TestOutgoingSpatialObjField(t *testing.T) {
 		t.Fatalf(`expected '' and null but got '%v' and %v`, currentValue, isNull)
 	}
 }
+
+func TestRemoveField(t *testing.T) {
+	editor := &sdk.EditingRecordInfo{}
+	editor.AddBoolField(`Field1`, `source`)
+	editor.AddInt16Field(`Field2`, `source`)
+	editor.AddV_WStringField(`Field3`, `source`, 1000)
+	editor.RemoveFields(`Field1`, `Field3`)
+
+	if editor.NumFields() != 1 {
+		t.Fatalf(`expected 1 field but got %v`, editor.NumFields())
+	}
+	fields := editor.Fields()
+	if name := fields[0].Name; name != `Field2` {
+		t.Fatalf(`expected Field2 but got %v`, name)
+	}
+}
+
+func TestMoveField(t *testing.T) {
+	editor := &sdk.EditingRecordInfo{}
+	editor.AddBoolField(`Field1`, `source`)
+	editor.AddInt16Field(`Field2`, `source`)
+	editor.AddV_WStringField(`Field3`, `source`, 1000)
+
+	err := editor.MoveField(`Field3`, 0)
+	if err != nil {
+		t.Fatalf(`expected no error but got %v`, err.Error())
+	}
+	if editor.NumFields() != 3 {
+		t.Fatalf(`expected 3 fields but got %v`, editor.NumFields())
+	}
+	fields := editor.Fields()
+	expectedFields := []string{`Field3`, `Field1`, `Field2`}
+	for index, field := range fields {
+		if field.Name != expectedFields[index] {
+			t.Fatalf(`expected %v at index %v but got %v`, expectedFields[index], index, field.Name)
+		}
+	}
+}
+
+func TestMoveFieldToInvalidIndex(t *testing.T) {
+	editor := &sdk.EditingRecordInfo{}
+	editor.AddBoolField(`Field1`, `source`)
+	editor.AddInt16Field(`Field2`, `source`)
+	editor.AddV_WStringField(`Field3`, `source`, 1000)
+
+	err := editor.MoveField(`Field3`, -1)
+	if err == nil {
+		t.Fatalf(`expected an error but got none`)
+	}
+	t.Logf(`%v`, err.Error())
+
+	err = editor.MoveField(`Field3`, 3)
+	if err == nil {
+		t.Fatalf(`expected an error but got none`)
+	}
+	t.Logf(`%v`, err.Error())
+}
+
+func TestMoveFieldThatDoesNotExist(t *testing.T) {
+	editor := &sdk.EditingRecordInfo{}
+	editor.AddBoolField(`Field1`, `source`)
+	editor.AddInt16Field(`Field2`, `source`)
+	editor.AddV_WStringField(`Field3`, `source`, 1000)
+
+	err := editor.MoveField(`NotInRecord`, 0)
+	if err == nil {
+		t.Fatalf(`expected an error but got none`)
+	}
+	t.Logf(`%v`, err.Error())
+}
