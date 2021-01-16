@@ -605,4 +605,99 @@ func iteratePacket(packet RecordPacket) {
 
 ## Testing your tools
 
+GoAlteryx includes testing facilities to assist your development of custom tools.  They are designed to mimic the lifecycle events your tool will experience during the run of a workflow.  As a result, you can develop and test your tools without running them in Alteryx and still be confident that they will work.  This also frees the developer to choose non-Windows development environments such as macOS.
+
+A basic example of unit testing input and passthrough tools is below:
+
+```go
+package awesomeProject_test
+
+import (
+	"awesomeProject"
+	"github.com/tlarsen7572/goalteryx/sdk"
+	"testing"
+)
+
+func TestInputTool(t *testing.T) {
+	plugin := &awesomeProject.InputPlugin{}
+	runner := sdk.RegisterToolTest(plugin, 1, `<Configuration></Configuration>`)
+	collector := runner.CaptureOutgoingAnchor(`Output`)
+	runner.SimulateLifecycle()
+	t.Logf(`%v`, collector.Data)
+}
+
+func TestPassthroughTool(t *testing.T) {
+	plugin := &awesomeProject.PassthroughPlugin{}
+	runner := sdk.RegisterToolTest(plugin, 1, `<Configuration></Configuration>`)
+	collector := runner.CaptureOutgoingAnchor(`Output`)
+	runner.ConnectInput(`Input`, `testfile.txt`)
+	runner.SimulateLifecycle()
+	t.Logf(`%v`, collector.Data)
+}
+```
+
+In both cases, the unit test begins by creating a pointer to your plugin and then registering it with the test harness by calling `sdk.RegisterToolTest()`.  You provide the pointer, tool ID, and configuration XML as a string in the registration call.  The registration function returns a test runner.  Using the test runner, you can capture outgoing records and connect input testing files to your custom tools.  Calling `SimulateLifecycle()` on the runner will then execute the lifecycle events and test your tool.  You can inspect and verify your custom tools' outputs by inspecting the `Data` member on the captured outgoing anchor.
+
+A detailed review of the test harness features are below.  We start with the signature of the `RegisterToolTest` function:
+
+```go
+func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSetters ...OptionSetter) *FileTestRunner
+```
+
+`plugin` is a struct that fulfills the Plugin interface specified by the SDK.
+
+`toolId` is an arbitrary integer that represents the tool's ID when it is placed on a workflow's canvas.
+
+`xmlProperties` is a string containing the XML configuration you want your tool to receive for the test.
+
+`optionSetters` is a list of options to pass to the test harness.  The following options are currently available:
+
+* `func UpdateOnly(bool)`: Sets the engine's UpdateOnly environment variable
+* `func UpdateMode(string)`: Sets the engine's UpdateMode environment variable
+* `func WorkflowDir(string)`: Sets a custom workflow directory for the test
+* `func AlteryxLocal(string)`: Sets the locale for the test
+
+Any, all, or no options may be specified.  An example of registering a tool with the test harness that specifies the UpdateOnly and AlteryxLocale options is below:
+
+```go
+runner := sdk.RegisterToolTest(plugin, 1, `<Configuration></Configuration>`, sdk.UpdateOnly(true), sdk.AlteryxLocale(`en-us`))
+```
+
+The `RegisterToolTest` function returns a pointer to a `FileTestRunner`.  The interface for `FileTestRunner` is:
+
+```go
+func CaptureOutgoingAnchor(name string) *RecordCollector
+func ConnectInput(name string, dataFile string)
+func SimulateLifecycle()
+```
+
+The `CaptureOutgoingAnchor` function adds an outgoing connection to the specified anchor of your tool.  It returns a pointer to a `RecordCollector`, which you can use to inspect the data output from your tool.  Retrieving `RecordCollector.Data` will return a `map[string][]interface{}` containing the output data.  The map key is the output field name and the map value is a list of `interface{}` containing the values that were output for that field.
+
+The `ConnectInput` function connects input data to the specified anchor of your tool.  You specify the path to a data file in the second argument.  Data files can be best thought of as pipe-delimited files with a few special rules.  The rules to follow are:
+
+1. The first row must contain the field names
+2. The second row must contain the field types
+3. Bool, integer, decimal, date, and binary fields should not be quoted
+4. Strings should be double-quoted if leading/trailing whitespace is desired or the field value contains a pipe
+5. If a string field needs a double quote in the value, escape it with a backslash (\")
+6. If a string field needs a backslash in the value, escape it with a backslash (\\)
+7. You may use `\r` and `\n` to specify carriage return and newline characters
+8. Leading or trailing spaces outside of double quotes is ignored
+9. Empty fields are interpreted as nulls
+10. String fields with a value of 2 double quotes ("") are interpreted as empty strings rather than null
+11. Dates should be entered with a `YYYY-mm-dd format`
+12. DateTimes should be entered with a `YYY-mm-dd HH:MM:SS` format
+13. Size and scale, for fields that require them, are specified after the field type and separated by semi-colons (;)
+
+An example data file is below that illustrates how to set up each different type of field and how the data should be formatted.
+
+```
+Field1|Field2|Field3|Field4|Field5|Field6|Field7|Field8           |Field9    |Field10    |Field11       |Field12         |Field13   |Field14            |Field15|Field16
+Bool  |Byte  |Int16 |Int32 |Int64 |Float |Double|FixedDecimal;19;2|String;100|WString;100|V_String;10000|V_WString;100000|Date      |DateTime           |Blob;10|SpatialObj;100
+true  |2     |100   |1000  |10000 |12.34 |1.23  |     234.56      |"ABC"     |"Hello "   |" World"      |"abcdefg"       |2020-01-01|2020-01-02 03:04:05|       |
+false |-2    |-100  |-1000 |-10000|-12.34|-1.23 |    -234.56      |"DE|\"FG" |HIJK       |  LMNOP       |"QRSTU\r\nVWXYZ"|2020-02-03|2020-01-02 13:14:15|       |
+      |      |      |      |      |      |      |                 |          |           |              |                |          |                   |       |
+true  |42    |-110  |392   |2340  |12    |41.22 |  98.2           |""        |"HIJK"     |  LMN         |"qrstuvwxyz"    |2020-02-13|2020-11-02 13:14:15|       |
+```
+
 [Back to table of contents](#Table-of-contents)
