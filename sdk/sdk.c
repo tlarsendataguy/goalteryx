@@ -178,10 +178,17 @@ void closeAllOutputAnchors(struct OutputAnchor *anchor) {
     }
 }
 
-long PI_PushAllRecords(void * handle, int64_t nRecordLimit){
-    struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
+void complete(struct PluginSharedMemory *plugin) {
     goOnComplete(plugin);
     closeAllOutputAnchors(plugin->outputAnchors);
+    if (NULL != plugin->engine) {
+        sendMessage(plugin->engine, plugin->toolId, 4, L"");
+    }
+}
+
+long PI_PushAllRecords(void * handle, int64_t nRecordLimit){
+    struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
+    complete(plugin);
     return 1;
 }
 
@@ -366,8 +373,7 @@ void II_Close(void * handle) {
     if (plugin->totalInputConnections != plugin->closedInputConnections) {
         return;
     }
-    goOnComplete(plugin);
-    closeAllOutputAnchors(plugin->outputAnchors);
+    complete(plugin);
 }
 
 void II_Free(void * handle) {
