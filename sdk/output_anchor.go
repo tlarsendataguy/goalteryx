@@ -63,6 +63,9 @@ func (a *outputAnchor) reallocateCache(recordSize uint32) {
 }
 
 func (a *outputAnchor) Write() {
+	if a.data.isOpen == 0 {
+		panic(fmt.Sprintf(`you are writing to output anchor '%v' before it has been opened; call Open() before writing records`, a.Name()))
+	}
 	recordSize := a.metaData.DataSize()
 
 	if recordSize > a.data.recordCacheSize {

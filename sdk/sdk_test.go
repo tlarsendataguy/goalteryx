@@ -494,3 +494,42 @@ func TestPassthroughSimulation(t *testing.T) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field16`])
 	}
 }
+
+type WriteBeforeOpeningOutput struct {
+	output sdk.OutputAnchor
+}
+
+func (p *WriteBeforeOpeningOutput) Init(provider sdk.Provider) {
+	p.output = provider.GetOutputAnchor(`Output`)
+}
+
+func (p *WriteBeforeOpeningOutput) OnInputConnectionOpened(_ sdk.InputConnection) {
+}
+
+func (p *WriteBeforeOpeningOutput) OnRecordPacket(connection sdk.InputConnection) {
+	packet := connection.Read()
+	for packet.Next() {
+		p.output.Write()
+	}
+}
+
+func (p *WriteBeforeOpeningOutput) OnComplete() {
+}
+
+func TestWritingOutputBeforeOpenShouldPanic(t *testing.T) {
+	defer func() {
+		expected := `you are writing to output anchor 'Output' before it has been opened; call Open() before writing records`
+		if r := recover(); r != expected {
+			t.Fatalf("expected\n%v\nbut got\n%v", expected, r)
+		} else {
+			t.Logf(`recovered from: %v`, r)
+		}
+	}()
+
+	implementation := &WriteBeforeOpeningOutput{}
+	runner := sdk.RegisterToolTest(implementation, 1, ``)
+	_ = runner.CaptureOutgoingAnchor(`Output`)
+	runner.ConnectInput(`Input`, `sdk_test_passthrough_simulation.txt`)
+	runner.SimulateLifecycle()
+	t.Fatalf(`expected a panic but it did not happen`)
+}

@@ -70,7 +70,9 @@ void simulateInputLifecycle(struct PluginInterface *pluginInterface) {
 }
 
 void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, wchar_t *pMessage){
-    engine->pOutputMessage(engine->handle, nToolID, nStatus, pMessage);
+    if (NULL != engine) {
+        engine->pOutputMessage(engine->handle, nToolID, nStatus, pMessage);
+    }
 }
 
 void outputToolProgress(struct EngineInterface * engine, int nToolID, double progress){
@@ -183,9 +185,7 @@ void closeAllOutputAnchors(struct OutputAnchor *anchor) {
 void complete(struct PluginSharedMemory *plugin) {
     goOnComplete(plugin);
     closeAllOutputAnchors(plugin->outputAnchors);
-    if (NULL != plugin->engine) {
-        sendMessage(plugin->engine, plugin->toolId, 4, L"");
-    }
+    sendMessage(plugin->engine, plugin->toolId, 4, L"");
 }
 
 long PI_PushAllRecords(void * handle, int64_t nRecordLimit){
@@ -415,11 +415,9 @@ void callWriteRecords(struct OutputAnchor *anchor) {
         anchor->recordCount++;
     }
     anchor->totalDataSize += written;
-    if (NULL != anchor->plugin->engine) {
-        wchar_t msg[128];
-        swprintf(msg, sizeof(msg), L"%s|%d|%d", anchor->name, anchor->recordCount, anchor->totalDataSize);
-        sendMessage(anchor->plugin->engine, anchor->plugin->toolId, 50, &msg[0]);
-    }
+    wchar_t msg[128];
+    swprintf(msg, sizeof(msg), L"%s|%d|%d", anchor->name, anchor->recordCount, anchor->totalDataSize);
+    sendMessage(anchor->plugin->engine, anchor->plugin->toolId, 50, &msg[0]);
 }
 
 void* allocateCache(int size) {
