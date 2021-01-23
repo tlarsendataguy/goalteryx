@@ -236,7 +236,13 @@ func (r *RecordCollector) OnRecordPacket(connection InputConnection) {
 		record := packet.Record()
 		for name, getter := range r.blobFields {
 			value := getter(record)
-			r.appendDataToField(name, value, value == nil)
+			if value == nil {
+				r.appendDataToField(name, value, true)
+			} else {
+				copyValue := make([]byte, len(value))
+				copy(copyValue, value)
+				r.appendDataToField(name, copyValue, false)
+			}
 		}
 		for name, getter := range r.boolFields {
 			value, isNull := getter(record)

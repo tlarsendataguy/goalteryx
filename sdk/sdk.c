@@ -182,10 +182,58 @@ void closeAllOutputAnchors(struct OutputAnchor *anchor) {
     }
 }
 
+void freeAllInputAnchors(struct InputAnchor *anchor) {
+    struct InputAnchor *nextAnchor;
+    struct InputConnection *connection;
+    struct InputConnection *nextConnection;
+
+    while (anchor != NULL) {
+        nextAnchor = anchor->nextAnchor;
+        connection = anchor->firstChild;
+        while (connection != NULL) {
+            nextConnection = connection->nextConnection;
+
+            free(connection->metadata);
+            free(connection);
+
+            connection = nextConnection;
+        }
+
+        free(anchor);
+        anchor = nextAnchor;
+    }
+}
+
+void freeAllOutputAnchors(struct OutputAnchor *anchor) {
+    struct OutputAnchor *nextAnchor;
+    struct OutputConn *connection;
+    struct OutputConn *nextConnection;
+
+    while (anchor != NULL) {
+        nextAnchor = anchor->nextAnchor;
+
+        connection = anchor->firstChild;
+        while (connection != NULL) {
+            nextConnection = connection->nextConnection;
+            free(connection);
+            connection = nextConnection;
+        }
+
+        free(anchor->metadata);
+        free(anchor->recordCache);
+        free(anchor);
+        anchor = nextAnchor;
+    }
+}
+
 void complete(struct PluginSharedMemory *plugin) {
     goOnComplete(plugin);
+    freeAllInputAnchors(plugin->inputAnchors);
     closeAllOutputAnchors(plugin->outputAnchors);
+    freeAllOutputAnchors(plugin->outputAnchors);
     sendMessage(plugin->engine, plugin->toolId, 4, L"");
+    //free(plugin->toolConfig);
+    free(plugin);
 }
 
 long PI_PushAllRecords(void * handle, int64_t nRecordLimit){
@@ -373,6 +421,8 @@ void II_Close(void * handle) {
     }
     struct PluginSharedMemory *plugin = input->plugin;
     plugin->closedInputConnections++;
+
+    free(input->recordCache);
 
     if (plugin->totalInputConnections != plugin->closedInputConnections) {
         return;
