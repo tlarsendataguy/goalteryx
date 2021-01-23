@@ -37,6 +37,8 @@ type goOutputAnchorData struct {
 	recordCache         unsafe.Pointer
 	recordCachePosition uint32
 	recordCacheSize     uint32
+	recordCount         uint64
+	totalDataSize       uint64
 }
 
 type goOutputConnectionData struct {

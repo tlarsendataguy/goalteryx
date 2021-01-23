@@ -44,6 +44,8 @@ struct OutputAnchor {
     char*                      recordCache;
     uint32_t                   recordCachePosition;
     uint32_t                   recordCacheSize;
+    uint64_t                   recordCount;
+    uint64_t                   totalDataSize;
 };
 
 struct PluginSharedMemory {

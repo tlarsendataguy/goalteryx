@@ -27,6 +27,8 @@ const int cacheSize = 4194304; //4mb
 **         recordCache (char *)
 **         recordCachePosition (uint32_t)
 **         recordCacheSize (uint32_t)
+**         recordCount (uint64_t)
+**         totalDataSize (uint64_t)
 **     totalInputConnections (uint32_t)
 **     closedInputConnections (uint32_t)
 **     inputAnchors (struct InputAnchor*)
@@ -274,6 +276,8 @@ struct OutputAnchor* createOutgoingAnchor(wchar_t* name) {
     anchor->recordCache = NULL;
     anchor->recordCachePosition = 0;
     anchor->recordCacheSize = 0;
+    anchor->recordCount = 0;
+    anchor->totalDataSize = 0;
 
     return anchor;
 }
@@ -408,6 +412,13 @@ void callWriteRecords(struct OutputAnchor *anchor) {
             uint32_t varLen = uint32FromRecordPosition(anchor->recordCache, written);
             written += 4 + varLen;
         }
+        anchor->recordCount++;
+    }
+    anchor->totalDataSize += written;
+    if (NULL != anchor->plugin->engine) {
+        wchar_t msg[128];
+        swprintf(msg, sizeof(msg), L"%s|%d|%d", anchor->name, anchor->recordCount, anchor->totalDataSize);
+        sendMessage(anchor->plugin->engine, anchor->plugin->toolId, 50, &msg[0]);
     }
 }
 
