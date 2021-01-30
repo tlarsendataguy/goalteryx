@@ -22,6 +22,8 @@ func NewBoolField(name string, source string) NewOutgoingField {
 			Size:         1,
 			Scale:        0,
 			CurrentValue: make([]byte, 1),
+			nullSetter:   setBoolFieldNull,
+			nullGetter:   getBoolFieldNull,
 			isFixedLen:   true,
 		}
 	}
@@ -338,6 +340,12 @@ func setVarFieldNull(isNull byte, f *outgoingField) {
 	f.CurrentValue[0] = isNull
 }
 
+func setBoolFieldNull(isNull byte, f *outgoingField) {
+	if isNull == 1 {
+		f.CurrentValue[0] = 2
+	}
+}
+
 func getNormalFieldNull(f *outgoingField) bool {
 	return f.CurrentValue[f.Size] == 1
 }
@@ -350,16 +358,16 @@ func getVarFieldNull(f *outgoingField) bool {
 	return f.CurrentValue[0] == 1
 }
 
+func getBoolFieldNull(f *outgoingField) bool {
+	return f.CurrentValue[0] == 2
+}
+
 func (f *outgoingField) SetBool(value bool) {
 	if value {
 		f.CurrentValue[0] = 1
 	} else {
 		f.CurrentValue[0] = 0
 	}
-}
-
-func (f *outgoingField) SetNullBool() {
-	f.CurrentValue[0] = 2
 }
 
 func (f *outgoingField) GetCurrentBool() (bool, bool) {
@@ -406,10 +414,6 @@ func (f *outgoingField) SetInt(value int) {
 	f.nullSetter(0, f)
 }
 
-func (f *outgoingField) SetNullInt() {
-	f.nullSetter(1, f)
-}
-
 func (f *outgoingField) GetCurrentInt() (int, bool) {
 	if f.nullGetter(f) {
 		return 0, true
@@ -450,13 +454,17 @@ func setFixedDecimal(value float64, f *outgoingField) {
 	}
 }
 
+func (f *outgoingField) GetNull() bool {
+	return f.nullGetter(f)
+}
+
+func (f *outgoingField) SetNull() {
+	f.nullSetter(1, f)
+}
+
 func (f *outgoingField) SetFloat(value float64) {
 	f.floatSetter(value, f)
 	f.nullSetter(0, f)
-}
-
-func (f *outgoingField) SetNullFloat() {
-	f.nullSetter(1, f)
 }
 
 func (f *outgoingField) GetCurrentFloat() (float64, bool) {
@@ -489,10 +497,6 @@ func setDateTime(value time.Time, f *outgoingField) {
 func (f *outgoingField) SetDateTime(value time.Time) {
 	f.dateTimeSetter(value, f)
 	f.nullSetter(0, f)
-}
-
-func (f *outgoingField) SetNullDateTime() {
-	f.nullSetter(1, f)
 }
 
 func (f *outgoingField) GetCurrentDateTime() (time.Time, bool) {
@@ -579,10 +583,6 @@ func (f *outgoingField) SetString(value string) {
 	f.nullSetter(0, f)
 }
 
-func (f *outgoingField) SetNullString() {
-	f.nullSetter(1, f)
-}
-
 func (f *outgoingField) GetCurrentString() (string, bool) {
 	if f.nullGetter(f) {
 		return ``, true
@@ -606,10 +606,6 @@ func (f *outgoingField) SetBlob(value []byte) {
 	f.nullSetter(0, f)
 }
 
-func (f *outgoingField) SetNullBlob() {
-	f.nullSetter(1, f)
-}
-
 func (f *outgoingField) GetCurrentBlob() ([]byte, bool) {
 	if f.nullGetter(f) {
 		return nil, true
@@ -617,39 +613,44 @@ func (f *outgoingField) GetCurrentBlob() ([]byte, bool) {
 	return f.blobGetter(f), false
 }
 
+type NullableField interface {
+	GetNull() bool
+	SetNull()
+}
+
 type OutgoingBoolField interface {
+	NullableField
 	SetBool(bool)
-	SetNullBool()
 	GetCurrentBool() (bool, bool)
 }
 
 type OutgoingIntField interface {
+	NullableField
 	SetInt(int)
-	SetNullInt()
 	GetCurrentInt() (int, bool)
 }
 
 type OutgoingFloatField interface {
+	NullableField
 	SetFloat(float64)
-	SetNullFloat()
 	GetCurrentFloat() (float64, bool)
 }
 
 type OutgoingDateTimeField interface {
+	NullableField
 	SetDateTime(time.Time)
-	SetNullDateTime()
 	GetCurrentDateTime() (time.Time, bool)
 }
 
 type OutgoingStringField interface {
+	NullableField
 	SetString(string)
-	SetNullString()
 	GetCurrentString() (string, bool)
 }
 
 type OutgoingBlobField interface {
+	NullableField
 	SetBlob([]byte)
-	SetNullBlob()
 	GetCurrentBlob() ([]byte, bool)
 }
 

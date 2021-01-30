@@ -133,42 +133,42 @@ func (f *FilePusher) OnComplete() {
 		data := extractor.Extract(preprocessed)
 		for fieldName, value := range data.BlobFields {
 			if value == nil {
-				outInfo.BlobFields[fieldName].SetNullBlob()
+				outInfo.BlobFields[fieldName].SetNull()
 			} else {
 				outInfo.BlobFields[fieldName].SetBlob(value.([]byte))
 			}
 		}
 		for fieldName, value := range data.BoolFields {
 			if value == nil {
-				outInfo.BoolFields[fieldName].SetNullBool()
+				outInfo.BoolFields[fieldName].SetNull()
 			} else {
 				outInfo.BoolFields[fieldName].SetBool(value.(bool))
 			}
 		}
 		for fieldName, value := range data.IntFields {
 			if value == nil {
-				outInfo.IntFields[fieldName].SetNullInt()
+				outInfo.IntFields[fieldName].SetNull()
 			} else {
 				outInfo.IntFields[fieldName].SetInt(value.(int))
 			}
 		}
 		for fieldName, value := range data.DecimalFields {
 			if value == nil {
-				outInfo.FloatFields[fieldName].SetNullFloat()
+				outInfo.FloatFields[fieldName].SetNull()
 			} else {
 				outInfo.FloatFields[fieldName].SetFloat(value.(float64))
 			}
 		}
 		for fieldName, value := range data.DateTimeFields {
 			if value == nil {
-				outInfo.DateTimeFields[fieldName].SetNullDateTime()
+				outInfo.DateTimeFields[fieldName].SetNull()
 			} else {
 				outInfo.DateTimeFields[fieldName].SetDateTime(value.(time.Time))
 			}
 		}
 		for fieldName, value := range data.StringFields {
 			if value == nil {
-				outInfo.StringFields[fieldName].SetNullString()
+				outInfo.StringFields[fieldName].SetNull()
 			} else {
 				outInfo.StringFields[fieldName].SetString(value.(string))
 			}

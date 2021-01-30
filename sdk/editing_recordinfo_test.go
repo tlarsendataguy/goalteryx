@@ -291,7 +291,7 @@ func TestOutgoingBoolField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentBool(); currentValue != true || isNull {
 		t.Fatalf(`expected true and not null but got %v and %v`, currentValue, isNull)
 	}
-	field.SetNullBool()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentBool(); currentValue != false || isNull != true {
 		t.Fatalf(`expected false and null but got %v and %v`, currentValue, isNull)
 	}
@@ -310,7 +310,7 @@ func TestOutgoingByteField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentInt(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullInt()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentInt(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -332,7 +332,7 @@ func TestOutgoingInt16Field(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentInt(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullInt()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentInt(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -351,7 +351,7 @@ func TestOutgoingInt32Field(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentInt(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullInt()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentInt(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -370,7 +370,7 @@ func TestOutgoingInt64Field(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentInt(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullInt()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentInt(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -389,7 +389,7 @@ func TestOutgoingFloatField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullFloat()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -408,7 +408,7 @@ func TestOutgoingDoubleField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullFloat()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -427,7 +427,7 @@ func TestOutgoingFixedDecimalField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullFloat()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -445,7 +445,7 @@ func TestTruncateDecimals(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 123.46 || isNull {
 		t.Fatalf(`expected 123.45 and not null but got %v and %v`, currentValue, isNull)
 	}
-	field.SetNullFloat()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -463,7 +463,7 @@ func TestTruncateNumber(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 123.4 || isNull {
 		t.Fatalf(`expected 123.4 and not null but got %v and %v`, currentValue, isNull)
 	}
-	field.SetNullFloat()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -471,7 +471,7 @@ func TestTruncateNumber(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != -123 || isNull {
 		t.Fatalf(`expected -123 and not null but got %v and %v`, currentValue, isNull)
 	}
-	field.SetNullFloat()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentFloat(); currentValue != 0 || isNull != true {
 		t.Fatalf(`expected 0 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -490,7 +490,7 @@ func TestOutgoingDateField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentDateTime(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullDateTime()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentDateTime(); currentValue != time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC) || isNull != true {
 		t.Fatalf(`expected 0000-00-00 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -509,7 +509,7 @@ func TestOutgoingDatetimeField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentDateTime(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected %v and not null but got %v and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullDateTime()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentDateTime(); currentValue != time.Date(0, 0, 0, 0, 0, 0, 0, time.UTC) || isNull != true {
 		t.Fatalf(`expected 0000-00-00 and null but got %v and %v`, currentValue, isNull)
 	}
@@ -528,7 +528,7 @@ func TestOutgoingStringField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentString(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected '%v' and not null but got '%v' and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullString()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentString(); currentValue != `` || isNull != true {
 		t.Fatalf(`expected '' and null but got '%v' and %v`, currentValue, isNull)
 	}
@@ -577,7 +577,7 @@ func TestOutgoingWStringField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentString(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected '%v' and not null but got '%v' and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullString()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentString(); currentValue != `` || isNull != true {
 		t.Fatalf(`expected '' and null but got '%v' and %v`, currentValue, isNull)
 	}
@@ -626,7 +626,7 @@ func TestOutgoingV_StringField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentString(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected '%v' and not null but got '%v' and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullString()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentString(); currentValue != `` || isNull != true {
 		t.Fatalf(`expected '' and null but got '%v' and %v`, currentValue, isNull)
 	}
@@ -675,7 +675,7 @@ func TestOutgoingV_WStringField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentString(); currentValue != expectedValue || isNull {
 		t.Fatalf(`expected '%v' and not null but got '%v' and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullString()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentString(); currentValue != `` || isNull != true {
 		t.Fatalf(`expected '' and null but got '%v' and %v`, currentValue, isNull)
 	}
@@ -724,7 +724,7 @@ func TestOutgoingBlobField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentBlob(); !bytes.Equal(currentValue, expectedValue) || isNull {
 		t.Fatalf(`expected '%v' and not null but got '%v' and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullBlob()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentBlob(); currentValue != nil || isNull != true {
 		t.Fatalf(`expected '' and null but got '%v' and %v`, currentValue, isNull)
 	}
@@ -743,7 +743,7 @@ func TestOutgoingSpatialObjField(t *testing.T) {
 	if currentValue, isNull := field.GetCurrentBlob(); !bytes.Equal(currentValue, expectedValue) || isNull {
 		t.Fatalf(`expected '%v' and not null but got '%v' and %v`, expectedValue, currentValue, isNull)
 	}
-	field.SetNullBlob()
+	field.SetNull()
 	if currentValue, isNull := field.GetCurrentBlob(); currentValue != nil || isNull != true {
 		t.Fatalf(`expected '' and null but got '%v' and %v`, currentValue, isNull)
 	}

@@ -70,3 +70,67 @@ func TestSetStringsToEmptyString(t *testing.T) {
 	info.StringFields[`Field3`].SetString(``)
 	info.StringFields[`Field4`].SetString(``)
 }
+
+func TestGetNull(t *testing.T) {
+	info, _ := sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
+		sdk.NewBoolField(`Field1`, `source`),
+		sdk.NewByteField(`Field2`, `source`),
+		sdk.NewInt16Field(`Field3`, `source`),
+		sdk.NewInt32Field(`Field4`, `source`),
+		sdk.NewInt64Field(`Field5`, `source`),
+		sdk.NewStringField(`Field6`, `source`, 10),
+		sdk.NewWStringField(`Field7`, `source`, 10),
+		sdk.NewV_StringField(`Field8`, `source`, 1000),
+		sdk.NewV_WStringField(`Field9`, `source`, 1000),
+		sdk.NewFloatField(`Field10`, `source`),
+		sdk.NewDoubleField(`Field11`, `source`),
+		sdk.NewFixedDecimalField(`Field12`, `source`, 18, 2),
+		sdk.NewDateField(`Field13`, `source`),
+		sdk.NewDateTimeField(`Field14`, `source`),
+		sdk.NewBlobField(`Field15`, `source`, 1000000),
+		sdk.NewSpatialObjField(`Field16`, `source`, 1000000),
+	})
+
+	for _, field := range info.FloatFields {
+		field.SetNull()
+		isNull := field.GetNull()
+		if !isNull {
+			t.Fatalf(`expected null but got not null`)
+		}
+	}
+	for _, field := range info.StringFields {
+		field.SetNull()
+		isNull := field.GetNull()
+		if !isNull {
+			t.Fatalf(`expected null but got not null`)
+		}
+	}
+	for _, field := range info.BoolFields {
+		field.SetNull()
+		isNull := field.GetNull()
+		if !isNull {
+			t.Fatalf(`expected null but got not null`)
+		}
+	}
+	for _, field := range info.DateTimeFields {
+		field.SetNull()
+		isNull := field.GetNull()
+		if !isNull {
+			t.Fatalf(`expected null but got not null`)
+		}
+	}
+	for _, field := range info.IntFields {
+		field.SetNull()
+		isNull := field.GetNull()
+		if !isNull {
+			t.Fatalf(`expected null but got not null`)
+		}
+	}
+	for _, field := range info.BlobFields {
+		field.SetNull()
+		isNull := field.GetNull()
+		if !isNull {
+			t.Fatalf(`expected null but got not null`)
+		}
+	}
+}
