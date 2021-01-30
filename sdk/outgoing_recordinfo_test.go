@@ -2,6 +2,7 @@ package sdk_test
 
 import (
 	"github.com/tlarsen7572/goalteryx/sdk"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -131,6 +132,36 @@ func TestGetNull(t *testing.T) {
 		isNull := field.GetNull()
 		if !isNull {
 			t.Fatalf(`expected null but got not null`)
+		}
+	}
+}
+
+func TestGetEmptyValue(t *testing.T) {
+	info, _ := sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
+		sdk.NewV_StringField(`Field8`, `source`, 1000),
+		sdk.NewV_WStringField(`Field9`, `source`, 1000),
+		sdk.NewBlobField(`Field15`, `source`, 1000000),
+		sdk.NewSpatialObjField(`Field16`, `source`, 1000000),
+	})
+
+	for _, field := range info.StringFields {
+		field.SetString(``)
+		value, isNull := field.GetCurrentString()
+		if isNull {
+			t.Fatalf(`expected non-null but got null`)
+		}
+		if value != `` {
+			t.Fatalf(`expected '' but got '%v'`, value)
+		}
+	}
+	for _, field := range info.BlobFields {
+		field.SetBlob([]byte{})
+		value, isNull := field.GetCurrentBlob()
+		if isNull {
+			t.Fatalf(`expected non-null but got null`)
+		}
+		if !reflect.DeepEqual(value, []byte{}) {
+			t.Fatalf(`expected [] but got %v`, value)
 		}
 	}
 }
