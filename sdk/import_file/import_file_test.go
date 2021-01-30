@@ -15,7 +15,7 @@ const fieldTypes string = "Bool\000Byte\000Int16\000Int32\000Int64\000Float\000D
 const record1 string = "true\0002\000100\0001000\00010000\00012.34\0001.23\000234.56\000\"ABC\"\000\"Hello \"\000\" World\"\000\"abcdefg\"\0002020-01-01\0002020-01-02 03:04:05\000\000"
 const record2 string = "false\000-2\000-100\000-1000\000-10000\000-12.34\000-1.23\000-234.56\000\"DE|\"FG\"\000HIJK\000LMNOP\000\"QRSTU\r\nVWXYZ\"\0002020-02-03\0002020-01-02 13:14:15\000\000"
 const record3 string = "\000\000\000\000\000\000\000\000\000\000\000\000\000\000\000"
-const record4 string = "true\00042\000-110\000392\0002340\00012\00041.22\00098.2\000\"\"\000\"HIJK\"\000LMN\000\"qrstuvwxyz\"\0002020-02-13\0002020-11-02 13:14:15\000\000"
+const record4 string = "true\00042\000-110\000392\0002340\00012\00041.22\00098.2\000\"\"\000\"\"\000\"\"\000\"\"\0002020-02-13\0002020-11-02 13:14:15\000\000"
 
 func TestPreprocessTextFile(t *testing.T) {
 	file, err := os.Open(`..\sdk_test_passthrough_simulation.txt`)

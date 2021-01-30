@@ -554,6 +554,9 @@ func setV_String(value string, f *outgoingField) {
 }
 
 func getV_WString(f *outgoingField) string {
+	if len(f.CurrentValue) == 1 {
+		return ``
+	}
 	utf16Bytes := bytesToUtf16(f.CurrentValue[1:])
 	return string(utf16.Decode(utf16Bytes))
 }
