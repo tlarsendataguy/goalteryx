@@ -1,6 +1,9 @@
 #include "sdk.h"
 
 const int cacheSize = 4194304; //4mb
+const int STATUS_Complete = 4;
+const int STATUS_UpdateOutputMetaInfoXml = 10;
+const int STATUS_RecordCountString = 50;
 
 /*
 ** The structure of a plugin handle looks like this:
@@ -149,6 +152,8 @@ void appendOutgoingConnection(struct OutputAnchor* anchor, struct IncomingConnec
 
 void openOutgoingAnchor(struct OutputAnchor *anchor, wchar_t * config) {
     anchor->metadata = config;
+    struct EngineInterface* engine = anchor->plugin->engine;
+    sendMessage(engine, anchor->plugin->toolId, STATUS_UpdateOutputMetaInfoXml, config);
 
     if (anchor->plugin->engine != NULL && anchor->browseEverywhereId > 0) {
         struct EngineInterface* engine = anchor->plugin->engine;
@@ -234,7 +239,7 @@ void complete(struct PluginSharedMemory *plugin) {
     freeAllInputAnchors(plugin->inputAnchors);
     closeAllOutputAnchors(plugin->outputAnchors);
     freeAllOutputAnchors(plugin->outputAnchors);
-    sendMessage(plugin->engine, plugin->toolId, 4, L"");
+    sendMessage(plugin->engine, plugin->toolId, STATUS_Complete, L"");
     //free(plugin->toolConfig);
     free(plugin);
 }
@@ -470,7 +475,7 @@ void callWriteRecords(struct OutputAnchor *anchor) {
     anchor->totalDataSize += written;
     wchar_t msg[128];
     swprintf(msg, sizeof(msg), L"%s|%d|%d", anchor->name, anchor->recordCount, anchor->totalDataSize);
-    sendMessage(anchor->plugin->engine, anchor->plugin->toolId, 50, &msg[0]);
+    sendMessage(anchor->plugin->engine, anchor->plugin->toolId, STATUS_RecordCountString, &msg[0]);
 }
 
 void* allocateCache(int size) {
