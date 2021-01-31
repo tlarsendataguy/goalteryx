@@ -474,7 +474,7 @@ void callWriteRecords(struct OutputAnchor *anchor) {
     }
     anchor->totalDataSize += written;
     wchar_t msg[128];
-    swprintf(msg, sizeof(msg), L"%s|%d|%d", anchor->name, anchor->recordCount, anchor->totalDataSize);
+    swprintf(msg, sizeof(msg), L"%s|%d|%" PRIu64, anchor->name, anchor->recordCount, anchor->totalDataSize);
     sendMessage(anchor->plugin->engine, anchor->plugin->toolId, STATUS_RecordCountString, &msg[0]);
 }
 
