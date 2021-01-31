@@ -533,3 +533,46 @@ func TestWritingOutputBeforeOpenShouldPanic(t *testing.T) {
 	runner.SimulateLifecycle()
 	t.Fatalf(`expected a panic but it did not happen`)
 }
+
+type OpenBeforeAddingConnectionPlugin struct {
+	output     sdk.OutputAnchor
+	recordInfo *sdk.OutgoingRecordInfo
+	id         int
+}
+
+func (i *OpenBeforeAddingConnectionPlugin) Init(p sdk.Provider) {
+	i.output = p.GetOutputAnchor(`Output`)
+	i.recordInfo, _ = sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
+		sdk.NewInt64Field(`ID`, ``),
+	})
+	i.output.Open(i.recordInfo)
+}
+
+func (i *OpenBeforeAddingConnectionPlugin) OnInputConnectionOpened(connection sdk.InputConnection) {}
+
+func (i *OpenBeforeAddingConnectionPlugin) OnRecordPacket(connection sdk.InputConnection) {
+	packet := connection.Read()
+	for packet.Next() {
+		i.recordInfo.IntFields[`ID`].SetInt(i.id)
+		i.id++
+		i.output.Write()
+	}
+}
+
+func (i *OpenBeforeAddingConnectionPlugin) OnComplete() {}
+
+func TestInitOutputBeforeAddingOutgoingConnection(t *testing.T) {
+	plugin := &OpenBeforeAddingConnectionPlugin{}
+	runner := sdk.RegisterToolTest(plugin, 1, ``)
+	collector := runner.CaptureOutgoingAnchor(`Output`)
+	runner.ConnectInput(`Input`, `sdk_test_passthrough_simulation.txt`)
+	runner.SimulateLifecycle()
+	if length := len(collector.Data); length != 1 {
+		t.Fatalf(`expected length of 1 but got %v`, length)
+	}
+	if field, ok := collector.Data[`ID`]; !ok {
+		t.Fatalf(`expected a field called 'ID' but it did not exist`)
+	} else {
+		t.Logf(`ID data: %v`, field)
+	}
+}

@@ -92,7 +92,19 @@ func utf16PtrLen(utf16Ptr unsafe.Pointer) int {
 
 func stringToUtf16Ptr(value string) *C.wchar_t {
 	utf16Bytes := append(utf16.Encode([]rune(value)), 0)
-	return (*C.wchar_t)(unsafe.Pointer(&utf16Bytes[0]))
+
+	length := len(utf16Bytes)
+	byteData := allocateCache(uint32(length * 2))
+
+	//We need to copy the UTF16 bytes to a pointer allocated from C so no Go pointers end up in C space
+	var byteSlice []uint16
+	rawHeader := (*reflect.SliceHeader)(unsafe.Pointer(&byteSlice))
+	rawHeader.Data = uintptr(byteData)
+	rawHeader.Len = length
+	rawHeader.Cap = length
+	copy(byteSlice, utf16Bytes)
+
+	return (*C.wchar_t)(byteData)
 }
 
 func simulateInputLifecycle(pluginInterface unsafe.Pointer) {

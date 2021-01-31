@@ -124,29 +124,32 @@ void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineI
 
 void appendOutgoingConnection(struct OutputAnchor* anchor, struct IncomingConnectionInterface* ii) {
     struct OutputConn* conn = malloc(sizeof(struct OutputConn));
-    conn->isOpen = 1;
+    conn->isOpen = 0;
     conn->ii = ii;
     conn->nextConnection = NULL;
 
     if (NULL == anchor->firstChild) {
         anchor->firstChild = conn;
-        return;
+    } else {
+        struct OutputConn *childConn = anchor->firstChild;
+        while (childConn->nextConnection != NULL) {
+            childConn = childConn->nextConnection;
+        }
+        childConn->nextConnection = conn;
     }
 
-    struct OutputConn *childConn = anchor->firstChild;
-    while (childConn->nextConnection != NULL) {
-        childConn = childConn->nextConnection;
-    }
-    childConn->nextConnection = conn;
     if (anchor->isOpen == 1) {
         long result = ii->pII_Init(ii->handle, anchor->metadata);
-        if (result == 0) {
-            conn->isOpen = 0;
+        if (result == 1) {
+            conn->isOpen = 1;
         }
     }
+    return;
 }
 
 void openOutgoingAnchor(struct OutputAnchor *anchor, wchar_t * config) {
+    anchor->metadata = config;
+
     if (anchor->plugin->engine != NULL && anchor->browseEverywhereId > 0) {
         struct EngineInterface* engine = anchor->plugin->engine;
         struct IncomingConnectionInterface* ii = engine->pBrowseEverywhereGetII(engine->handle, anchor->browseEverywhereId, anchor->plugin->toolId, anchor->name);
