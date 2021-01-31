@@ -10,19 +10,26 @@ With the announced deprecation of the .NET SDK, a gap formed between the C/C++ a
 
 ## Table of contents
 
-1. [Installation](#Installation)  
-2. [Building your custom tools](#Building-your-custom-tools)  
-3. [Sample tool](#Sample-tool)  
-4. [Implementing the Plugin interface](#Implementing-the-Plugin-interface)  
-5. [Registering your tool](#Registering-your-tool)  
-6. [Using Provider](#Using-Provider)  
-7. [Using OutputAnchor](#Using-OutputAnchor)  
-8. [Using Io](#Using-Io)  
-9. [Using Environment](#Using-Environment)  
-10. [Using InputConnection](#Using-InputConnection)  
-11. [RecordInfo](#RecordInfo)  
-12. [Using RecordPacket](#Using-RecordPacket) 
-13. [Testing your tools](#Testing-your-tools)
+1. [Prerequisites](#Prerequisites)
+2. [Installation](#Installation)  
+3. [Building your custom tools](#Building-your-custom-tools)  
+4. [Sample tool](#Sample-tool)  
+5. [Implementing the Plugin interface](#Implementing-the-Plugin-interface)  
+6. [Registering your tool](#Registering-your-tool)  
+7. [Using Provider](#Using-Provider)  
+8. [Using OutputAnchor](#Using-OutputAnchor)  
+9. [Using Io](#Using-Io)  
+10. [Using Environment](#Using-Environment)  
+11. [Using InputConnection](#Using-InputConnection)  
+12. [RecordInfo](#RecordInfo)  
+13. [Using RecordPacket](#Using-RecordPacket) 
+14. [Testing your tools](#Testing-your-tools)
+
+## Prerequisites
+
+1. To use the Go SDK you must have Go installed on your machine.  You can download the latest version of Go [here](https://golang.org/dl/).
+2. The Go SDK requires cgo, which means you must have a 64-bit C compiler on your system.  If you do not already have one, Mingw-w64 has been tested and works with the SDK.  Download from [here](http://mingw-w64.org/doku.php/download/mingw-builds) and install, making sure Mingw-w64 is added to PATH.
+3. While not required, an IDE is highly recommended.  I prefer the [GoLand IDE](https://www.jetbrains.com/go/) from JetBrains.
 
 ## Installation
 
