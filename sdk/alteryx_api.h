@@ -1,11 +1,13 @@
 // Plugin definitions
 
+typedef uint16_t utf16char;
+
 struct RecordData
 {
 
 };
 
-typedef long (* T_II_Init)(void * handle, wchar_t * pXmlRecordMetaInfo);
+typedef long (* T_II_Init)(void * handle, utf16char * pXmlRecordMetaInfo);
 typedef long (* T_II_PushRecord)(void * handle, char * pRecord);
 typedef void (* T_II_UpdateProgress)(void * handle, double dPercent);
 typedef void (* T_II_Close)(void * handle);
@@ -25,11 +27,11 @@ struct IncomingConnectionInterface
 typedef void (* T_PI_Close)(void * handle, bool bHasErrors);
 typedef long (* T_PI_PushAllRecords)(void * handle, int64_t nRecordLimit);
 typedef long (* T_PI_AddIncomingConnection)(void * handle,
-    wchar_t * pIncomingConnectionType,
-    wchar_t * pIncomingConnectionName,
+    utf16char * pIncomingConnectionType,
+    utf16char * pIncomingConnectionName,
     struct IncomingConnectionInterface *r_IncConnInt);
 typedef long (* T_PI_AddOutgoingConnection)(void * handle,
-    wchar_t * pOutgoingConnectionName,
+    utf16char * pOutgoingConnectionName,
     struct IncomingConnectionInterface *pIncConnInt);
 
 struct PluginInterface
@@ -47,13 +49,13 @@ struct PluginInterface
 typedef void AlteryxThreadProc(void *pData);
 struct PreSortConnectionInterface;
 typedef long (* OutputToolProgress)(void * handle, int nToolID, double dPercentProgress);
-typedef long (* OutputMessage)(void * handle, int nToolID, int nStatus, wchar_t *pMessage);
+typedef long (* OutputMessage)(void * handle, int nToolID, int nStatus, utf16char *pMessage);
 typedef unsigned (* BrowseEverywhereReserveAnchor)(void * handle, int nToolId);
-typedef struct IncomingConnectionInterface* (* BrowseEverywhereGetII)(void * handle, unsigned nReservationId,  int nToolId, wchar_t * strOutputName);
-typedef wchar_t * (* CreateTempFileName)(void * handle, wchar_t * pExt);
-typedef long (* PreSort)(void * handle, int nToolId, wchar_t * pSortInfo, struct IncomingConnectionInterface *pOrigIncConnInt, struct IncomingConnectionInterface ** r_ppNewIncConnInt, struct PreSortConnectionInterface ** r_ppPreSortConnInt);
-typedef wchar_t * (* GetInitVar)(void * handle, wchar_t *pVar);
-typedef wchar_t * (* GetInitVar2)(void * handle, int nToolId, wchar_t *pVar);
+typedef struct IncomingConnectionInterface* (* BrowseEverywhereGetII)(void * handle, unsigned nReservationId,  int nToolId, utf16char * strOutputName);
+typedef utf16char * (* CreateTempFileName)(void * handle, utf16char * pExt);
+typedef long (* PreSort)(void * handle, int nToolId, utf16char * pSortInfo, struct IncomingConnectionInterface *pOrigIncConnInt, struct IncomingConnectionInterface ** r_ppNewIncConnInt, struct PreSortConnectionInterface ** r_ppPreSortConnInt);
+typedef utf16char * (* GetInitVar)(void * handle, utf16char *pVar);
+typedef utf16char * (* GetInitVar2)(void * handle, int nToolId, utf16char *pVar);
 
 struct EngineInterface {
     int sizeof_EngineInterface;

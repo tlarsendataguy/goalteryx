@@ -10,13 +10,13 @@ const int STATUS_RecordCountString = 50;
 **
 ** (struct PluginSharedMemory)
 **     toolId (uint32_t)
-**     toolConfig (wchar_t *)
+**     toolConfig (utf16char *)
 **     toolConfigLen (uint32_t)
 **     engine (struct EngineInterface*)
 **     ayxInterface (struct PluginInterface*)
 **     outputAnchors (struct OutputAnchor*)
-**         name (wchar_t *)
-**         metadata (wchar_t *)
+**         name (utf16char *)
+**         metadata (utf16char *)
 **         browseEverywhereId (uint32_t)
 **         isOpen (char)
 **         plugin (struct PluginSharedMemory*)
@@ -35,11 +35,11 @@ const int STATUS_RecordCountString = 50;
 **     totalInputConnections (uint32_t)
 **     closedInputConnections (uint32_t)
 **     inputAnchors (struct InputAnchor*)
-**         name (wchar_t *)
+**         name (utf16char *)
 **         firstChild (struct InputConnection*)
 **             anchor (struct InputAnchor*)
 **             isOpen (char)
-**             metadata (wchar_t *)
+**             metadata (utf16char *)
 **             percent (double)
 **             nextConnection (struct InputConnection*)
 **             plugin (struct PluginSharedMemory*)
@@ -59,11 +59,11 @@ struct IncomingConnectionInterface* generateIncomingConnectionInterface(){
     return malloc(sizeof(struct IncomingConnectionInterface));
 }
 
-void callPiAddIncomingConnection(struct PluginSharedMemory *handle, wchar_t * name, struct IncomingConnectionInterface *ii){
+void callPiAddIncomingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii){
     PI_AddIncomingConnection(handle, L"", name, ii);
 }
 
-void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, wchar_t * name, struct IncomingConnectionInterface *ii){
+void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii){
     PI_AddOutgoingConnection(handle, name, ii);
 }
 
@@ -72,7 +72,7 @@ void simulateInputLifecycle(struct PluginInterface *pluginInterface) {
     pluginInterface->pPI_Close(pluginInterface->handle, 0);
 }
 
-void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, wchar_t *pMessage){
+void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, utf16char *pMessage){
     if (NULL != engine) {
         engine->pOutputMessage(engine->handle, nToolID, nStatus, pMessage);
     }
@@ -92,11 +92,11 @@ void sendProgressToAnchor(struct OutputAnchor *anchor, double progress) {
     }
 }
 
-void* getInitVar(struct EngineInterface * engine, wchar_t *pVar) {
+void* getInitVar(struct EngineInterface * engine, utf16char *pVar) {
     return engine->pGetInitVar(engine->handle, pVar);
 }
 
-uint32_t getLenFromUtf16Ptr(wchar_t * ptr) {
+uint32_t getLenFromUtf16Ptr(utf16char * ptr) {
     uint32_t len = 0;
     while (ptr[len] != L'\0') {
         len++;
@@ -104,7 +104,7 @@ uint32_t getLenFromUtf16Ptr(wchar_t * ptr) {
     return len;
 }
 
-void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
+void* configurePlugin(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
     struct PluginSharedMemory* plugin = malloc(sizeof(struct PluginSharedMemory));
     plugin->toolId = nToolID;
     plugin->toolConfig = pXmlProperties;
@@ -150,7 +150,7 @@ void appendOutgoingConnection(struct OutputAnchor* anchor, struct IncomingConnec
     return;
 }
 
-void openOutgoingAnchor(struct OutputAnchor *anchor, wchar_t * config) {
+void openOutgoingAnchor(struct OutputAnchor *anchor, utf16char * config) {
     anchor->metadata = config;
     struct EngineInterface* engine = anchor->plugin->engine;
     sendMessage(engine, anchor->plugin->toolId, STATUS_UpdateOutputMetaInfoXml, config);
@@ -250,7 +250,7 @@ long PI_PushAllRecords(void * handle, int64_t nRecordLimit){
     return 1;
 }
 
-struct InputAnchor* createInputAnchor(wchar_t* name) {
+struct InputAnchor* createInputAnchor(utf16char* name) {
     struct InputAnchor* anchor = malloc(sizeof(struct InputAnchor));
     anchor->name = name;
     anchor->firstChild = NULL;
@@ -258,7 +258,20 @@ struct InputAnchor* createInputAnchor(wchar_t* name) {
     return anchor;
 }
 
-struct InputAnchor* getOrCreateInputAnchor(struct PluginSharedMemory* plugin, wchar_t* name) {
+bool isUtf16Equal(utf16char* first, utf16char* second) {
+    int index = 0;
+    while (true) {
+        if (first[index] != second[index]) {
+            return false;
+        }
+        if (first[index] == 0) {
+            return true;
+        }
+        index++;
+    }
+}
+
+struct InputAnchor* getOrCreateInputAnchor(struct PluginSharedMemory* plugin, utf16char* name) {
     if (NULL == plugin->inputAnchors) {
         struct InputAnchor* anchor = createInputAnchor(name);
         plugin->inputAnchors = anchor;
@@ -267,7 +280,7 @@ struct InputAnchor* getOrCreateInputAnchor(struct PluginSharedMemory* plugin, wc
 
     struct InputAnchor* anchor = plugin->inputAnchors;
     while (true) {
-        if (wcscmp(name, anchor->name) == 0) {
+        if (isUtf16Equal(name, anchor->name)) {
             return anchor;
         }
         if (NULL == anchor->nextAnchor) {
@@ -281,7 +294,7 @@ struct InputAnchor* getOrCreateInputAnchor(struct PluginSharedMemory* plugin, wc
     return child;
 }
 
-long PI_AddIncomingConnection(void * handle, wchar_t * pIncomingConnectionType, wchar_t * pIncomingConnectionName, struct IncomingConnectionInterface *r_IncConnInt) {
+long PI_AddIncomingConnection(void * handle, utf16char * pIncomingConnectionType, utf16char * pIncomingConnectionName, struct IncomingConnectionInterface *r_IncConnInt) {
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
     struct InputAnchor *anchor = getOrCreateInputAnchor(plugin, pIncomingConnectionName);
     struct InputConnection *connection = malloc(sizeof(struct InputConnection));
@@ -309,17 +322,17 @@ long PI_AddIncomingConnection(void * handle, wchar_t * pIncomingConnectionType, 
     return 1;
 }
 
-struct OutputAnchor* getOutputAnchorByName(struct OutputAnchor* anchor, wchar_t* name) {
+struct OutputAnchor* getOutputAnchorByName(struct OutputAnchor* anchor, utf16char* name) {
     if (NULL == anchor) {
         return NULL;
     }
-    if (wcscmp(name, anchor->name) == 0) {
+    if (isUtf16Equal(name, anchor->name)) {
         return anchor;
     }
     return getOutputAnchorByName(anchor->nextAnchor, name);
 }
 
-struct OutputAnchor* createOutgoingAnchor(wchar_t* name) {
+struct OutputAnchor* createOutgoingAnchor(utf16char* name) {
     struct OutputAnchor* anchor = malloc(sizeof(struct OutputAnchor));
     anchor->name = name;
     anchor->metadata = NULL;
@@ -338,7 +351,7 @@ struct OutputAnchor* createOutgoingAnchor(wchar_t* name) {
     return anchor;
 }
 
-struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wchar_t * name) {
+struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, utf16char * name) {
     struct OutputAnchor* anchor = createOutgoingAnchor(name);
     anchor->plugin = plugin;
     if (plugin->engine != NULL) {
@@ -358,7 +371,7 @@ struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wch
     return anchor;
 }
 
-long PI_AddOutgoingConnection(void * handle, wchar_t * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt) {
+long PI_AddOutgoingConnection(void * handle, utf16char * pOutgoingConnectionName, struct IncomingConnectionInterface *pIncConnInt) {
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
     struct OutputAnchor* anchor = getOutputAnchorByName(plugin->outputAnchors, pOutgoingConnectionName);
     if (NULL == anchor) {
@@ -368,7 +381,7 @@ long PI_AddOutgoingConnection(void * handle, wchar_t * pOutgoingConnectionName, 
     return 1;
 }
 
-long II_Init(void * handle, wchar_t * pXmlRecordMetaInfo) {
+long II_Init(void * handle, utf16char * pXmlRecordMetaInfo) {
     struct InputConnection *input = (struct InputConnection*)handle;
     input->metadata = pXmlRecordMetaInfo;
     goOnInputConnectionOpened(input);
@@ -442,6 +455,70 @@ void II_Free(void * handle) {
 
 }
 
+const utf16char pipe = 124;
+const utf16char zero = 48;
+
+int uint64ToString(utf16char cache[20], uint64_t value) { // the largest uint64 value is 20 digits long, so utf16char[20] is large enough for our purposes
+    int index = 0;
+    if (value == 0) {
+        cache[0] = zero;
+        return 1;
+    }
+    while (value != 0) {
+        utf16char rem = value % 10;
+        cache[index] = zero + rem;
+        index++;
+        value = value/10;
+    }
+    return index;
+}
+
+void formatRecordCountString(utf16char* cache, size_t len, utf16char* outputName, uint64_t recordCount, uint64_t totalDataSize) {
+    int index = 0;
+
+    // copy output name
+    int nameIndex = 0;
+    while (outputName[nameIndex] != 0) {
+        if (index >= len-1) {
+            break;
+        }
+        cache[index] = outputName[nameIndex];
+        index++;
+        nameIndex++;
+    }
+
+    cache[index] = pipe;
+    index++;
+
+    // copy record count
+    utf16char integerCache[20];
+    int endIndex = uint64ToString(integerCache, recordCount) - 1;
+    while (endIndex >= 0) {
+        if (index >= len-1) {
+            break;
+        }
+        cache[index] = integerCache[endIndex];
+        index++;
+        endIndex--;
+    }
+
+    cache[index] = pipe;
+    index++;
+
+    // copy data size
+    endIndex = uint64ToString(integerCache, totalDataSize) - 1;
+    while (endIndex >= 0) {
+        if (index >= len-1) {
+            break;
+        }
+        cache[index] = integerCache[endIndex];
+        index++;
+        endIndex--;
+    }
+
+    cache[index] = 0; // null terminator
+}
+
 void callWriteRecords(struct OutputAnchor *anchor) {
     struct OutputConn *conn = anchor->firstChild;
     if (NULL == conn) {
@@ -473,8 +550,8 @@ void callWriteRecords(struct OutputAnchor *anchor) {
         anchor->recordCount++;
     }
     anchor->totalDataSize += written;
-    wchar_t msg[128];
-    swprintf(msg, sizeof(msg), L"%s|%d|%" PRIu64, anchor->name, anchor->recordCount, anchor->totalDataSize);
+    utf16char msg[128];
+    formatRecordCountString(msg, sizeof(msg), anchor->name, anchor->recordCount, anchor->totalDataSize);
     sendMessage(anchor->plugin->engine, anchor->plugin->toolId, STATUS_RecordCountString, &msg[0]);
 }
 

@@ -2,14 +2,13 @@
 #include <stdbool.h>
 #include <inttypes.h>
 #include <stdint.h>
-#include <wchar.h>
 #include <string.h>
 #include "alteryx_api.h"
 
 struct InputConnection {
     struct InputAnchor*        anchor;
     char                       isOpen;
-    wchar_t*                   metadata;
+    utf16char*                 metadata;
     double                     percent;
     struct InputConnection*    nextConnection;
     struct PluginSharedMemory* plugin;
@@ -21,7 +20,7 @@ struct InputConnection {
 };
 
 struct InputAnchor {
-    wchar_t*                name;
+    utf16char*              name;
     struct InputConnection* firstChild;
     struct InputAnchor*     nextAnchor;
 };
@@ -33,8 +32,8 @@ struct OutputConn {
 };
 
 struct OutputAnchor {
-    wchar_t*                   name;
-    wchar_t*                   metadata;
+    utf16char*                 name;
+    utf16char*                 metadata;
     uint32_t                   browseEverywhereId;
     char                       isOpen;
     struct PluginSharedMemory* plugin;
@@ -51,7 +50,7 @@ struct OutputAnchor {
 
 struct PluginSharedMemory {
     uint32_t                toolId;
-    wchar_t*                toolConfig;
+    utf16char*              toolConfig;
     uint32_t                toolConfigLen;
     struct EngineInterface* engine;
     struct PluginInterface* ayxInterface;
@@ -63,26 +62,26 @@ struct PluginSharedMemory {
 
 struct PluginInterface* generatePluginInterface();
 struct IncomingConnectionInterface* generateIncomingConnectionInterface();
-void callPiAddIncomingConnection(struct PluginSharedMemory *handle, wchar_t * name, struct IncomingConnectionInterface *ii);
-void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, wchar_t * name, struct IncomingConnectionInterface *ii);
+void callPiAddIncomingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii);
+void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii);
 void simulateInputLifecycle(struct PluginInterface *pluginInterface);
-void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, wchar_t *pMessage);
+void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, utf16char *pMessage);
 void outputToolProgress(struct EngineInterface * engine, int nToolID, double progress);
 void sendProgressToAnchor(struct OutputAnchor *anchor, double progress);
-void* getInitVar(struct EngineInterface * engine, wchar_t *pVar);
-void* configurePlugin(uint32_t nToolID, wchar_t * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
-struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, wchar_t * name);
-void openOutgoingAnchor(struct OutputAnchor *anchor, wchar_t * config);
+void* getInitVar(struct EngineInterface * engine, utf16char *pVar);
+void* configurePlugin(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
+struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, utf16char * name);
+void openOutgoingAnchor(struct OutputAnchor *anchor, utf16char * config);
 void PI_Close(void * handle, bool bHasErrors);
 long PI_PushAllRecords(void * handle, int64_t nRecordLimit);
 long PI_AddIncomingConnection(void * handle,
-    wchar_t * pIncomingConnectionType,
-    wchar_t * pIncomingConnectionName,
+    utf16char * pIncomingConnectionType,
+    utf16char * pIncomingConnectionName,
     struct IncomingConnectionInterface *r_IncConnInt);
 long PI_AddOutgoingConnection(void * handle,
-    wchar_t * pOutgoingConnectionName,
+    utf16char * pOutgoingConnectionName,
     struct IncomingConnectionInterface *pIncConnInt);
-long II_Init(void * handle, wchar_t * pXmlRecordMetaInfo);
+long II_Init(void * handle, utf16char * pXmlRecordMetaInfo);
 long II_PushRecord(void * handle, char * pRecord);
 void II_UpdateProgress(void * handle, double dPercent);
 void II_Close(void * handle);

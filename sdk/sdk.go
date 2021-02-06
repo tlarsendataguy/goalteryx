@@ -90,7 +90,7 @@ func utf16PtrLen(utf16Ptr unsafe.Pointer) int {
 	return int(length)
 }
 
-func stringToUtf16Ptr(value string) *C.wchar_t {
+func stringToUtf16Ptr(value string) *C.utf16char {
 	utf16Bytes := append(utf16.Encode([]rune(value)), 0)
 
 	length := len(utf16Bytes)
@@ -104,7 +104,7 @@ func stringToUtf16Ptr(value string) *C.wchar_t {
 	rawHeader.Cap = length
 	copy(byteSlice, utf16Bytes)
 
-	return (*C.wchar_t)(byteData)
+	return (*C.utf16char)(byteData)
 }
 
 func simulateInputLifecycle(pluginInterface unsafe.Pointer) {
@@ -112,7 +112,7 @@ func simulateInputLifecycle(pluginInterface unsafe.Pointer) {
 }
 
 func sendMessageToEngine(data *goPluginSharedMemory, status MessageStatus, message string) {
-	C.sendMessage((*C.struct_EngineInterface)(data.engine), (C.int)(data.toolId), (C.int)(status), (*C.wchar_t)(stringToUtf16Ptr(message)))
+	C.sendMessage((*C.struct_EngineInterface)(data.engine), (C.int)(data.toolId), (C.int)(status), (*C.utf16char)(stringToUtf16Ptr(message)))
 }
 
 func sendToolProgressToEngine(data *goPluginSharedMemory, progress float64) {
@@ -167,7 +167,7 @@ func callPiAddOutgoingConnection(plugin *goPluginSharedMemory, name string, ii u
 }
 
 func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) int {
-	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
+	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.utf16char)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
 	io := &ayxIo{sharedMemory: data}
 	environment := &ayxEnvironment{sharedMemory: data}
 	toolProvider := &provider{
@@ -195,7 +195,7 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 	xmlUtf16 := append(utf16.Encode(xmlRunes), 0)
 	xmlPtr := unsafe.Pointer(&xmlUtf16[0])
 	pluginInterface := unsafe.Pointer(C.generatePluginInterface())
-	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(xmlPtr), nil, (*C.struct_PluginInterface)(pluginInterface)))
+	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.utf16char)(xmlPtr), nil, (*C.struct_PluginInterface)(pluginInterface)))
 	io := &testIo{}
 	environment := &testEnvironment{
 		sharedMemory: data,
@@ -237,7 +237,7 @@ func registerTestHarness(plugin Plugin) *goPluginSharedMemory {
 
 	pluginInterface := unsafe.Pointer(C.generatePluginInterface())
 	config := stringToUtf16Ptr("<Configuration></Configuration>")
-	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.wchar_t)(config), nil, (*C.struct_PluginInterface)(pluginInterface)))
+	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.utf16char)(config), nil, (*C.struct_PluginInterface)(pluginInterface)))
 	io := &testIo{}
 	environment := &testEnvironment{
 		sharedMemory: data,
