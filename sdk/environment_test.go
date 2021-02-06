@@ -1,6 +1,7 @@
 package sdk
 
 import (
+	"runtime"
 	"testing"
 )
 
@@ -9,6 +10,10 @@ import (
 const version = `2020.2`
 
 func TestGetSettings(t *testing.T) {
+	if runtime.GOOS != `windows` {
+		t.Skipf(`TestGetSettings will only pass on Windows with Alteryx installed`)
+	}
+
 	locale := getLocale(version)
 	if locale != `en` {
 		t.Fatalf(`expected 'en' but got '%v'`, locale)
