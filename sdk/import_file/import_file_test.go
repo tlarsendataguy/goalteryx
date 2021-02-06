@@ -5,6 +5,7 @@ import (
 	"github.com/tlarsen7572/goalteryx/sdk/field_base"
 	"github.com/tlarsen7572/goalteryx/sdk/import_file"
 	"os"
+	"path/filepath"
 	"reflect"
 	"testing"
 	"time"
@@ -18,7 +19,7 @@ const record3 string = "\000\000\000\000\000\000\000\000\000\000\000\000\000\000
 const record4 string = "true\00042\000-110\000392\0002340\00012\00041.22\00098.2\000\"\"\000\"\"\000\"\"\000\"\"\0002020-02-13\0002020-11-02 13:14:15\000\000"
 
 func TestPreprocessTextFile(t *testing.T) {
-	file, err := os.Open(`..\sdk_test_passthrough_simulation.txt`)
+	file, err := os.Open(filepath.Join(`..`, `sdk_test_passthrough_simulation.txt`))
 	if err != nil {
 		t.Fatalf(`expected no error but got %v`, err.Error())
 	}
