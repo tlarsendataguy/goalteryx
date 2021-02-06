@@ -4,6 +4,7 @@ const int cacheSize = 4194304; //4mb
 const int STATUS_Complete = 4;
 const int STATUS_UpdateOutputMetaInfoXml = 10;
 const int STATUS_RecordCountString = 50;
+utf16char empty[1] = {0};
 
 /*
 ** The structure of a plugin handle looks like this:
@@ -60,7 +61,7 @@ struct IncomingConnectionInterface* generateIncomingConnectionInterface(){
 }
 
 void callPiAddIncomingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii){
-    PI_AddIncomingConnection(handle, L"", name, ii);
+    PI_AddIncomingConnection(handle, empty, name, ii);
 }
 
 void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii){
@@ -239,7 +240,7 @@ void complete(struct PluginSharedMemory *plugin) {
     freeAllInputAnchors(plugin->inputAnchors);
     closeAllOutputAnchors(plugin->outputAnchors);
     freeAllOutputAnchors(plugin->outputAnchors);
-    sendMessage(plugin->engine, plugin->toolId, STATUS_Complete, L"");
+    sendMessage(plugin->engine, plugin->toolId, STATUS_Complete, empty);
     //free(plugin->toolConfig);
     free(plugin);
 }
