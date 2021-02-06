@@ -99,7 +99,7 @@ void* getInitVar(struct EngineInterface * engine, utf16char *pVar) {
 
 uint32_t getLenFromUtf16Ptr(utf16char * ptr) {
     uint32_t len = 0;
-    while (ptr[len] != L'\0') {
+    while (ptr[len] != 0) {
         len++;
     }
     return len;
