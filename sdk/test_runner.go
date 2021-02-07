@@ -182,7 +182,7 @@ type RecordCollector struct {
 	Config       IncomingRecordInfo
 	Name         string
 	Data         map[string][]interface{}
-	Input        InputConnection
+	Progress     float64
 	boolFields   map[string]BoolGetter
 	intFields    map[string]IntGetter
 	floatFields  map[string]FloatGetter
@@ -202,7 +202,6 @@ func (r *RecordCollector) Init(_ Provider) {
 }
 
 func (r *RecordCollector) OnInputConnectionOpened(connection InputConnection) {
-	r.Input = connection
 	r.Name = connection.Name()
 	r.Config = connection.Metadata()
 	for _, field := range r.Config.Fields() {
@@ -265,6 +264,7 @@ func (r *RecordCollector) OnRecordPacket(connection InputConnection) {
 			r.appendDataToField(name, value, isNull)
 		}
 	}
+	r.Progress = connection.Progress()
 }
 
 func (r *RecordCollector) OnComplete() {}

@@ -391,8 +391,8 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 			t.Fatalf(`expected [[0] [1] [2] [3] [4] [5] [6] [7] [8] [9]] but got %v`, collector.Data[`Field16`])
 		}
 	}
-	if progress := collector.Input.Progress(); progress != 1.0 {
-		t.Fatalf(`expected 1.0 but got %v`, progress)
+	if collector.Progress != 1.0 {
+		t.Fatalf(`expected 1.0 but got %v`, collector.Progress)
 	}
 }
 
