@@ -24,6 +24,7 @@ With the announced deprecation of the .NET SDK, a gap formed between the C/C++ a
 12. [RecordInfo](#RecordInfo)  
 13. [Using RecordPacket](#Using-RecordPacket) 
 14. [Testing your tools](#Testing-your-tools)
+15. [Feature parity with the Python SDK](#Feature-parity-with-the-Python-SDK)
 
 ## Prerequisites
 
@@ -301,6 +302,7 @@ type Io interface {
 	Warn(string)
 	Info(string)
 	UpdateProgress(float64)
+	DecryptPassword(string) string
 }
 ```
 
@@ -311,6 +313,8 @@ The `Warn` function sends a warning to the Alteryx engine.  This shows up in Des
 The `Info` function sends a message to the Alteryx engine.  This shows up in Designer as an informational message.  When run in a unit test context, it prints the message to stdout.
 
 The `UpdateProgress` function notifies the Alteryx engine of the current percentage completion of the custom tool.  This is the overall completion of the tool as opposed to the datastream completion percentage in the `OutputAnchor.UpdateProgress()` method.
+
+The `DecryptPassword` function decrypts a password encrypted by the front-end UI.
 
 [Back to table of contents](#Table-of-contents)
 
@@ -706,5 +710,74 @@ false |-2    |-100  |-1000 |-10000|-12.34|-1.23 |    -234.56      |"DE|\"FG" |HI
       |      |      |      |      |      |      |                 |          |           |              |                |          |                   |       |
 true  |42    |-110  |392   |2340  |12    |41.22 |  98.2           |""        |"HIJK"     |  LMN         |"qrstuvwxyz"    |2020-02-13|2020-11-02 13:14:15|       |
 ```
+
+[Back to table of contents](#Table-of-contents)
+
+## Feature parity with the Python SDK
+
+The graph below identifies elements of the Python SDK API that are implemented, or not implemented, in goalteryx.
+
+* Plugin (Y)
+    * Init (Y)
+    * OnInputConnectionOpened (Y)
+    * OnRecordPacket (Y)
+    * OnComplete (Y)
+
+* Provider
+    * ToolConfig (Y)
+    * Logger (not planned to to implemented)
+    * IO (Y)
+    * Environment (Y)
+    * GetInputAnchor (not planned to to implemented)
+    * GetOutputAnchor (Y)
+
+* IO
+    * Error (Y)
+    * Warn (Y)
+    * Info (Y)
+    * UpdateProgress (Y)
+    * CreateTempFile
+    * DecryptPassword (Y)
+
+* Environment (Y)
+    * UpdateOnly (Y)
+    * UpdateMode (Y)
+    * DesignerVersion (Y)
+    * WorkflowDir (Y)
+    * AlteryxInstallDir (Y)
+    * Locale (Y)
+    * ToolId (Y)
+    * UpdateToolConfig (Y)
+
+* OutputAnchor
+    * Name (Y)
+    * AllowMultiple (not planned to to implemented)
+    * Optional (not planned to to implemented)
+    * NumConnections (not planned to to implemented)
+    * IsOpen
+    * Metadata (Y)
+    * Open (Y)
+    * Write (Y)
+    * Flush (not planned to to implemented)
+    * Close
+    * UpdateProgress (Y)
+
+* InputAnchor (not planned to to implemented)
+    * Name
+    * AllowMultiple
+    * Optional
+    * Connections
+
+* InputConnection
+    * Name (Y)
+    * Metadata (Y)
+    * Anchor (not planned to to implemented)
+    * Read (Y)
+    * MaxPacketSize (not planned to to implemented)
+    * Progress (Y)
+    * Status
+
+* RecordPacket
+    * RecordPacket is intentionally different than the Python implementation. Python translates record packets to and from data frames. This makes sense for Python tools, but not for Go. The Go implementation of RecordPacket mimics the behavior of the Go SQL package. Records in a record packet are accessed through an iterator and field-specific extractors.
 
 [Back to table of contents](#Table-of-contents)
