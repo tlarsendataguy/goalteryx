@@ -690,13 +690,13 @@ The `ConnectInput` function connects input data to the specified anchor of your 
 2. The second row must contain the field types
 3. Bool, integer, decimal, date, and binary fields should not be quoted
 4. Strings should be double-quoted if leading/trailing whitespace is desired or the field value contains a pipe
-5. If a string field needs a double quote in the value, escape it with a backslash (\")
-6. If a string field needs a backslash in the value, escape it with a backslash (\\)
+5. If a string field needs a double quote in the value, escape it with a backslash (\\")
+6. If a string field needs a backslash in the value, escape it with a backslash (\\\\)
 7. You may use `\r` and `\n` to specify carriage return and newline characters
 8. Leading or trailing spaces outside of double quotes is ignored
 9. Empty fields are interpreted as nulls
 10. String fields with a value of 2 double quotes ("") are interpreted as empty strings rather than null
-11. Dates should be entered with a `YYYY-mm-dd format`
+11. Dates should be entered with a `YYYY-mm-dd` format
 12. DateTimes should be entered with a `YYY-mm-dd HH:MM:SS` format
 13. Size and scale, for fields that require them, are specified after the field type and separated by semi-colons (;)
 
