@@ -5,4 +5,5 @@ type Io interface {
 	Warn(string)
 	Info(string)
 	UpdateProgress(float64)
+	DecryptPassword(string) string
 }

@@ -19,3 +19,7 @@ func (t *testIo) Info(message string) {
 func (t *testIo) UpdateProgress(progress float64) {
 	println(fmt.Sprintf(`Progress: %v`, progress))
 }
+
+func (t *testIo) DecryptPassword(value string) string {
+	return value
+}

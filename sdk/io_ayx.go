@@ -1,5 +1,7 @@
 package sdk
 
+import "github.com/tlarsen7572/goalteryx/sdk/util"
+
 type ayxIo struct {
 	sharedMemory *goPluginSharedMemory
 }
@@ -18,4 +20,13 @@ func (a *ayxIo) Info(message string) {
 
 func (a *ayxIo) UpdateProgress(progress float64) {
 	sendToolProgressToEngine(a.sharedMemory, progress)
+}
+
+func (a *ayxIo) DecryptPassword(value string) string {
+	password, err := util.Encrypt(value)
+	if err != nil {
+		a.Error(`password could not be decrypted`)
+		return value
+	}
+	return password
 }

@@ -1,18 +1,31 @@
 package main
 
 import (
+	"encoding/xml"
 	"fmt"
 	"github.com/tlarsen7572/goalteryx/sdk"
 )
+
+type Configuration struct {
+	Password string
+}
 
 type Plugin struct {
 	provider sdk.Provider
 	output   sdk.OutputAnchor
 	outInfo  *sdk.OutgoingRecordInfo
+	config   Configuration
 }
 
 func (p *Plugin) Init(provider sdk.Provider) {
 	provider.Io().Info(fmt.Sprintf(`Init tool %v`, provider.Environment().ToolId()))
+	configBytes := []byte(provider.ToolConfig())
+	err := xml.Unmarshal(configBytes, &p.config)
+	if err != nil {
+		provider.Io().Error(err.Error())
+	}
+	password := provider.Io().DecryptPassword(p.config.Password)
+	provider.Io().Info(fmt.Sprintf(`got password %v`, password))
 	p.provider = provider
 	p.output = provider.GetOutputAnchor(`Output`)
 }
