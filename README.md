@@ -717,67 +717,67 @@ true  |42    |-110  |392   |2340  |12    |41.22 |  98.2           |""        |"H
 
 The graph below identifies elements of the Python SDK API that are implemented, or not implemented, in goalteryx.
 
-🟢 = Implemented, 🟡 = Not implemented, but planned, ⚪ = Not planned for implementation
+🟢 &nbsp;= Implemented, 🟡 &nbsp;= Not implemented, but planned, ⚪ &nbsp;= Not planned for implementation
 
-* 🟢 Plugin
-    * 🟢 Init
-    * 🟢 OnInputConnectionOpened
-    * 🟢 OnRecordPacket
-    * 🟢 OnComplete
+* 🟢 &nbsp;Plugin
+    * 🟢 &nbsp;Init
+    * 🟢 &nbsp;OnInputConnectionOpened
+    * 🟢 &nbsp;OnRecordPacket
+    * 🟢 &nbsp;OnComplete
 
-* Provider
-    * 🟢 ToolConfig
-    * ⚪ Logger
-    * 🟢 IO
-    * 🟢 Environment
-    * ⚪ GetInputAnchor
-    * 🟢 GetOutputAnchor
+* 🟢 &nbsp;Provider
+    * 🟢 &nbsp;ToolConfig
+    * ⚪ &nbsp;Logger
+    * 🟢 &nbsp;IO
+    * 🟢 &nbsp;Environment
+    * ⚪ &nbsp;GetInputAnchor
+    * 🟢 &nbsp;GetOutputAnchor
 
-* IO
-    * 🟢 Error
-    * 🟢 Warn
-    * 🟢 Info
-    * 🟢 UpdateProgress
-    * 🟡 CreateTempFile
-    * 🟢 DecryptPassword
+* 🟡 &nbsp;IO
+    * 🟢 &nbsp;Error
+    * 🟢 &nbsp;Warn
+    * 🟢 &nbsp;Info
+    * 🟢 &nbsp;UpdateProgress
+    * 🟡 &nbsp;CreateTempFile
+    * 🟢 &nbsp;DecryptPassword
 
-* 🟢 Environment
-    * 🟢 UpdateOnly
-    * 🟢 UpdateMode
-    * 🟢 DesignerVersion
-    * 🟢 WorkflowDir
-    * 🟢 AlteryxInstallDir
-    * 🟢 Locale
-    * 🟢 ToolId
-    * 🟢 UpdateToolConfig
+* 🟢 &nbsp;Environment
+    * 🟢 &nbsp;UpdateOnly
+    * 🟢 &nbsp;UpdateMode
+    * 🟢 &nbsp;DesignerVersion
+    * 🟢 &nbsp;WorkflowDir
+    * 🟢 &nbsp;AlteryxInstallDir
+    * 🟢 &nbsp;Locale
+    * 🟢 &nbsp;ToolId
+    * 🟢 &nbsp;UpdateToolConfig
 
-* OutputAnchor
-    * 🟢 Name
-    * ⚪ AllowMultiple
-    * ⚪ Optional
-    * ⚪ NumConnections
-    * 🟡 IsOpen
-    * 🟢 Metadata
-    * 🟢 Open
-    * 🟢 Write
-    * ⚪ Flush
-    * 🟡 Close
-    * 🟢 UpdateProgress
+* 🟡 &nbsp;OutputAnchor
+    * 🟢 &nbsp;Name
+    * ⚪ &nbsp;AllowMultiple
+    * ⚪ &nbsp;Optional
+    * ⚪ &nbsp;NumConnections
+    * 🟡 &nbsp;IsOpen
+    * 🟢 &nbsp;Metadata
+    * 🟢 &nbsp;Open
+    * 🟢 &nbsp;Write
+    * ⚪ &nbsp;Flush
+    * 🟡 &nbsp;Close
+    * 🟢 &nbsp;UpdateProgress
 
-* ⚪ InputAnchor
-    * ⚪ Name
-    * ⚪ AllowMultiple
-    * ⚪ Optional
-    * ⚪ Connections
+* ⚪ &nbsp;InputAnchor
+    * ⚪ &nbsp;Name
+    * ⚪ &nbsp;AllowMultiple
+    * ⚪ &nbsp;Optional
+    * ⚪ &nbsp;Connections
 
-* InputConnection
-    * 🟢 Name
-    * 🟢 Metadata
-    * ⚪ Anchor
-    * 🟢 Read
-    * ⚪ MaxPacketSize
-    * 🟢 Progress
-    * 🟡 Status
+* 🟡 &nbsp;InputConnection
+    * 🟢 &nbsp;Name
+    * 🟢 &nbsp;Metadata
+    * ⚪ &nbsp;Anchor
+    * 🟢 &nbsp;Read
+    * ⚪ &nbsp;MaxPacketSize
+    * 🟢 &nbsp;Progress
+    * 🟡 &nbsp;Status
 
 * RecordPacket
     * RecordPacket is intentionally different than the Python implementation. Python translates record packets to and from data frames. This makes sense for Python tools, but not for Go. The Go implementation of RecordPacket mimics the behavior of the Go SQL package. Records in a record packet are accessed through an iterator and field-specific extractors.
