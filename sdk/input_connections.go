@@ -5,6 +5,7 @@ type InputConnection interface {
 	Metadata() IncomingRecordInfo
 	Read() RecordPacket
 	Progress() float64
+	Status() Status
 }
 
 type ImpInputConnection struct {
@@ -30,4 +31,8 @@ func (i *ImpInputConnection) Read() RecordPacket {
 
 func (i *ImpInputConnection) Progress() float64 {
 	return i.data.percent
+}
+
+func (i *ImpInputConnection) Status() Status {
+	return i.data.status
 }

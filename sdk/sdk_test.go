@@ -580,3 +580,79 @@ func TestInitOutputBeforeAddingOutgoingConnection(t *testing.T) {
 		t.Logf(`ID data: %v`, field)
 	}
 }
+
+type statusTester struct {
+	connection1 sdk.InputConnection
+	connection2 sdk.InputConnection
+	err1        error
+	err2        error
+}
+
+func (t *statusTester) checkExpectedConn1Status(expected sdk.Status) {
+	if t.err1 != nil {
+		return
+	}
+	if status := t.connection1.Status(); status != expected {
+		t.err1 = fmt.Errorf(`expected connection1 status of %v but got %v`, expected, status)
+	}
+}
+
+func (t *statusTester) checkExpectedConn2Status(expected sdk.Status) {
+	if t.err2 != nil {
+		return
+	}
+	if status := t.connection2.Status(); status != expected {
+		t.err2 = fmt.Errorf(`expected connection2 status of %v but got %v`, expected, status)
+	}
+}
+
+func (t *statusTester) Init(_ sdk.Provider) {}
+
+func (t *statusTester) OnInputConnectionOpened(connection sdk.InputConnection) {
+	if connection.Name() == `Input1` {
+		t.connection1 = connection
+		t.checkExpectedConn1Status(sdk.Initialized)
+	} else {
+		t.connection2 = connection
+		t.checkExpectedConn2Status(sdk.Initialized)
+	}
+}
+
+func (t *statusTester) OnRecordPacket(connection sdk.InputConnection) {
+	if connection.Name() == `Input1` {
+		t.checkExpectedConn1Status(sdk.ReceivingRecords)
+	} else {
+		t.checkExpectedConn2Status(sdk.ReceivingRecords)
+	}
+}
+
+func (t *statusTester) OnComplete() {
+	t.checkExpectedConn1Status(sdk.Closed)
+	if t.connection2 != nil {
+		t.checkExpectedConn2Status(sdk.Closed)
+	}
+}
+
+func TestStatus(t *testing.T) {
+	plugin := &statusTester{}
+	runner := sdk.RegisterToolTest(plugin, 1, ``)
+	runner.ConnectInput(`Input1`, `sdk_test_passthrough_simulation.txt`)
+	runner.SimulateLifecycle()
+	if plugin.err1 != nil {
+		t.Fatalf(`expected no error but got: %v`, plugin.err1)
+	}
+}
+
+func TestStatusMultipleInputs(t *testing.T) {
+	plugin := &statusTester{}
+	runner := sdk.RegisterToolTest(plugin, 1, ``)
+	runner.ConnectInput(`Input1`, `sdk_test_passthrough_simulation.txt`)
+	runner.ConnectInput(`Input2`, `sdk_test_passthrough_simulation.txt`)
+	runner.SimulateLifecycle()
+	if plugin.err1 != nil {
+		t.Fatalf(`expected no error for err1 but got: %v`, plugin.err1)
+	}
+	if plugin.err2 != nil {
+		t.Fatalf(`expected no error for err2 but got: %v`, plugin.err2)
+	}
+}

@@ -8,6 +8,7 @@
 struct InputConnection {
     struct InputAnchor*        anchor;
     char                       isOpen;
+    char                       status;
     utf16char*                 metadata;
     double                     percent;
     struct InputConnection*    nextConnection;

@@ -53,9 +53,19 @@ type goInputAnchorData struct {
 	nextAnchor *goInputAnchorData
 }
 
+type Status byte
+
+const (
+	Created          = 1
+	Initialized      = 2
+	ReceivingRecords = 3
+	Closed           = 4
+)
+
 type goInputConnectionData struct {
 	anchor              *goInputAnchorData
 	isOpen              byte
+	status              Status
 	metadata            unsafe.Pointer
 	percent             float64
 	nextConnection      *goInputConnectionData

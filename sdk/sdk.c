@@ -40,6 +40,7 @@ utf16char empty[1] = {0};
 **         firstChild (struct InputConnection*)
 **             anchor (struct InputAnchor*)
 **             isOpen (char)
+**             status (char)
 **             metadata (utf16char *)
 **             percent (double)
 **             nextConnection (struct InputConnection*)
@@ -310,6 +311,7 @@ long PI_AddIncomingConnection(void * handle, utf16char * pIncomingConnectionType
     connection->recordCache = NULL;
     connection->recordCachePosition = 0;
     connection->recordCacheSize = 0;
+    connection->status = 1;
 
     plugin->totalInputConnections++;
 
@@ -385,6 +387,7 @@ long PI_AddOutgoingConnection(void * handle, utf16char * pOutgoingConnectionName
 long II_Init(void * handle, utf16char * pXmlRecordMetaInfo) {
     struct InputConnection *input = (struct InputConnection*)handle;
     input->metadata = pXmlRecordMetaInfo;
+    input->status = 2;
     goOnInputConnectionOpened(input);
     return 1;
 }
@@ -396,6 +399,7 @@ uint32_t uint32FromRecordPosition(char * record, uint32_t position) {
 
 long II_PushRecord(void * handle, char * pRecord) {
     struct InputConnection *input = (struct InputConnection*)handle;
+    input->status = 3;
     uint32_t totalSize = input->fixedSize;
     if (input->hasVarFields == 1) {
         uint32_t varSize = uint32FromRecordPosition(pRecord, totalSize);
@@ -445,6 +449,7 @@ void II_Close(void * handle) {
     plugin->closedInputConnections++;
 
     free(input->recordCache);
+    input->status = 4;
 
     if (plugin->totalInputConnections != plugin->closedInputConnections) {
         return;
