@@ -30,3 +30,7 @@ func (a *ayxIo) DecryptPassword(value string) string {
 	}
 	return password
 }
+
+func (a *ayxIo) CreateTempFile(ext string) string {
+	return createTempFileToEngine(a.sharedMemory, ext)
+}

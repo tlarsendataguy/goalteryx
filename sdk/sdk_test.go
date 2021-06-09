@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"github.com/tlarsen7572/goalteryx/sdk"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -710,4 +711,29 @@ func TestCloseOutputAnchor(t *testing.T) {
 	if plugin.output2.IsOpen() {
 		t.Fatalf(`expected output2 to be closed but it was not`)
 	}
+}
+
+type testCreateTempFile struct {
+	filePath string
+}
+
+func (t *testCreateTempFile) Init(provider sdk.Provider) {
+	t.filePath = provider.Io().CreateTempFile(`yxdb`)
+}
+
+func (t *testCreateTempFile) OnInputConnectionOpened(connection sdk.InputConnection) {}
+
+func (t *testCreateTempFile) OnRecordPacket(connection sdk.InputConnection) {}
+
+func (t *testCreateTempFile) OnComplete() {}
+
+func TestCreateTempFile(t *testing.T) {
+	plugin := &testCreateTempFile{}
+	runner := sdk.RegisterToolTest(plugin, 1, ``)
+	runner.SimulateLifecycle()
+
+	if ext := filepath.Ext(plugin.filePath); ext != `.yxdb` {
+		t.Fatalf(`expected '.yxdb' but got '%v'`, ext)
+	}
+	t.Logf(plugin.filePath)
 }

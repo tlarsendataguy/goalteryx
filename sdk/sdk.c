@@ -98,6 +98,10 @@ void* getInitVar(struct EngineInterface * engine, utf16char *pVar) {
     return engine->pGetInitVar(engine->handle, pVar);
 }
 
+void* createTempFile(struct EngineInterface * engine, utf16char *pExt) {
+    return engine->pCreateTempFileName2(engine->handle, pExt, 0);
+}
+
 uint32_t getLenFromUtf16Ptr(utf16char * ptr) {
     uint32_t len = 0;
     while (ptr[len] != 0) {

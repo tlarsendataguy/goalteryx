@@ -140,6 +140,12 @@ func getInitVarToEngine(data *goPluginSharedMemory, initVar string) string {
 	return utf16PtrToString(resultPtr, length)
 }
 
+func createTempFileToEngine(data *goPluginSharedMemory, ext string) string {
+	filePathPtr := C.createTempFile((*C.struct_EngineInterface)(data.engine), (*C.utf16char)(stringToUtf16Ptr(ext)))
+	length := utf16PtrLen(filePathPtr)
+	return utf16PtrToString(filePathPtr, length)
+}
+
 func getOrCreateOutputAnchor(sharedMemory *goPluginSharedMemory, name string) *goOutputAnchorData {
 	anchor := sharedMemory.outputAnchors
 

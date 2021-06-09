@@ -70,6 +70,7 @@ void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, utf1
 void outputToolProgress(struct EngineInterface * engine, int nToolID, double progress);
 void sendProgressToAnchor(struct OutputAnchor *anchor, double progress);
 void* getInitVar(struct EngineInterface * engine, utf16char *pVar);
+void* createTempFile(struct EngineInterface * engine, utf16char *pExt);
 void* configurePlugin(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
 struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, utf16char * name);
 void openOutgoingAnchor(struct OutputAnchor *anchor, utf16char * config);

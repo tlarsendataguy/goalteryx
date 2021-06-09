@@ -52,7 +52,7 @@ typedef long (* OutputToolProgress)(void * handle, int nToolID, double dPercentP
 typedef long (* OutputMessage)(void * handle, int nToolID, int nStatus, utf16char *pMessage);
 typedef unsigned (* BrowseEverywhereReserveAnchor)(void * handle, int nToolId);
 typedef struct IncomingConnectionInterface* (* BrowseEverywhereGetII)(void * handle, unsigned nReservationId,  int nToolId, utf16char * strOutputName);
-typedef utf16char * (* CreateTempFileName)(void * handle, utf16char * pExt);
+typedef utf16char * (* CreateTempFileName2)(void * handle, utf16char * pExt, int nOptions);
 typedef long (* PreSort)(void * handle, int nToolId, utf16char * pSortInfo, struct IncomingConnectionInterface *pOrigIncConnInt, struct IncomingConnectionInterface ** r_ppNewIncConnInt, struct PreSortConnectionInterface ** r_ppPreSortConnInt);
 typedef utf16char * (* GetInitVar)(void * handle, utf16char *pVar);
 typedef utf16char * (* GetInitVar2)(void * handle, int nToolId, utf16char *pVar);
@@ -67,10 +67,10 @@ struct EngineInterface {
     void * pFreeMemory;
     PreSort pPreSort;
     GetInitVar pGetInitVar;
-    CreateTempFileName pCreateTempFileName;
+    void * pCreateTempFileName;
     void * pQueueThread;
 
-    void * pCreateTempFileName2;
+    CreateTempFileName2 pCreateTempFileName2;
     void * pIsLicensed;
     void * pGetConstant;
 
