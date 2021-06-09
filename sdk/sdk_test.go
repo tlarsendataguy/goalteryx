@@ -656,3 +656,58 @@ func TestStatusMultipleInputs(t *testing.T) {
 		t.Fatalf(`expected no error for err2 but got: %v`, plugin.err2)
 	}
 }
+
+type outputAnchorCloseTester struct {
+	output1 sdk.OutputAnchor
+	output2 sdk.OutputAnchor
+	err     error
+}
+
+func (t *outputAnchorCloseTester) Init(provider sdk.Provider) {
+	info, _ := sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
+		sdk.NewByteField(`Id`, ``),
+	})
+	t.output1 = provider.GetOutputAnchor(`Output1`)
+	t.output1.Open(info)
+	t.output2 = provider.GetOutputAnchor(`Output2`)
+	t.output2.Open(info)
+	if !t.output1.IsOpen() {
+		t.err = fmt.Errorf(`output1 was not open but should have been`)
+		return
+	}
+	if !t.output2.IsOpen() {
+		t.err = fmt.Errorf(`output2 was not open but should have been`)
+	}
+}
+
+func (t *outputAnchorCloseTester) OnInputConnectionOpened(_ sdk.InputConnection) {
+	panic("implement me")
+}
+
+func (t *outputAnchorCloseTester) OnRecordPacket(_ sdk.InputConnection) {
+	panic("implement me")
+}
+
+func (t *outputAnchorCloseTester) OnComplete() {
+	if t.err != nil {
+		return
+	}
+	t.output1.Close()
+	if t.output1.IsOpen() {
+		t.err = fmt.Errorf(`output1 should have been closed but was open`)
+		return
+	}
+}
+
+func TestCloseOutputAnchor(t *testing.T) {
+	plugin := &outputAnchorCloseTester{}
+	runner := sdk.RegisterToolTest(plugin, 1, ``)
+	runner.SimulateLifecycle()
+
+	if plugin.err != nil {
+		t.Fatalf(`expected no error but got: %v`, plugin.err.Error())
+	}
+	if plugin.output2.IsOpen() {
+		t.Fatalf(`expected output2 to be closed but it was not`)
+	}
+}

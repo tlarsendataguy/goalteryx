@@ -178,16 +178,21 @@ void PI_Close(void * handle, bool bHasErrors) {
     // do nothing
 }
 
+void closeOutputAnchor(struct OutputAnchor *anchor) {
+    struct OutputConn *conn = anchor->firstChild;
+    while (conn != NULL) {
+        if (conn->isOpen == 1) {
+            conn->ii->pII_Close(conn->ii->handle);
+            conn->isOpen = 0;
+        }
+        conn = conn->nextConnection;
+    }
+    anchor->isOpen = 0;
+}
+
 void closeAllOutputAnchors(struct OutputAnchor *anchor) {
     while (anchor != NULL) {
-        struct OutputConn *conn = anchor->firstChild;
-        while (anchor->isOpen == 1 && conn != NULL) {
-            if (conn->isOpen == 1) {
-                conn->ii->pII_Close(conn->ii->handle);
-                conn->isOpen = 0;
-            }
-            conn = conn->nextConnection;
-        }
+        closeOutputAnchor(anchor);
         anchor = anchor->nextAnchor;
     }
 }
@@ -367,7 +372,7 @@ struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, utf
     }
 
     struct OutputAnchor* child = plugin->outputAnchors;
-    while (NULL != child) {
+    while (NULL != child->nextAnchor) {
         child = child->nextAnchor;
     }
     child->nextAnchor = anchor;

@@ -73,6 +73,7 @@ void* getInitVar(struct EngineInterface * engine, utf16char *pVar);
 void* configurePlugin(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
 struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, utf16char * name);
 void openOutgoingAnchor(struct OutputAnchor *anchor, utf16char * config);
+void closeOutputAnchor(struct OutputAnchor *anchor);
 void PI_Close(void * handle, bool bHasErrors);
 long PI_PushAllRecords(void * handle, int64_t nRecordLimit);
 long PI_AddIncomingConnection(void * handle,

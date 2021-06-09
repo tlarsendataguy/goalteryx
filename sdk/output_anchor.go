@@ -13,6 +13,7 @@ type OutputAnchor interface {
 	Open(info *OutgoingRecordInfo)
 	Write()
 	UpdateProgress(float64)
+	Close()
 }
 
 type outputAnchor struct {
@@ -117,6 +118,10 @@ func (a *outputAnchor) Write() {
 
 func (a *outputAnchor) UpdateProgress(progress float64) {
 	sendProgressToAnchor(a.data, progress)
+}
+
+func (a *outputAnchor) Close() {
+	callCloseOutputAnchor(a.data)
 }
 
 func varBytesToCache(varBytes []byte, cache []byte, fixedPosition int, varPosition int) int {

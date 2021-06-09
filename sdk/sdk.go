@@ -333,6 +333,10 @@ func callWriteRecords(handle unsafe.Pointer) {
 	C.callWriteRecords((*C.struct_OutputAnchor)(handle))
 }
 
+func callCloseOutputAnchor(anchor *goOutputAnchorData) {
+	C.closeOutputAnchor((*C.struct_OutputAnchor)(unsafe.Pointer(anchor)))
+}
+
 func allocateCache(size uint32) unsafe.Pointer {
 	return C.allocateCache(C.int(size))
 }
