@@ -179,6 +179,9 @@ void PI_Close(void * handle, bool bHasErrors) {
 }
 
 void closeOutputAnchor(struct OutputAnchor *anchor) {
+    if (anchor->recordCachePosition > 0) {
+        callWriteRecords(anchor);
+    }
     struct OutputConn *conn = anchor->firstChild;
     while (conn != NULL) {
         if (conn->isOpen == 1) {
@@ -561,6 +564,7 @@ void callWriteRecords(struct OutputAnchor *anchor) {
         anchor->recordCount++;
     }
     anchor->totalDataSize += written;
+    anchor->recordCachePosition = 0;
     utf16char msg[128];
     formatRecordCountString(msg, sizeof(msg), anchor->name, anchor->recordCount, anchor->totalDataSize);
     sendMessage(anchor->plugin->engine, anchor->plugin->toolId, STATUS_RecordCountString, &msg[0]);

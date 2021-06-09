@@ -48,7 +48,6 @@ func (a *outputAnchor) Open(info *OutgoingRecordInfo) {
 
 func (a *outputAnchor) writeCache() {
 	callWriteRecords(unsafe.Pointer(a.data))
-	a.data.recordCachePosition = 0
 }
 
 func (a *outputAnchor) reallocateCache(recordSize uint32) {
