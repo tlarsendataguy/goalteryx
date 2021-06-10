@@ -275,6 +275,7 @@ type OutputAnchor interface {
 	Open(info *OutgoingRecordInfo)
 	Write()
 	UpdateProgress(float64)
+	Close()
 }
 ```
 
@@ -290,6 +291,8 @@ The `Write` function writes the current values in the `OutgoingRecordInfo` to do
 
 The `UpdateProgress` function notifies downstream tools on the percentage completion of the dataset being sent.  The value provided should be between 1 and 0, with 1 being 100% completed.
 
+The `Close` function writes any remaining records to downstream tools and closes the outgoing connections attached to the anchor. Calling this function is optional. All outgoing anchors and connections are closed automatically by the SDK after the `OnComplete` function finishes.
+
 [Back to table of contents](#Table-of-contents)
 
 ## Using Io
@@ -303,6 +306,7 @@ type Io interface {
 	Info(string)
 	UpdateProgress(float64)
 	DecryptPassword(string) string
+	CreateTempFile(string) string
 }
 ```
 
@@ -315,6 +319,8 @@ The `Info` function sends a message to the Alteryx engine.  This shows up in Des
 The `UpdateProgress` function notifies the Alteryx engine of the current percentage completion of the custom tool.  This is the overall completion of the tool as opposed to the datastream completion percentage in the `OutputAnchor.UpdateProgress()` method.
 
 The `DecryptPassword` function decrypts a password encrypted by the front-end UI.
+
+The `CreateTempFile` function provides the path to a temporary file that can be used by the custom tool. The Alteryx engine will clean up the temporary file after the workflow finishes running. The function accepts a string argument which specifies the file extension.
 
 [Back to table of contents](#Table-of-contents)
 
@@ -363,6 +369,7 @@ type InputConnection interface {
 	Metadata() IncomingRecordInfo
 	Read() RecordPacket
 	Progress() float64
+	Status() Status
 }
 ```
 
@@ -373,6 +380,12 @@ The `Metadata` function returns the structure of the incoming data.  See [Record
 The `Read` function returns a `RecordPacket` containing a cache of records that have been pushed to your custom tool.  If you have multiple input connections, it is important to always first read the name of the input connection so you know how to process the incoming data.  Input connections are not guaranteed to arrive in any specific order, nor is it guaranteed that all of an input connection's records will arrive before another input connection starts sending its data.  The `Read` function should only be used during the `OnRecordPacket` function of the [Plugin](#Implementing-the-Plugin-interface).
 
 The `Progress` function returns the percentage of records that have been passed through the `InputConnection`.
+
+The `Status` function returns the current status of the incoming connection. Possible values are:
+* Created: The status when the incoming connection is first registered with the tool. By the time the `OnInputConnectionOpened()` function is called on a custom tool, the input connection has already been initialized, so your custom tools should never see this status code.
+* Initialized: Field metadata has been received from the upstream tool. This status happens when `OnInputConnectionOpened()` is called on a custom tool.
+* ReceivingRecords: This status occurs as soon as the first record is received from the incoming connection.
+* Closed: This status occurs when the upstream tool closes the connection. Custom tools are not directly notified when upstream connections are closed. If a custom tool needs to know when upstream connections are closed, is can check for this status in the `OnRecordPacket` and `OnComplete` functions.
 
 [Back to table of contents](#Table-of-contents)
 
@@ -733,12 +746,12 @@ The graph below identifies elements of the Python SDK API that are implemented, 
     * ⚪ &nbsp;GetInputAnchor
     * 🟢 &nbsp;GetOutputAnchor
 
-* 🟡 &nbsp;IO
+* 🟢 &nbsp;IO
     * 🟢 &nbsp;Error
     * 🟢 &nbsp;Warn
     * 🟢 &nbsp;Info
     * 🟢 &nbsp;UpdateProgress
-    * 🟡 &nbsp;CreateTempFile
+    * 🟢 &nbsp;CreateTempFile
     * 🟢 &nbsp;DecryptPassword
 
 * 🟢 &nbsp;Environment
@@ -751,17 +764,17 @@ The graph below identifies elements of the Python SDK API that are implemented, 
     * 🟢 &nbsp;ToolId
     * 🟢 &nbsp;UpdateToolConfig
 
-* 🟡 &nbsp;OutputAnchor
+* 🟢 &nbsp;OutputAnchor
     * 🟢 &nbsp;Name
     * ⚪ &nbsp;AllowMultiple
     * ⚪ &nbsp;Optional
     * ⚪ &nbsp;NumConnections
-    * 🟡 &nbsp;IsOpen
+    * 🟢 &nbsp;IsOpen
     * 🟢 &nbsp;Metadata
     * 🟢 &nbsp;Open
     * 🟢 &nbsp;Write
     * ⚪ &nbsp;Flush
-    * 🟡 &nbsp;Close
+    * 🟢 &nbsp;Close
     * 🟢 &nbsp;UpdateProgress
 
 * ⚪ &nbsp;InputAnchor
@@ -770,14 +783,14 @@ The graph below identifies elements of the Python SDK API that are implemented, 
     * ⚪ &nbsp;Optional
     * ⚪ &nbsp;Connections
 
-* 🟡 &nbsp;InputConnection
+* 🟢 &nbsp;InputConnection
     * 🟢 &nbsp;Name
     * 🟢 &nbsp;Metadata
     * ⚪ &nbsp;Anchor
     * 🟢 &nbsp;Read
     * ⚪ &nbsp;MaxPacketSize
     * 🟢 &nbsp;Progress
-    * 🟡 &nbsp;Status
+    * 🟢 &nbsp;Status
 
 * RecordPacket
     * RecordPacket is intentionally different than the Python implementation. Python translates record packets to and from data frames. This makes sense for Python tools, but not for Go. The Go implementation of RecordPacket mimics the behavior of the Go SQL package. Records in a record packet are accessed through an iterator and field-specific extractors.
