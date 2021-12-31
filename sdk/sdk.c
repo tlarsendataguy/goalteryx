@@ -62,7 +62,7 @@ struct IncomingConnectionInterface* generateIncomingConnectionInterface(){
 }
 
 void callPiAddIncomingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii){
-    PI_AddIncomingConnection(handle, empty, name, ii);
+    PI_AddIncomingConnection(handle, name, empty, ii);
 }
 
 void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii){
@@ -310,7 +310,7 @@ struct InputAnchor* getOrCreateInputAnchor(struct PluginSharedMemory* plugin, ut
 
 long PI_AddIncomingConnection(void * handle, utf16char * pIncomingConnectionType, utf16char * pIncomingConnectionName, struct IncomingConnectionInterface *r_IncConnInt) {
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
-    struct InputAnchor *anchor = getOrCreateInputAnchor(plugin, pIncomingConnectionName);
+    struct InputAnchor *anchor = getOrCreateInputAnchor(plugin, pIncomingConnectionType);
     struct InputConnection *connection = malloc(sizeof(struct InputConnection));
     connection->anchor = anchor;
     connection->isOpen = 1;

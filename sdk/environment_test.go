@@ -7,7 +7,7 @@ import (
 
 // These unit tests require Alteryx to be installed.  Change the version below with your version of ALteryx.
 
-const version = `2020.2`
+const version = `2021.3`
 
 func TestGetSettings(t *testing.T) {
 	if runtime.GOOS != `windows` {
