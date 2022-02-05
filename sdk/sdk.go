@@ -333,6 +333,7 @@ func goOnComplete(handle unsafe.Pointer) {
 			callWriteRecords(unsafe.Pointer(anchor))
 		}
 	}
+	delete(tools, data)
 }
 
 func callWriteRecords(handle unsafe.Pointer) {
