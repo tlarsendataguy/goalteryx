@@ -739,9 +739,9 @@ func (t *testCreateTempFile) Init(provider sdk.Provider) {
 	t.filePath = provider.Io().CreateTempFile(`yxdb`)
 }
 
-func (t *testCreateTempFile) OnInputConnectionOpened(connection sdk.InputConnection) {}
+func (t *testCreateTempFile) OnInputConnectionOpened(_ sdk.InputConnection) {}
 
-func (t *testCreateTempFile) OnRecordPacket(connection sdk.InputConnection) {}
+func (t *testCreateTempFile) OnRecordPacket(_ sdk.InputConnection) {}
 
 func (t *testCreateTempFile) OnComplete() {}
 
