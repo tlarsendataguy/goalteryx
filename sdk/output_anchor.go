@@ -14,6 +14,7 @@ type OutputAnchor interface {
 	Write()
 	UpdateProgress(float64)
 	Close()
+	NumConnections() int
 }
 
 type outputAnchor struct {
@@ -121,6 +122,20 @@ func (a *outputAnchor) UpdateProgress(progress float64) {
 
 func (a *outputAnchor) Close() {
 	callCloseOutputAnchor(a.data)
+}
+
+func (a *outputAnchor) NumConnections() int {
+	total := 0
+	if a.data.firstChild == nil {
+		return total
+	}
+	child := a.data.firstChild
+	total++
+	for child.nextConnection != nil {
+		total++
+		child = child.nextConnection
+	}
+	return total
 }
 
 func varBytesToCache(varBytes []byte, cache []byte, fixedPosition int, varPosition int) int {

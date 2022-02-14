@@ -397,6 +397,24 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 	}
 }
 
+func TestMultipleOutputConnections(t *testing.T) {
+	implementation := &TestInputTool{}
+	runner := sdk.RegisterToolTest(implementation, 1, ``)
+	collector1 := runner.CaptureOutgoingAnchor(`Output`)
+	collector2 := runner.CaptureOutgoingAnchor(`Output`)
+	runner.SimulateLifecycle()
+
+	if length := len(collector1.Data[`Field1`]); length != 10 {
+		t.Fatalf(`expected 10 records in collector1 but got %v`, collector1.Data[`Field1`])
+	}
+	if length := len(collector2.Data[`Field1`]); length != 10 {
+		t.Fatalf(`expected 10 records in collector2 but got %v`, collector1.Data[`Field1`])
+	}
+	if connections := implementation.Output.NumConnections(); connections != 2 {
+		t.Fatalf(`expected 2 output connections but got %v`, connections)
+	}
+}
+
 func TestRecordLargerThanCache(t *testing.T) {
 	if runtime.GOOS != `windows` {
 		t.Skipf(`TestRecordLargerThanCache fails on Mac and I am not sure why`)
