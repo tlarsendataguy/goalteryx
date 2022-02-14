@@ -768,7 +768,7 @@ The graph below identifies elements of the Python SDK API that are implemented, 
     * 🟢 &nbsp;Name
     * ⚪ &nbsp;AllowMultiple
     * ⚪ &nbsp;Optional
-    * ⚪ &nbsp;NumConnections
+    * 🟢 &nbsp;NumConnections
     * 🟢 &nbsp;IsOpen
     * 🟢 &nbsp;Metadata
     * 🟢 &nbsp;Open
