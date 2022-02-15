@@ -341,6 +341,9 @@ func callWriteRecords(handle unsafe.Pointer) {
 }
 
 func callCloseOutputAnchor(anchor *goOutputAnchorData) {
+	if anchor.recordCachePosition > 0 {
+		callWriteRecords(unsafe.Pointer(anchor))
+	}
 	C.closeOutputAnchor((*C.struct_OutputAnchor)(unsafe.Pointer(anchor)))
 }
 
