@@ -471,7 +471,7 @@ func TestPassthroughSimulation(t *testing.T) {
 	if expectedValues := []interface{}{true, false, nil, true}; !reflect.DeepEqual(expectedValues, collector.Data[`Field1`]) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field1`])
 	}
-	if expectedValues := []interface{}{2, -2, nil, 42}; !reflect.DeepEqual(expectedValues, collector.Data[`Field2`]) {
+	if expectedValues := []interface{}{2, 2, nil, 42}; !reflect.DeepEqual(expectedValues, collector.Data[`Field2`]) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field2`])
 	}
 	if expectedValues := []interface{}{100, -100, nil, -110}; !reflect.DeepEqual(expectedValues, collector.Data[`Field3`]) {
@@ -754,4 +754,46 @@ func TestCreateTempFile(t *testing.T) {
 		t.Fatalf(`expected '.yxdb' but got '%v'`, ext)
 	}
 	t.Logf(plugin.filePath)
+}
+
+type byteTester struct {
+	output sdk.OutputAnchor
+}
+
+func (b *byteTester) Init(provider sdk.Provider) {
+	b.output = provider.GetOutputAnchor(`Output`)
+}
+
+func (b *byteTester) OnInputConnectionOpened(_ sdk.InputConnection) {
+}
+
+func (b *byteTester) OnRecordPacket(_ sdk.InputConnection) {
+}
+
+func (b *byteTester) OnComplete() {
+	info, _ := sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
+		sdk.NewByteField(`bytes`, `Byte Tester`),
+	})
+	b.output.Open(info)
+	info.IntFields[`bytes`].SetInt(250)
+	b.output.Write()
+	b.output.Close()
+}
+
+func TestWriteBytes(t *testing.T) {
+	plugin := &byteTester{}
+	runner := sdk.RegisterToolTest(plugin, 1, ``)
+	output := runner.CaptureOutgoingAnchor(`Output`)
+	runner.SimulateLifecycle()
+
+	bytesField, ok := output.Data[`bytes`]
+	if !ok {
+		t.Fatalf(`[bytes] not outputted`)
+	}
+	if len(bytesField) != 1 {
+		t.Fatalf(`expected 1 record but got %v`, len(bytesField))
+	}
+	if bytesField[0] != 250 {
+		t.Fatalf(`expected 250 but got %v`, bytesField[0])
+	}
 }

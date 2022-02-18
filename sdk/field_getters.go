@@ -19,7 +19,7 @@ func bytesToByte(getBytes BytesGetter) IntGetter {
 		if bytes[1] == 1 {
 			return 0, true
 		}
-		return int(int8(bytes[0])), false
+		return int(bytes[0]), false
 	}
 }
 
