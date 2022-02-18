@@ -35,3 +35,11 @@ func (t *testIo) CreateTempFile(ext string) string {
 	randNum := generator.Intn(1000)
 	return fmt.Sprintf(`%v-%03d.%v`, now, randNum, ext)
 }
+
+func (t *testIo) NotifyFileInput(message string) {
+	println(fmt.Sprintf(`FILE INPUT: %v`, message))
+}
+
+func (t *testIo) NotifyFileOutput(message string) {
+	println(fmt.Sprintf(`FILE OUTPUT: %v`, message))
+}

@@ -34,3 +34,11 @@ func (a *ayxIo) DecryptPassword(value string) string {
 func (a *ayxIo) CreateTempFile(ext string) string {
 	return createTempFileToEngine(a.sharedMemory, ext)
 }
+
+func (a *ayxIo) NotifyFileInput(message string) {
+	sendMessageToEngine(a.sharedMemory, FileInput, message)
+}
+
+func (a *ayxIo) NotifyFileOutput(message string) {
+	sendMessageToEngine(a.sharedMemory, FileOutput, message)
+}

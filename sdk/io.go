@@ -7,4 +7,6 @@ type Io interface {
 	UpdateProgress(float64)
 	DecryptPassword(string) string
 	CreateTempFile(string) string
+	NotifyFileInput(string)
+	NotifyFileOutput(string)
 }
