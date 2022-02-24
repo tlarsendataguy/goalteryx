@@ -135,6 +135,9 @@ func (a *outputAnchor) NumConnections() int {
 		total++
 		child = child.nextConnection
 	}
+	if a.data.browseEverywhereId > 0 {
+		total--
+	}
 	return total
 }
 
