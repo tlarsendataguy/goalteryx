@@ -34,7 +34,7 @@ With the announced deprecation of the .NET SDK, a gap formed between the C/C++ a
 
 ## Installation
 
-Install goalteryx using Go modules: `go get github.com/tlarsen7572/goalteryx`
+Install goalteryx using Go modules: `go get github.com/tlarsendataguy/goalteryx`
 
 ## Building your custom tools
 
@@ -59,7 +59,7 @@ package main
 
 import "C"
 import (
-	"github.com/tlarsen7572/goalteryx/sdk"
+	"github.com/tlarsen7572/tlarsendataguy/sdk"
 	"unsafe"
 )
 
@@ -81,7 +81,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/tlarsen7572/goalteryx/sdk"
+	"github.com/tlarsen7572/tlarsendataguy/sdk"
 )
 
 type Plugin struct {
@@ -144,7 +144,7 @@ Below is an example of a struct that implements the Plugin interface:
 
 ```go
 import (
-	"github.com/tlarsen7572/goalteryx/sdk"
+	"github.com/tlarsendataguy/goalteryx/sdk"
 )
 
 type Plugin struct {
@@ -191,7 +191,7 @@ package main
 
 import "C"
 import (
-	"github.com/tlarsen7572/goalteryx/sdk"
+	"github.com/tlarsendataguy/goalteryx/sdk"
 	"unsafe"
 )
 
@@ -217,7 +217,7 @@ package main
 
 import "C"
 import (
-	"github.com/tlarsen7572/goalteryx/sdk"
+	"github.com/tlarsendataguy/goalteryx/sdk"
 	"unsafe"
 )
 
