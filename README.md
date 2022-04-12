@@ -59,7 +59,7 @@ package main
 
 import "C"
 import (
-	"github.com/tlarsen7572/tlarsendataguy/sdk"
+	"github.com/tlarsendataguy/goalteryx/sdk"
 	"unsafe"
 )
 
@@ -81,7 +81,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/tlarsen7572/tlarsendataguy/sdk"
+	"github.com/tlarsendataguy/goalteryx/sdk"
 )
 
 type Plugin struct {
