@@ -1,3 +1,3 @@
-module github.com/tlarsen7572/goalteryx
+module github.com/tlarsendataguy/goalteryx
 
 go 1.14
