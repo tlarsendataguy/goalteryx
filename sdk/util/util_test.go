@@ -1,7 +1,7 @@
 package util_test
 
 import (
-	"github.com/tlarsen7572/goalteryx/sdk/util"
+	"github.com/tlarsendataguy/goalteryx/sdk/util"
 	"testing"
 )
 

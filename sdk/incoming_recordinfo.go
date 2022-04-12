@@ -4,7 +4,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	b "github.com/tlarsen7572/goalteryx/sdk/field_base"
+	b "github.com/tlarsendataguy/goalteryx/sdk/field_base"
 )
 
 const dateFormat = `2006-01-02`

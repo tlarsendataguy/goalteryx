@@ -1,6 +1,6 @@
 package sdk
 
-import "github.com/tlarsen7572/goalteryx/sdk/util"
+import "github.com/tlarsendataguy/goalteryx/sdk/util"
 
 type ayxIo struct {
 	sharedMemory *goPluginSharedMemory

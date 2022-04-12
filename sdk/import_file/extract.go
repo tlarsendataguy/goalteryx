@@ -3,7 +3,7 @@ package import_file
 import (
 	"encoding/base64"
 	"fmt"
-	b "github.com/tlarsen7572/goalteryx/sdk/field_base"
+	b "github.com/tlarsendataguy/goalteryx/sdk/field_base"
 	"strconv"
 	"strings"
 	"time"

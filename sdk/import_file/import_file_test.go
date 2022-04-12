@@ -2,8 +2,8 @@ package import_file_test
 
 import (
 	"bufio"
-	"github.com/tlarsen7572/goalteryx/sdk/field_base"
-	"github.com/tlarsen7572/goalteryx/sdk/import_file"
+	"github.com/tlarsendataguy/goalteryx/sdk/field_base"
+	"github.com/tlarsendataguy/goalteryx/sdk/import_file"
 	"os"
 	"path/filepath"
 	"reflect"

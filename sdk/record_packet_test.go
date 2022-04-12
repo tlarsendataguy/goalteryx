@@ -2,7 +2,7 @@ package sdk_test
 
 import (
 	"bytes"
-	"github.com/tlarsen7572/goalteryx/sdk"
+	"github.com/tlarsendataguy/goalteryx/sdk"
 	"testing"
 	"unsafe"
 )

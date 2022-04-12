@@ -3,7 +3,7 @@ package sdk_test
 import (
 	"bytes"
 	"fmt"
-	"github.com/tlarsen7572/goalteryx/sdk"
+	"github.com/tlarsendataguy/goalteryx/sdk"
 	"path/filepath"
 	"reflect"
 	"runtime"

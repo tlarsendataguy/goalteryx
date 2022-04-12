@@ -3,7 +3,7 @@ package sdk
 import (
 	"bufio"
 	"fmt"
-	"github.com/tlarsen7572/goalteryx/sdk/import_file"
+	"github.com/tlarsendataguy/goalteryx/sdk/import_file"
 	"os"
 	"time"
 )
