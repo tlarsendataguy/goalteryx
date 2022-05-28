@@ -466,7 +466,7 @@ func TestPassthroughSimulation(t *testing.T) {
 		t.Fatalf(`expected 16 fields but got %v`, len(collector.Data))
 	}
 	if recordCount := len(collector.Data[`Field1`]); recordCount != 4 {
-		t.Fatalf(`expected 3 records but got %v`, recordCount)
+		t.Fatalf(`expected 4 records but got %v`, recordCount)
 	}
 	if expectedValues := []interface{}{true, false, nil, true}; !reflect.DeepEqual(expectedValues, collector.Data[`Field1`]) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field1`])

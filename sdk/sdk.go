@@ -182,8 +182,17 @@ func callPiAddOutgoingConnection(plugin *goPluginSharedMemory, name string, ii u
 	C.callPiAddOutgoingConnection((*C.struct_PluginSharedMemory)(unsafe.Pointer(plugin)), namePtr, (*C.struct_IncomingConnectionInterface)(ii))
 }
 
-func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer) int {
-	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.utf16char)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
+func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engineInterface unsafe.Pointer, pluginInterface unsafe.Pointer, optionSetters ...ToolOptionSetter) int {
+	options := toolOptions{}
+	for _, setter := range optionSetters {
+		options = setter(options)
+	}
+	var data *goPluginSharedMemory
+	if options.noCache {
+		data = (*goPluginSharedMemory)(C.configurePluginNoCache(C.uint32_t(toolId), (*C.utf16char)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
+	} else {
+		data = (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.utf16char)(xmlProperties), (*C.struct_EngineInterface)(engineInterface), (*C.struct_PluginInterface)(pluginInterface)))
+	}
 	io := &ayxIo{sharedMemory: data}
 	environment := &ayxEnvironment{sharedMemory: data}
 	toolProvider := &provider{
@@ -203,6 +212,7 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 		updateMode:  "",
 		workflowDir: "",
 		locale:      "en",
+		noCache:     false,
 	}
 	for _, optionSetter := range optionSetters {
 		options = optionSetter(options)
@@ -211,7 +221,12 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 	xmlUtf16 := append(utf16.Encode(xmlRunes), 0)
 	xmlPtr := unsafe.Pointer(&xmlUtf16[0])
 	pluginInterface := unsafe.Pointer(C.generatePluginInterface())
-	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.utf16char)(xmlPtr), nil, (*C.struct_PluginInterface)(pluginInterface)))
+	var data *goPluginSharedMemory
+	if options.noCache {
+		data = (*goPluginSharedMemory)(C.configurePluginNoCache(C.uint32_t(toolId), (*C.utf16char)(xmlPtr), nil, (*C.struct_PluginInterface)(pluginInterface)))
+	} else {
+		data = (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.utf16char)(xmlPtr), nil, (*C.struct_PluginInterface)(pluginInterface)))
+	}
 	io := &testIo{}
 	environment := &testEnvironment{
 		sharedMemory: data,

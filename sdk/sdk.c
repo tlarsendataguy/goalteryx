@@ -110,7 +110,7 @@ uint32_t getLenFromUtf16Ptr(utf16char * ptr) {
     return len;
 }
 
-void* configurePlugin(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
+struct PluginSharedMemory* initializePluginToZero(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
     struct PluginSharedMemory* plugin = malloc(sizeof(struct PluginSharedMemory));
     plugin->toolId = nToolID;
     plugin->toolConfig = pXmlProperties;
@@ -121,11 +121,28 @@ void* configurePlugin(uint32_t nToolID, utf16char * pXmlProperties, struct Engin
     plugin->totalInputConnections = 0;
     plugin->closedInputConnections = 0;
     plugin->inputAnchors = NULL;
+    return plugin;
+}
+
+void* configurePlugin(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
+    struct PluginSharedMemory* plugin = initializePluginToZero(nToolID, pXmlProperties, pEngineInterface, r_pluginInterface);
 
     r_pluginInterface->handle = plugin;
     r_pluginInterface->pPI_Close = &PI_Close;
     r_pluginInterface->pPI_PushAllRecords = &PI_PushAllRecords;
     r_pluginInterface->pPI_AddIncomingConnection = &PI_AddIncomingConnection;
+    r_pluginInterface->pPI_AddOutgoingConnection = &PI_AddOutgoingConnection;
+
+    return plugin;
+}
+
+void* configurePluginNoCache(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
+    struct PluginSharedMemory* plugin = initializePluginToZero(nToolID, pXmlProperties, pEngineInterface, r_pluginInterface);
+
+    r_pluginInterface->handle = plugin;
+    r_pluginInterface->pPI_Close = &PI_Close;
+    r_pluginInterface->pPI_PushAllRecords = &PI_PushAllRecords;
+    r_pluginInterface->pPI_AddIncomingConnection = &PI_AddIncomingConnectionNoCache;
     r_pluginInterface->pPI_AddOutgoingConnection = &PI_AddOutgoingConnection;
 
     return plugin;
@@ -308,7 +325,7 @@ struct InputAnchor* getOrCreateInputAnchor(struct PluginSharedMemory* plugin, ut
     return child;
 }
 
-long PI_AddIncomingConnection(void * handle, utf16char * pIncomingConnectionType, utf16char * pIncomingConnectionName, struct IncomingConnectionInterface *r_IncConnInt) {
+struct InputConnection* initializeIncomingConnectionToZero(void * handle, utf16char * pIncomingConnectionType, utf16char * pIncomingConnectionName) {
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
     struct InputAnchor *anchor = getOrCreateInputAnchor(plugin, pIncomingConnectionType);
     struct InputConnection *connection = malloc(sizeof(struct InputConnection));
@@ -326,6 +343,24 @@ long PI_AddIncomingConnection(void * handle, utf16char * pIncomingConnectionType
     connection->status = 1;
 
     plugin->totalInputConnections++;
+    return connection;
+}
+
+long PI_AddIncomingConnection(void * handle, utf16char * pIncomingConnectionType, utf16char * pIncomingConnectionName, struct IncomingConnectionInterface *r_IncConnInt) {
+    struct InputConnection* connection = initializeIncomingConnectionToZero(handle, pIncomingConnectionType, pIncomingConnectionName);
+
+    r_IncConnInt->handle = connection;
+    r_IncConnInt->pII_Init = &II_Init;
+    r_IncConnInt->pII_PushRecord = &II_PushRecord;
+    r_IncConnInt->pII_UpdateProgress = &II_UpdateProgress;
+    r_IncConnInt->pII_Close = &II_Close;
+    r_IncConnInt->pII_Free = &II_Free;
+
+    return 1;
+}
+
+long PI_AddIncomingConnectionNoCache(void * handle, utf16char * pIncomingConnectionType, utf16char * pIncomingConnectionName, struct IncomingConnectionInterface *r_IncConnInt) {
+    struct InputConnection* connection = initializeIncomingConnectionToZero(handle, pIncomingConnectionType, pIncomingConnectionName);
 
     r_IncConnInt->handle = connection;
     r_IncConnInt->pII_Init = &II_Init;

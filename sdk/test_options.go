@@ -5,6 +5,7 @@ type testOptions struct {
 	updateMode  string
 	workflowDir string
 	locale      string
+	noCache     bool
 }
 
 type OptionSetter func(testOptions) testOptions
@@ -33,6 +34,13 @@ func WorkflowDir(value string) OptionSetter {
 func AlteryxLocale(value string) OptionSetter {
 	return func(options testOptions) testOptions {
 		options.locale = value
+		return options
+	}
+}
+
+func NoCache(value bool) OptionSetter {
+	return func(options testOptions) testOptions {
+		options.noCache = value
 		return options
 	}
 }

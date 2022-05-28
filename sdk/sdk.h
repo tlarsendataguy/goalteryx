@@ -72,12 +72,17 @@ void sendProgressToAnchor(struct OutputAnchor *anchor, double progress);
 void* getInitVar(struct EngineInterface * engine, utf16char *pVar);
 void* createTempFile(struct EngineInterface * engine, utf16char *pExt);
 void* configurePlugin(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
+void* configurePluginNoCache(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface);
 struct OutputAnchor* appendOutgoingAnchor(struct PluginSharedMemory* plugin, utf16char * name);
 void openOutgoingAnchor(struct OutputAnchor *anchor, utf16char * config);
 void closeOutputAnchor(struct OutputAnchor *anchor);
 void PI_Close(void * handle, bool bHasErrors);
 long PI_PushAllRecords(void * handle, int64_t nRecordLimit);
 long PI_AddIncomingConnection(void * handle,
+    utf16char * pIncomingConnectionType,
+    utf16char * pIncomingConnectionName,
+    struct IncomingConnectionInterface *r_IncConnInt);
+long PI_AddIncomingConnectionNoCache(void * handle,
     utf16char * pIncomingConnectionType,
     utf16char * pIncomingConnectionName,
     struct IncomingConnectionInterface *r_IncConnInt);
