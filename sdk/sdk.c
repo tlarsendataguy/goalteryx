@@ -65,6 +65,10 @@ void callPiAddIncomingConnection(struct PluginSharedMemory *handle, utf16char * 
     PI_AddIncomingConnection(handle, name, empty, ii);
 }
 
+void callPiAddIncomingConnectionNoCache(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii){
+    PI_AddIncomingConnectionNoCache(handle, name, empty, ii);
+}
+
 void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii){
     PI_AddOutgoingConnection(handle, name, ii);
 }
@@ -591,6 +595,41 @@ void formatRecordCountString(utf16char* cache, size_t len, utf16char* outputName
     }
 
     cache[index] = 0; // null terminator
+}
+
+void callWriteRecord(struct OutputAnchor *anchor) {
+    struct OutputConn *conn = anchor->firstChild;
+    if (NULL == conn) {
+        return;
+    }
+    char *record = anchor->recordCache;
+    uint32_t written = 0;
+    conn = anchor->firstChild;
+    while (conn != NULL) {
+        if (conn->isOpen == 0) {
+            conn = conn->nextConnection;
+            continue;
+        }
+        long result = conn->ii->pII_PushRecord(conn->ii->handle, record);
+        if (result == 0) {
+            conn->ii->pII_Close(conn->ii->handle);
+            conn->isOpen = 0;
+        }
+        conn = conn->nextConnection;
+    }
+
+    written += anchor->fixedSize;
+    if (anchor->hasVarFields == 1) {
+        uint32_t varLen = uint32FromRecordPosition(anchor->recordCache, written);
+        written += 4 + varLen;
+    }
+    anchor->recordCount++;
+    anchor->totalDataSize += written;
+    if (anchor->recordCount % 1000 == 0) {
+        utf16char msg[128];
+        formatRecordCountString(msg, sizeof(msg), anchor->name, anchor->recordCount, anchor->totalDataSize);
+        sendMessage(anchor->plugin->engine, anchor->plugin->toolId, STATUS_RecordCountString, &msg[0]);
+    }
 }
 
 void callWriteRecords(struct OutputAnchor *anchor) {

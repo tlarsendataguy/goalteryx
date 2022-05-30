@@ -9,9 +9,10 @@ import (
 )
 
 type FileTestRunner struct {
-	io     *testIo
-	plugin *goPluginSharedMemory
-	inputs map[string]*FilePusher
+	noCache bool
+	io      *testIo
+	plugin  *goPluginSharedMemory
+	inputs  map[string]*FilePusher
 }
 
 func (r *FileTestRunner) SimulateLifecycle() {
@@ -26,10 +27,14 @@ func (r *FileTestRunner) SimulateLifecycle() {
 
 func (r *FileTestRunner) CaptureOutgoingAnchor(name string) *RecordCollector {
 	collector := &RecordCollector{}
-	sharedMemory := registerTestHarness(collector)
+	sharedMemory := registerTestHarness(collector, r.noCache)
 
 	ii := generateIncomingConnectionInterface()
-	callPiAddIncomingConnection(sharedMemory, name, ii)
+	if r.noCache {
+		callPiAddIncomingConnectionNoCache(sharedMemory, name, ii)
+	} else {
+		callPiAddIncomingConnection(sharedMemory, name, ii)
+	}
 	callPiAddOutgoingConnection(r.plugin, name, ii)
 
 	return collector
@@ -37,11 +42,15 @@ func (r *FileTestRunner) CaptureOutgoingAnchor(name string) *RecordCollector {
 
 func (r *FileTestRunner) ConnectInput(name string, dataFile string) {
 	pusher := &FilePusher{file: dataFile}
-	sharedMemory := registerTestHarness(pusher)
+	sharedMemory := registerTestHarness(pusher, r.noCache)
 	pusher.sharedMemory = sharedMemory
 
 	ii := generateIncomingConnectionInterface()
-	callPiAddIncomingConnection(r.plugin, name, ii)
+	if r.noCache {
+		callPiAddIncomingConnectionNoCache(r.plugin, name, ii)
+	} else {
+		callPiAddIncomingConnection(r.plugin, name, ii)
+	}
 	callPiAddOutgoingConnection(sharedMemory, `Output`, ii)
 
 	r.inputs[name] = pusher
@@ -179,16 +188,17 @@ func (f *FilePusher) OnComplete() {
 }
 
 type RecordCollector struct {
-	Config       IncomingRecordInfo
-	Name         string
-	Data         map[string][]interface{}
-	Progress     float64
-	boolFields   map[string]BoolGetter
-	intFields    map[string]IntGetter
-	floatFields  map[string]FloatGetter
-	stringFields map[string]StringGetter
-	timeFields   map[string]TimeGetter
-	blobFields   map[string]BytesGetter
+	Config          IncomingRecordInfo
+	Name            string
+	Data            map[string][]interface{}
+	Progress        float64
+	PacketsReceived int
+	boolFields      map[string]BoolGetter
+	intFields       map[string]IntGetter
+	floatFields     map[string]FloatGetter
+	stringFields    map[string]StringGetter
+	timeFields      map[string]TimeGetter
+	blobFields      map[string]BytesGetter
 }
 
 func (r *RecordCollector) Init(_ Provider) {
@@ -230,6 +240,7 @@ func (r *RecordCollector) OnInputConnectionOpened(connection InputConnection) {
 }
 
 func (r *RecordCollector) OnRecordPacket(connection InputConnection) {
+	r.PacketsReceived++
 	packet := connection.Read()
 	for packet.Next() {
 		record := packet.Record()

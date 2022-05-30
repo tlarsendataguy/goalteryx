@@ -177,6 +177,11 @@ func callPiAddIncomingConnection(plugin *goPluginSharedMemory, name string, ii u
 	C.callPiAddIncomingConnection((*C.struct_PluginSharedMemory)(unsafe.Pointer(plugin)), namePtr, (*C.struct_IncomingConnectionInterface)(ii))
 }
 
+func callPiAddIncomingConnectionNoCache(plugin *goPluginSharedMemory, name string, ii unsafe.Pointer) {
+	namePtr := stringToUtf16Ptr(name)
+	C.callPiAddIncomingConnectionNoCache((*C.struct_PluginSharedMemory)(unsafe.Pointer(plugin)), namePtr, (*C.struct_IncomingConnectionInterface)(ii))
+}
+
 func callPiAddOutgoingConnection(plugin *goPluginSharedMemory, name string, ii unsafe.Pointer) {
 	namePtr := stringToUtf16Ptr(name)
 	C.callPiAddOutgoingConnection((*C.struct_PluginSharedMemory)(unsafe.Pointer(plugin)), namePtr, (*C.struct_IncomingConnectionInterface)(ii))
@@ -195,13 +200,22 @@ func RegisterTool(plugin Plugin, toolId int, xmlProperties unsafe.Pointer, engin
 	}
 	io := &ayxIo{sharedMemory: data}
 	environment := &ayxEnvironment{sharedMemory: data}
-	toolProvider := &provider{
-		sharedMemory:  data,
-		io:            io,
-		environment:   environment,
-		outputAnchors: make(map[string]*outputAnchor),
+	var toolProvider Provider
+	if options.noCache {
+		toolProvider = &providerNoCache{
+			sharedMemory:  data,
+			io:            io,
+			environment:   environment,
+			outputAnchors: make(map[string]*outputAnchorNoCache),
+		}
+	} else {
+		toolProvider = &provider{
+			sharedMemory:  data,
+			io:            io,
+			environment:   environment,
+			outputAnchors: make(map[string]*outputAnchor),
+		}
 	}
-
 	registerAndInit(plugin, data, toolProvider)
 	return 1
 }
@@ -235,21 +249,32 @@ func RegisterToolTest(plugin Plugin, toolId int, xmlProperties string, optionSet
 		workflowDir:  options.workflowDir,
 		locale:       options.locale,
 	}
-	toolProvider := &provider{
-		sharedMemory:  data,
-		io:            io,
-		environment:   environment,
-		outputAnchors: make(map[string]*outputAnchor),
+	var toolProvider Provider
+	if options.noCache {
+		toolProvider = &providerNoCache{
+			sharedMemory:  data,
+			io:            io,
+			environment:   environment,
+			outputAnchors: make(map[string]*outputAnchorNoCache),
+		}
+	} else {
+		toolProvider = &provider{
+			sharedMemory:  data,
+			io:            io,
+			environment:   environment,
+			outputAnchors: make(map[string]*outputAnchor),
+		}
 	}
 	registerAndInit(plugin, data, toolProvider)
 	return &FileTestRunner{
-		io:     io,
-		plugin: data,
-		inputs: make(map[string]*FilePusher),
+		noCache: options.noCache,
+		io:      io,
+		plugin:  data,
+		inputs:  make(map[string]*FilePusher),
 	}
 }
 
-func registerTestHarness(plugin Plugin) *goPluginSharedMemory {
+func registerTestHarness(plugin Plugin, noCache bool) *goPluginSharedMemory {
 	var toolId uint32 = 1
 	for {
 		found := false
@@ -268,16 +293,31 @@ func registerTestHarness(plugin Plugin) *goPluginSharedMemory {
 
 	pluginInterface := unsafe.Pointer(C.generatePluginInterface())
 	config := stringToUtf16Ptr("<Configuration></Configuration>")
-	data := (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.utf16char)(config), nil, (*C.struct_PluginInterface)(pluginInterface)))
+	var data *goPluginSharedMemory
+	if noCache {
+		data = (*goPluginSharedMemory)(C.configurePluginNoCache(C.uint32_t(toolId), (*C.utf16char)(config), nil, (*C.struct_PluginInterface)(pluginInterface)))
+	} else {
+		data = (*goPluginSharedMemory)(C.configurePlugin(C.uint32_t(toolId), (*C.utf16char)(config), nil, (*C.struct_PluginInterface)(pluginInterface)))
+	}
 	io := &testIo{}
 	environment := &testEnvironment{
 		sharedMemory: data,
 	}
-	toolProvider := &provider{
-		sharedMemory:  data,
-		io:            io,
-		environment:   environment,
-		outputAnchors: make(map[string]*outputAnchor),
+	var toolProvider Provider
+	if noCache {
+		toolProvider = &providerNoCache{
+			sharedMemory:  data,
+			io:            io,
+			environment:   environment,
+			outputAnchors: make(map[string]*outputAnchorNoCache),
+		}
+	} else {
+		toolProvider = &provider{
+			sharedMemory:  data,
+			io:            io,
+			environment:   environment,
+			outputAnchors: make(map[string]*outputAnchor),
+		}
 	}
 	registerAndInit(plugin, data, toolProvider)
 	return data
@@ -357,6 +397,10 @@ func goOnComplete(handle unsafe.Pointer) {
 		}
 	}
 	delete(tools, data)
+}
+
+func callWriteRecord(handle unsafe.Pointer) {
+	C.callWriteRecord((*C.struct_OutputAnchor)(handle))
 }
 
 func callWriteRecords(handle unsafe.Pointer) {

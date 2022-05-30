@@ -170,3 +170,77 @@ func varBytesToCache(varBytes []byte, cache []byte, fixedPosition int, varPositi
 	copy(cache[varPosition:], varBytes)
 	return varWritten
 }
+
+type outputAnchorNoCache struct {
+	data     *goOutputAnchorData
+	metaData *OutgoingRecordInfo
+}
+
+func (o *outputAnchorNoCache) Name() string {
+	name := utf16PtrToString(o.data.name, utf16PtrLen(o.data.name))
+	return name
+}
+
+func (o *outputAnchorNoCache) IsOpen() bool {
+	return o.data.isOpen == 1
+}
+
+func (o *outputAnchorNoCache) Metadata() *OutgoingRecordInfo {
+	return o.metaData
+}
+
+func (o *outputAnchorNoCache) Open(info *OutgoingRecordInfo) {
+	o.data.fixedSize = uint32(info.FixedSize())
+	if info.HasVarFields() {
+		o.data.hasVarFields = 1
+	}
+	o.metaData = info
+	xmlStr := info.toXml(o.Name())
+	openOutgoingAnchor(o.data, xmlStr)
+}
+
+func (o *outputAnchorNoCache) reallocateRecord(recordSize uint32) {
+	if o.data.recordCacheSize > 0 {
+		freeCache(o.data.recordCache)
+	}
+	o.data.recordCache = allocateCache(recordSize)
+	o.data.recordCacheSize = recordSize
+}
+
+func (o *outputAnchorNoCache) Write() {
+	if o.data.isOpen == 0 {
+		panic(fmt.Sprintf(`you are writing to output anchor '%v' before it has been opened; call Open() before writing records`, o.Name()))
+	}
+	recordSize := o.metaData.DataSize()
+
+	if recordSize > o.data.recordCacheSize {
+		o.reallocateRecord(recordSize)
+	}
+
+	callWriteRecord(unsafe.Pointer(o.data))
+}
+
+func (o *outputAnchorNoCache) UpdateProgress(progress float64) {
+	sendProgressToAnchor(o.data, progress)
+}
+
+func (o *outputAnchorNoCache) Close() {
+	callCloseOutputAnchor(o.data)
+}
+
+func (o *outputAnchorNoCache) NumConnections() int {
+	total := 0
+	if o.data.firstChild == nil {
+		return total
+	}
+	child := o.data.firstChild
+	total++
+	for child.nextConnection != nil {
+		total++
+		child = child.nextConnection
+	}
+	if o.data.browseEverywhereId > 0 {
+		total--
+	}
+	return total
+}

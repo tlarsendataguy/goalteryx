@@ -64,6 +64,7 @@ struct PluginSharedMemory {
 struct PluginInterface* generatePluginInterface();
 struct IncomingConnectionInterface* generateIncomingConnectionInterface();
 void callPiAddIncomingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii);
+void callPiAddIncomingConnectionNoCache(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii);
 void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii);
 void simulateInputLifecycle(struct PluginInterface *pluginInterface);
 void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, utf16char *pMessage);
@@ -100,5 +101,6 @@ void goOnInputConnectionOpened(void * handle);
 void goOnRecordPacket(void * handle);
 void goOnRecordPacketNoCache(void * handle);
 void goOnComplete(void * handle);
+void callWriteRecord(struct OutputAnchor *anchor);
 void callWriteRecords(struct OutputAnchor *anchor);
 void* allocateCache(int size);
