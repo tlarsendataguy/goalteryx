@@ -91,11 +91,14 @@ long PI_AddOutgoingConnection(void * handle,
     struct IncomingConnectionInterface *pIncConnInt);
 long II_Init(void * handle, utf16char * pXmlRecordMetaInfo);
 long II_PushRecord(void * handle, char * pRecord);
+long II_PushRecordNoCache(void * handle, char * pRecord);
 void II_UpdateProgress(void * handle, double dPercent);
 void II_Close(void * handle);
+void II_CloseNoCache(void * handle);
 void II_Free(void * handle);
 void goOnInputConnectionOpened(void * handle);
 void goOnRecordPacket(void * handle);
+void goOnRecordPacketNoCache(void * handle);
 void goOnComplete(void * handle);
 void callWriteRecords(struct OutputAnchor *anchor);
 void* allocateCache(int size);

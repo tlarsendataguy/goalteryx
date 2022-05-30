@@ -68,3 +68,25 @@ func (p *impRecordPacket) atFirstRecord() bool {
 func (p *impRecordPacket) afterLastRecord() bool {
 	return p.currentPosition >= p.size
 }
+
+func NewSingleRecord(record Record) RecordPacket {
+	return &impSingleRecord{record: record}
+}
+
+type impSingleRecord struct {
+	record Record
+	isRead bool
+}
+
+func (i *impSingleRecord) Next() bool {
+	if i.isRead {
+		return false
+	}
+
+	i.isRead = true
+	return true
+}
+
+func (i *impSingleRecord) Record() Record {
+	return i.record
+}

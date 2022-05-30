@@ -364,9 +364,9 @@ long PI_AddIncomingConnectionNoCache(void * handle, utf16char * pIncomingConnect
 
     r_IncConnInt->handle = connection;
     r_IncConnInt->pII_Init = &II_Init;
-    r_IncConnInt->pII_PushRecord = &II_PushRecord;
+    r_IncConnInt->pII_PushRecord = &II_PushRecordNoCache;
     r_IncConnInt->pII_UpdateProgress = &II_UpdateProgress;
-    r_IncConnInt->pII_Close = &II_Close;
+    r_IncConnInt->pII_Close = &II_CloseNoCache;
     r_IncConnInt->pII_Free = &II_Free;
 
     return 1;
@@ -482,6 +482,14 @@ long II_PushRecord(void * handle, char * pRecord) {
     return 1;
 }
 
+long II_PushRecordNoCache(void * handle, char * pRecord) {
+    struct InputConnection *input = (struct InputConnection*)handle;
+    input->status = 3;
+    input->recordCache = pRecord;
+    goOnRecordPacketNoCache(handle);
+    return 1;
+}
+
 void II_UpdateProgress(void * handle, double dPercent) {
     struct InputConnection *input = (struct InputConnection*)handle;
     input->percent = dPercent;
@@ -497,6 +505,19 @@ void II_Close(void * handle) {
 
     free(input->recordCache);
     input->status = 4;
+
+    if (plugin->totalInputConnections != plugin->closedInputConnections) {
+        return;
+    }
+    complete(plugin);
+}
+
+void II_CloseNoCache(void * handle) {
+    struct InputConnection *input = (struct InputConnection*)handle;
+    input->status = 4;
+
+    struct PluginSharedMemory *plugin = input->plugin;
+    plugin->closedInputConnections++;
 
     if (plugin->totalInputConnections != plugin->closedInputConnections) {
         return;

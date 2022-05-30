@@ -338,6 +338,14 @@ func goOnRecordPacket(handle unsafe.Pointer) {
 	implementation.OnRecordPacket(connection)
 }
 
+//export goOnRecordPacketNoCache
+func goOnRecordPacketNoCache(handle unsafe.Pointer) {
+	data := (*goInputConnectionData)(handle)
+	connection := &ImpInputConnectionNoCache{data: data}
+	implementation := tools[data.plugin]
+	implementation.OnRecordPacket(connection)
+}
+
 //export goOnComplete
 func goOnComplete(handle unsafe.Pointer) {
 	data := (*goPluginSharedMemory)(handle)
