@@ -125,17 +125,19 @@ struct PluginSharedMemory* initializePluginToZero(uint32_t nToolID, utf16char * 
     plugin->totalInputConnections = 0;
     plugin->closedInputConnections = 0;
     plugin->inputAnchors = NULL;
+
+    r_pluginInterface->handle = plugin;
+    r_pluginInterface->pPI_Close = &PI_Close;
+    r_pluginInterface->pPI_PushAllRecords = &PI_PushAllRecords;
+    r_pluginInterface->pPI_AddOutgoingConnection = &PI_AddOutgoingConnection;
+
     return plugin;
 }
 
 void* configurePlugin(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
     struct PluginSharedMemory* plugin = initializePluginToZero(nToolID, pXmlProperties, pEngineInterface, r_pluginInterface);
 
-    r_pluginInterface->handle = plugin;
-    r_pluginInterface->pPI_Close = &PI_Close;
-    r_pluginInterface->pPI_PushAllRecords = &PI_PushAllRecords;
     r_pluginInterface->pPI_AddIncomingConnection = &PI_AddIncomingConnection;
-    r_pluginInterface->pPI_AddOutgoingConnection = &PI_AddOutgoingConnection;
 
     return plugin;
 }
@@ -143,13 +145,16 @@ void* configurePlugin(uint32_t nToolID, utf16char * pXmlProperties, struct Engin
 void* configurePluginNoCache(uint32_t nToolID, utf16char * pXmlProperties, struct EngineInterface *pEngineInterface, struct PluginInterface *r_pluginInterface) {
     struct PluginSharedMemory* plugin = initializePluginToZero(nToolID, pXmlProperties, pEngineInterface, r_pluginInterface);
 
-    r_pluginInterface->handle = plugin;
-    r_pluginInterface->pPI_Close = &PI_Close;
-    r_pluginInterface->pPI_PushAllRecords = &PI_PushAllRecords;
     r_pluginInterface->pPI_AddIncomingConnection = &PI_AddIncomingConnectionNoCache;
-    r_pluginInterface->pPI_AddOutgoingConnection = &PI_AddOutgoingConnection;
 
     return plugin;
+}
+
+void openConn(struct OutputConn* conn, utf16char* metadata) {
+    long result = conn->ii->pII_Init(conn->ii->handle, metadata);
+    if (result == 1) {
+        conn->isOpen = 1;
+    }
 }
 
 void appendOutgoingConnection(struct OutputAnchor* anchor, struct IncomingConnectionInterface* ii) {
@@ -169,10 +174,7 @@ void appendOutgoingConnection(struct OutputAnchor* anchor, struct IncomingConnec
     }
 
     if (anchor->isOpen == 1) {
-        long result = ii->pII_Init(ii->handle, anchor->metadata);
-        if (result == 1) {
-            conn->isOpen = 1;
-        }
+        openConn(conn, anchor->metadata);
     }
     return;
 }
@@ -191,10 +193,7 @@ void openOutgoingAnchor(struct OutputAnchor *anchor, utf16char * config) {
     anchor->isOpen = 1;
     struct OutputConn * conn = anchor->firstChild;
     while (NULL != conn) {
-        long result = conn->ii->pII_Init(conn->ii->handle, config);
-        if (result == 1) {
-            conn->isOpen = 1;
-        }
+        openConn(conn, config);
         conn = conn->nextConnection;
     }
 }

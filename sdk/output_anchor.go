@@ -52,15 +52,11 @@ func (a *outputAnchor) writeCache() {
 }
 
 func (a *outputAnchor) reallocateCache(recordSize uint32) {
-	if a.data.recordCacheSize > 0 {
-		freeCache(a.data.recordCache)
-	}
 	newCacheSize := cacheSize
 	if recordSize > newCacheSize {
 		newCacheSize = recordSize
 	}
-	a.data.recordCache = allocateCache(newCacheSize)
-	a.data.recordCacheSize = newCacheSize
+	a.data.reallocateCache(recordSize)
 }
 
 func (a *outputAnchor) Write() {
@@ -125,20 +121,7 @@ func (a *outputAnchor) Close() {
 }
 
 func (a *outputAnchor) NumConnections() int {
-	total := 0
-	if a.data.firstChild == nil {
-		return total
-	}
-	child := a.data.firstChild
-	total++
-	for child.nextConnection != nil {
-		total++
-		child = child.nextConnection
-	}
-	if a.data.browseEverywhereId > 0 {
-		total--
-	}
-	return total
+	return a.data.numConnections()
 }
 
 func varBytesToCache(varBytes []byte, cache []byte, fixedPosition int, varPosition int) int {
@@ -200,11 +183,7 @@ func (o *outputAnchorNoCache) Open(info *OutgoingRecordInfo) {
 }
 
 func (o *outputAnchorNoCache) reallocateRecord(recordSize uint32) {
-	if o.data.recordCacheSize > 0 {
-		freeCache(o.data.recordCache)
-	}
-	o.data.recordCache = allocateCache(recordSize)
-	o.data.recordCacheSize = recordSize
+	o.data.reallocateCache(recordSize)
 }
 
 func (o *outputAnchorNoCache) Write() {
@@ -229,18 +208,5 @@ func (o *outputAnchorNoCache) Close() {
 }
 
 func (o *outputAnchorNoCache) NumConnections() int {
-	total := 0
-	if o.data.firstChild == nil {
-		return total
-	}
-	child := o.data.firstChild
-	total++
-	for child.nextConnection != nil {
-		total++
-		child = child.nextConnection
-	}
-	if o.data.browseEverywhereId > 0 {
-		total--
-	}
-	return total
+	return o.data.numConnections()
 }

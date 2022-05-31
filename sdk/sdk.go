@@ -41,6 +41,31 @@ type goOutputAnchorData struct {
 	totalDataSize       uint64
 }
 
+func (g *goOutputAnchorData) reallocateCache(size uint32) {
+	if g.recordCacheSize > 0 {
+		freeCache(g.recordCache)
+	}
+	g.recordCache = allocateCache(size)
+	g.recordCacheSize = size
+}
+
+func (g *goOutputAnchorData) numConnections() int {
+	total := 0
+	if g.firstChild == nil {
+		return total
+	}
+	child := g.firstChild
+	total++
+	for child.nextConnection != nil {
+		total++
+		child = child.nextConnection
+	}
+	if g.browseEverywhereId > 0 {
+		total--
+	}
+	return total
+}
+
 type goOutputConnectionData struct {
 	isOpen         byte
 	ii             unsafe.Pointer
