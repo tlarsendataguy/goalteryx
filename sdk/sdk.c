@@ -234,19 +234,19 @@ void freeAllInputAnchors(struct InputAnchor *anchor) {
         connection = anchor->firstChild;
         while (connection != NULL) {
             nextConnection = connection->nextConnection;
-
-            free(connection->metadata);
             free(connection);
-
             connection = nextConnection;
         }
-
         free(anchor);
         anchor = nextAnchor;
     }
 }
 
 void freeAllOutputAnchors(struct OutputAnchor *anchor) {
+    if (anchor == NULL) {
+        return;
+    }
+
     struct OutputAnchor *nextAnchor;
     struct OutputConn *connection;
     struct OutputConn *nextConnection;
@@ -264,6 +264,7 @@ void freeAllOutputAnchors(struct OutputAnchor *anchor) {
         free(anchor->metadata);
         free(anchor->recordCache);
         free(anchor);
+
         anchor = nextAnchor;
     }
 }
@@ -344,6 +345,16 @@ struct InputConnection* initializeIncomingConnectionToZero(void * handle, utf16c
     connection->recordCachePosition = 0;
     connection->recordCacheSize = 0;
     connection->status = 1;
+
+    if (anchor->firstChild == NULL) {
+        anchor->firstChild = connection;
+    } else {
+        struct InputConnection *priorConn = anchor->firstChild;
+        while (priorConn->nextConnection != NULL) {
+           priorConn = priorConn->nextConnection;
+        }
+        priorConn->nextConnection = connection;
+    }
 
     plugin->totalInputConnections++;
     return connection;
@@ -436,7 +447,11 @@ long PI_AddOutgoingConnection(void * handle, utf16char * pOutgoingConnectionName
 
 long II_Init(void * handle, utf16char * pXmlRecordMetaInfo) {
     struct InputConnection *input = (struct InputConnection*)handle;
-    input->metadata = pXmlRecordMetaInfo;
+
+    uint32_t length = getLenFromUtf16Ptr(pXmlRecordMetaInfo) * 2;
+    input->metadata = malloc(length);
+    memcpy(input->metadata, pXmlRecordMetaInfo, length);
+
     input->status = 2;
     goOnInputConnectionOpened(input);
     return 1;
@@ -507,6 +522,7 @@ void II_Close(void * handle) {
     plugin->closedInputConnections++;
 
     free(input->recordCache);
+    free(input->metadata);
     input->status = 4;
 
     if (plugin->totalInputConnections != plugin->closedInputConnections) {

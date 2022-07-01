@@ -71,44 +71,12 @@ func (a *outputAnchor) Write() {
 		}
 		a.reallocateCache(recordSize)
 	}
-
-	currentFixedPosition := 0
-	currentVarPosition := int(a.data.fixedSize) + 4
-	varLen := 0
-	hasVar := false
 	if a.data.recordCachePosition+recordSize > a.data.recordCacheSize {
 		a.writeCache()
 	}
+
 	cache := ptrToBytes(a.data.recordCache, a.data.recordCachePosition, int(recordSize))
-	for _, field := range a.metaData.outgoingFields {
-		if field.isFixedLen {
-			copy(cache[currentFixedPosition:], field.CurrentValue)
-			currentFixedPosition += len(field.CurrentValue)
-			continue
-		}
-		hasVar = true
-		if field.CurrentValue[0] == 1 { // null value
-			copy(cache[currentFixedPosition:], []byte{1, 0, 0, 0})
-			currentFixedPosition += 4
-			continue
-		}
-		if len(field.CurrentValue) == 1 { // empty value
-			copy(cache[currentFixedPosition:], []byte{0, 0, 0, 0})
-			currentFixedPosition += 4
-			continue
-		}
-		varWritten := varBytesToCache(field.CurrentValue[1:], cache, currentFixedPosition, currentVarPosition)
-		currentFixedPosition += 4
-		varLen += varWritten
-		currentVarPosition += varWritten
-	}
-	if hasVar {
-		binary.LittleEndian.PutUint32(cache[currentFixedPosition:currentFixedPosition+4], uint32(varLen))
-		currentFixedPosition += 4
-	}
-	if varLen+currentFixedPosition != int(recordSize) {
-		panic(fmt.Sprintf(`mismatch between actual write of %v and calculated write of %v`, varLen+currentFixedPosition, recordSize))
-	}
+	writeCache(cache, a.metaData, a.data)
 	a.data.recordCachePosition += recordSize
 }
 
@@ -196,6 +164,8 @@ func (o *outputAnchorNoCache) Write() {
 		o.reallocateRecord(recordSize)
 	}
 
+	cache := ptrToBytes(o.data.recordCache, 0, int(recordSize))
+	writeCache(cache, o.metaData, o.data)
 	callWriteRecord(unsafe.Pointer(o.data))
 }
 
@@ -209,4 +179,42 @@ func (o *outputAnchorNoCache) Close() {
 
 func (o *outputAnchorNoCache) NumConnections() int {
 	return o.data.numConnections()
+}
+
+func writeCache(cache []byte, metadata *OutgoingRecordInfo, data *goOutputAnchorData) {
+	recordSize := metadata.DataSize()
+	currentFixedPosition := 0
+	currentVarPosition := int(data.fixedSize) + 4
+	varLen := 0
+	hasVar := false
+
+	for _, field := range metadata.outgoingFields {
+		if field.isFixedLen {
+			copy(cache[currentFixedPosition:], field.CurrentValue)
+			currentFixedPosition += len(field.CurrentValue)
+			continue
+		}
+		hasVar = true
+		if field.CurrentValue[0] == 1 { // null value
+			copy(cache[currentFixedPosition:], []byte{1, 0, 0, 0})
+			currentFixedPosition += 4
+			continue
+		}
+		if len(field.CurrentValue) == 1 { // empty value
+			copy(cache[currentFixedPosition:], []byte{0, 0, 0, 0})
+			currentFixedPosition += 4
+			continue
+		}
+		varWritten := varBytesToCache(field.CurrentValue[1:], cache, currentFixedPosition, currentVarPosition)
+		currentFixedPosition += 4
+		varLen += varWritten
+		currentVarPosition += varWritten
+	}
+	if hasVar {
+		binary.LittleEndian.PutUint32(cache[currentFixedPosition:currentFixedPosition+4], uint32(varLen))
+		currentFixedPosition += 4
+	}
+	if varLen+currentFixedPosition != int(recordSize) {
+		panic(fmt.Sprintf(`mismatch between actual write of %v and calculated write of %v`, varLen+currentFixedPosition, recordSize))
+	}
 }

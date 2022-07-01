@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
-	"github.com/tlarsen7572/goalteryx/sdk"
+	"github.com/tlarsendataguy/goalteryx/sdk"
 	"io/ioutil"
 )
 

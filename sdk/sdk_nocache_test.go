@@ -51,4 +51,14 @@ func TestNoCache(t *testing.T) {
 	if records := len(collector.Data[`Field1`]); records != 4 {
 		t.Fatalf(`expected 4 records but got %v`, records)
 	}
+	if value := collector.Data[`Field1`][0]; value != true {
+		t.Fatalf(`expected true but got %v`, value)
+	}
+	field12, ok := collector.Data[`Field12`]
+	if !ok {
+		t.Fatalf(`expected Field12 but it did not exist`)
+	}
+	if field12[1] != "QRSTU\r\nVWXYZ" {
+		t.Fatalf("expected 'QRSTU\r\nVWXYZ' but got '%v", field12[1])
+	}
 }
