@@ -1,3 +1,7 @@
+[![Coverage Status](https://coveralls.io/repos/github/tlarsendataguy/goalteryx/badge.svg?branch=main)](https://coveralls.io/github/tlarsendataguy/goalteryx?branch=main)
+[![Go Report Card](https://goreportcard.com/badge/github.com/tlarsendataguy/goalteryx)](https://goreportcard.com/report/github.com/tlarsendataguy/goalteryx)
+[![MIT License](https://img.shields.io/github/license/tlarsendataguy/goalteryx)](https://github.com/tlarsendataguy/goalteryx/blob/main/LICENSE)
+
 <img src="https://github.com/tlarsen7572/goalteryx/blob/main/goalteryx_icon_whiteBackground.png?raw=true" width="200">
 
 # GoAlteryx
