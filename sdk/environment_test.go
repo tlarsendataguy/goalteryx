@@ -10,6 +10,7 @@ import (
 const version = `2021.3`
 
 func TestGetSettings(t *testing.T) {
+	t.Skipf(`Skip tests requiring Alteryx`)
 	if runtime.GOOS != `windows` {
 		t.Skipf(`TestGetSettings will only pass on Windows with Alteryx installed`)
 	}
