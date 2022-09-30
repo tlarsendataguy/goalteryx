@@ -448,7 +448,7 @@ long PI_AddOutgoingConnection(void * handle, utf16char * pOutgoingConnectionName
 long II_Init(void * handle, utf16char * pXmlRecordMetaInfo) {
     struct InputConnection *input = (struct InputConnection*)handle;
 
-    uint32_t length = getLenFromUtf16Ptr(pXmlRecordMetaInfo) * 2;
+    uint32_t length = (getLenFromUtf16Ptr(pXmlRecordMetaInfo) + 1) * 2;
     input->metadata = malloc(length);
     memcpy(input->metadata, pXmlRecordMetaInfo, length);
 
