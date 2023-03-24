@@ -737,7 +737,7 @@ func (i *OutgoingRecordInfo) DataSize() uint32 {
 			totalSize += 4 // everything fits into the fixed portion of record
 			continue
 		}
-		if fieldSize < 127 {
+		if fieldSize < singleByteLenLimit {
 			totalSize += 5 + fieldSize // 4 bytes in fixed portion of record and 1 byte for len
 			continue
 		}

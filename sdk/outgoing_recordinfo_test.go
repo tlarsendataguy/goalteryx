@@ -165,3 +165,15 @@ func TestGetEmptyValue(t *testing.T) {
 		}
 	}
 }
+
+func TestV_String127Chars(t *testing.T) {
+	info, _ := sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
+		sdk.NewV_StringField(`Test`, `source`, 1000),
+	})
+	info.StringFields[`Test`].SetString(strings.Repeat(`a`, 127))
+	size := info.DataSize()
+	expected := uint32(136)
+	if size != expected {
+		t.Fatalf(`expected %v but got %v`, expected, size)
+	}
+}

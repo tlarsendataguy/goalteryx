@@ -11,6 +11,7 @@ import (
 )
 
 const cacheSize uint32 = 4194304
+const singleByteLenLimit = 128
 
 type goPluginSharedMemory struct {
 	toolId                 uint32

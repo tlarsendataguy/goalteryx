@@ -108,7 +108,7 @@ func varBytesToCache(varBytes []byte, cache []byte, fixedPosition int, varPositi
 
 	binary.LittleEndian.PutUint32(cache[fixedPosition:fixedPosition+4], uint32(varPosition-fixedPosition))
 
-	if varDataLen < 128 {
+	if varDataLen < singleByteLenLimit {
 		cache[varPosition] = byte(varDataLen*2) | 1 // Alteryx seems to multiply all var lens by 2
 		varPosition += 1
 		varWritten += 1
