@@ -10,7 +10,7 @@ func (t *InternalTest) OnInputConnectionOpened(_ InputConnection) {}
 
 func (t *InternalTest) OnRecordPacket(_ InputConnection) {}
 
-func (t *InternalTest) OnComplete() {}
+func (t *InternalTest) OnComplete(nRecordLimit int64) {}
 
 func TestPluginsAreRemovedAfterOnComplete(t *testing.T) {
 	if len(tools) != 0 {

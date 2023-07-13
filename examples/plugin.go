@@ -56,6 +56,6 @@ func (p *Plugin) OnRecordPacket(connection sdk.InputConnection) {
 	}
 }
 
-func (p *Plugin) OnComplete() {
+func (p *Plugin) OnComplete(nRecordLimit int64) {
 	p.provider.Io().Info(`Done`)
 }

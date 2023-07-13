@@ -76,7 +76,7 @@ func (f *FilePusher) OnRecordPacket(_ InputConnection) {
 	panic("this should never be called")
 }
 
-func (f *FilePusher) OnComplete() {
+func (f *FilePusher) OnComplete(nRecordLimit int64) {
 	file, err := os.Open(f.file)
 	if err != nil {
 		panic(fmt.Sprintf(`error opening data file: %v`, err.Error()))
@@ -278,7 +278,7 @@ func (r *RecordCollector) OnRecordPacket(connection InputConnection) {
 	r.Progress = connection.Progress()
 }
 
-func (r *RecordCollector) OnComplete() {}
+func (r *RecordCollector) OnComplete(nRecordLimit int64) {}
 
 func (r *RecordCollector) appendDataToField(fieldName string, value interface{}, isNull bool) {
 	if isNull {

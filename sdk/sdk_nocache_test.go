@@ -29,7 +29,7 @@ func (n *NoCache) OnRecordPacket(connection sdk.InputConnection) {
 	}
 }
 
-func (n *NoCache) OnComplete() {
+func (n *NoCache) OnComplete(nRecordLimit int64) {
 }
 
 func TestNoCache(t *testing.T) {

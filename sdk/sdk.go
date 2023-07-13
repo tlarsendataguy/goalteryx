@@ -413,10 +413,10 @@ func goOnRecordPacketNoCache(handle unsafe.Pointer) {
 }
 
 //export goOnComplete
-func goOnComplete(handle unsafe.Pointer) {
+func goOnComplete(handle unsafe.Pointer, nRecordLimit int64) {
 	data := (*goPluginSharedMemory)(handle)
 	implementation := tools[data]
-	implementation.OnComplete()
+	implementation.OnComplete(nRecordLimit)
 	for anchor := data.outputAnchors; anchor != nil; anchor = anchor.nextAnchor {
 		if anchor.recordCachePosition > 0 {
 			callWriteRecords(unsafe.Pointer(anchor))

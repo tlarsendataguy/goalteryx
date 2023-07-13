@@ -45,7 +45,7 @@ func (t *TestImplementation) OnRecordPacket(_ sdk.InputConnection) {
 	t.DidOnRecordPacket = true
 }
 
-func (t *TestImplementation) OnComplete() {
+func (t *TestImplementation) OnComplete(nRecordLimit int64) {
 	t.DidOnComplete = true
 	t.Output.UpdateProgress(1)
 }
@@ -69,7 +69,7 @@ func (i *TestInputTool) OnRecordPacket(_ sdk.InputConnection) {
 	panic("This should never be called")
 }
 
-func (i *TestInputTool) OnComplete() {
+func (i *TestInputTool) OnComplete(nRecordLimit int64) {
 	source := `source`
 	output, _ := sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
 		sdk.NewBlobField(`Field1`, source, 100),
@@ -130,7 +130,7 @@ func (i *InputRecordLargerThanCache) OnRecordPacket(_ sdk.InputConnection) {
 	panic("this should never be called")
 }
 
-func (i *InputRecordLargerThanCache) OnComplete() {
+func (i *InputRecordLargerThanCache) OnComplete(nRecordLimit int64) {
 	info, _ := sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
 		sdk.NewV_WStringField(`Field1`, `source`, 1000000000),
 	})
@@ -159,7 +159,7 @@ func (i *InputWithNulls) OnRecordPacket(_ sdk.InputConnection) {
 	panic("this should never be called")
 }
 
-func (i *InputWithNulls) OnComplete() {
+func (i *InputWithNulls) OnComplete(nRecordLimit int64) {
 	info, _ := sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
 		sdk.NewBoolField(`Field1`, `source`),
 		sdk.NewInt32Field(`Field2`, `source`),
@@ -214,7 +214,7 @@ func (p *PassThroughTool) OnRecordPacket(connection sdk.InputConnection) {
 	}
 }
 
-func (p *PassThroughTool) OnComplete() {}
+func (p *PassThroughTool) OnComplete(nRecordLimit int64) {}
 
 func TestRegister(t *testing.T) {
 	config := `<Configuration></Configuration>`
@@ -536,7 +536,7 @@ func (p *WriteBeforeOpeningOutput) OnRecordPacket(connection sdk.InputConnection
 	}
 }
 
-func (p *WriteBeforeOpeningOutput) OnComplete() {
+func (p *WriteBeforeOpeningOutput) OnComplete(nRecordLimit int64) {
 }
 
 func TestWritingOutputBeforeOpenShouldPanic(t *testing.T) {
@@ -582,7 +582,7 @@ func (i *OpenBeforeAddingConnectionPlugin) OnRecordPacket(connection sdk.InputCo
 	}
 }
 
-func (i *OpenBeforeAddingConnectionPlugin) OnComplete() {}
+func (i *OpenBeforeAddingConnectionPlugin) OnComplete(nRecordLimit int64) {}
 
 func TestInitOutputBeforeAddingOutgoingConnection(t *testing.T) {
 	plugin := &OpenBeforeAddingConnectionPlugin{}
@@ -645,7 +645,7 @@ func (t *statusTester) OnRecordPacket(connection sdk.InputConnection) {
 	}
 }
 
-func (t *statusTester) OnComplete() {
+func (t *statusTester) OnComplete(nRecordLimit int64) {
 	t.checkExpectedConn1Status(sdk.Closed)
 	if t.connection2 != nil {
 		t.checkExpectedConn2Status(sdk.Closed)
@@ -707,7 +707,7 @@ func (t *outputAnchorCloseTester) OnRecordPacket(_ sdk.InputConnection) {
 	panic("implement me")
 }
 
-func (t *outputAnchorCloseTester) OnComplete() {
+func (t *outputAnchorCloseTester) OnComplete(nRecordLimit int64) {
 	if t.err != nil {
 		return
 	}
@@ -743,7 +743,7 @@ func (t *testCreateTempFile) OnInputConnectionOpened(_ sdk.InputConnection) {}
 
 func (t *testCreateTempFile) OnRecordPacket(_ sdk.InputConnection) {}
 
-func (t *testCreateTempFile) OnComplete() {}
+func (t *testCreateTempFile) OnComplete(nRecordLimit int64) {}
 
 func TestCreateTempFile(t *testing.T) {
 	plugin := &testCreateTempFile{}
@@ -770,7 +770,7 @@ func (b *byteTester) OnInputConnectionOpened(_ sdk.InputConnection) {
 func (b *byteTester) OnRecordPacket(_ sdk.InputConnection) {
 }
 
-func (b *byteTester) OnComplete() {
+func (b *byteTester) OnComplete(nRecordLimit int64) {
 	info, _ := sdk.NewOutgoingRecordInfo([]sdk.NewOutgoingField{
 		sdk.NewByteField(`bytes`, `Byte Tester`),
 	})

@@ -100,7 +100,7 @@ void II_Free(void * handle);
 void goOnInputConnectionOpened(void * handle);
 void goOnRecordPacket(void * handle);
 void goOnRecordPacketNoCache(void * handle);
-void goOnComplete(void * handle);
+void goOnComplete(void * handle, int64_t nRecordLimit);
 void callWriteRecord(struct OutputAnchor *anchor);
 void callWriteRecords(struct OutputAnchor *anchor);
 void* allocateCache(int size);

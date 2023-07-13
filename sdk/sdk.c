@@ -269,8 +269,8 @@ void freeAllOutputAnchors(struct OutputAnchor *anchor) {
     }
 }
 
-void complete(struct PluginSharedMemory *plugin) {
-    goOnComplete(plugin);
+void complete(struct PluginSharedMemory *plugin, int64_t nRecordLimit) {
+    goOnComplete(plugin, nRecordLimit);
     freeAllInputAnchors(plugin->inputAnchors);
     closeAllOutputAnchors(plugin->outputAnchors);
     freeAllOutputAnchors(plugin->outputAnchors);
@@ -281,7 +281,7 @@ void complete(struct PluginSharedMemory *plugin) {
 
 long PI_PushAllRecords(void * handle, int64_t nRecordLimit){
     struct PluginSharedMemory *plugin = (struct PluginSharedMemory*)handle;
-    complete(plugin);
+    complete(plugin, nRecordLimit);
     return 1;
 }
 

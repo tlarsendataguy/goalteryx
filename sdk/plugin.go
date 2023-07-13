@@ -4,5 +4,5 @@ type Plugin interface {
 	Init(Provider)
 	OnInputConnectionOpened(InputConnection)
 	OnRecordPacket(InputConnection)
-	OnComplete()
+	OnComplete(nRecordLimit int64)
 }

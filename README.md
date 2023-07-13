@@ -114,7 +114,7 @@ func (p *Plugin) OnRecordPacket(connection sdk.InputConnection) {
 	}
 }
 
-func (p *Plugin) OnComplete() {
+func (p *Plugin) OnComplete(nRecordLimit int64) {
 	p.provider.Io().Info(`Done`)
 }
 ```
@@ -132,7 +132,7 @@ type Plugin interface {
 	Init(Provider)
 	OnInputConnectionOpened(InputConnection)
 	OnRecordPacket(InputConnection)
-	OnComplete()
+	OnComplete(nRecordLimit int64)
 }
 ```
 
@@ -142,7 +142,7 @@ The `OnInputConnectionOpened` function is called when an upstream tool is connec
 
 The `OnRecordPacket` function is called when your custom tool recieves records from an upstream tool.  Your tool is given an [InputConnection](#Using-InputConnection), which allows you to check the incoming connection name, iterate through the incoming records, and retrieve the progress of the incoming datastream.  As with `OnInputConnectionOpened`, this function is not called if your custom tool is an input tool.
 
-The `OnComplete` function is called at the end of your custom tool's lifecycle.  For tools which receive data from upstream tools, this happens after all incoming connections have been closed by the upstream tools.  For input tools, this happens when Alteryx is ready for your tool to start processing and sending data.
+The `OnComplete` function is called at the end of your custom tool's lifecycle. For tools which receive data from upstream tools, this happens after all incoming connections have been closed by the upstream tools.  For input tools, this happens when Alteryx is ready for your tool to start processing and sending data. TODO: explain the `nRecordLimit` argument.
 
 Below is an example of a struct that implements the Plugin interface:
 
@@ -175,7 +175,7 @@ func (p *Plugin) OnRecordPacket(connection sdk.InputConnection) {
 	}
 }
 
-func (p *Plugin) OnComplete() {}
+func (p *Plugin) OnComplete(nRecordLimit int64) {}
 ```
 
 [Back to table of contents](#Table-of-contents)
@@ -468,7 +468,7 @@ func (p *Plugin) OnRecordPacket(connection sdk.InputConnection) {
 	}
 }
 
-func (p *Plugin) OnComplete() {}
+func (p *Plugin) OnComplete(nRecordLimit int64) {}
 ```
 
 #### EditingRecordInfo
@@ -597,7 +597,7 @@ func (p *Plugin) OnRecordPacket(connection sdk.InputConnection) {
 	}
 }
 
-func (p *Plugin) OnComplete() {}
+func (p *Plugin) OnComplete(nRecordLimit int64) {}
 ```
 
 [Back to table of contents](#Table-of-contents)
