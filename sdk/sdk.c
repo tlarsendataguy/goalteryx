@@ -528,7 +528,7 @@ void II_Close(void * handle) {
     if (plugin->totalInputConnections != plugin->closedInputConnections) {
         return;
     }
-    complete(plugin);
+    //complete(plugin, nRecordLimit);
 }
 
 void II_CloseNoCache(void * handle) {
@@ -541,7 +541,7 @@ void II_CloseNoCache(void * handle) {
     if (plugin->totalInputConnections != plugin->closedInputConnections) {
         return;
     }
-    complete(plugin);
+    //complete(plugin, nRecordLimit);
 }
 
 void II_Free(void * handle) {
