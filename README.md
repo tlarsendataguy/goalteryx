@@ -142,7 +142,7 @@ The `OnInputConnectionOpened` function is called when an upstream tool is connec
 
 The `OnRecordPacket` function is called when your custom tool recieves records from an upstream tool.  Your tool is given an [InputConnection](#Using-InputConnection), which allows you to check the incoming connection name, iterate through the incoming records, and retrieve the progress of the incoming datastream.  As with `OnInputConnectionOpened`, this function is not called if your custom tool is an input tool.
 
-The `OnComplete` function is called at the end of your custom tool's lifecycle. For tools which receive data from upstream tools, this happens after all incoming connections have been closed by the upstream tools.  For input tools, this happens when Alteryx is ready for your tool to start processing and sending data. TODO: explain the `nRecordLimit` argument.
+The `OnComplete` function is called at the end of your custom tool's lifecycle. For tools which receive data from upstream tools, this happens after all incoming connections have been closed by the upstream tools.  For input tools, this happens when Alteryx is ready for your tool to start processing and sending data.  A single argument `nRecordLimit` is passed to `OnComplete`. Your tool's implementation should use `nRecordLimit` to determine the number of records to output. `nRecordLimit` will be <0 to indicate that there is no limit, 0 to indicate that the tool is being configured and no records should be sent, or >0 to indicate that only the requested number of records should be sent.
 
 Below is an example of a struct that implements the Plugin interface:
 
