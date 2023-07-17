@@ -308,7 +308,7 @@ type Io interface {
 	Error(string)
 	Warn(string)
 	Info(string)
-	UpdateProgress(float64)
+	UpdateProgress(float64) bool
 	DecryptPassword(string) string
 	CreateTempFile(string) string
 }
@@ -320,7 +320,7 @@ The `Warn` function sends a warning to the Alteryx engine.  This shows up in Des
 
 The `Info` function sends a message to the Alteryx engine.  This shows up in Designer as an informational message.  When run in a unit test context, it prints the message to stdout.
 
-The `UpdateProgress` function notifies the Alteryx engine of the current percentage completion of the custom tool.  This is the overall completion of the tool as opposed to the datastream completion percentage in the `OutputAnchor.UpdateProgress()` method.
+The `UpdateProgress` function notifies the Alteryx engine of the current percentage completion of the custom tool.  This is the overall completion of the tool as opposed to the datastream completion percentage in the `OutputAnchor.UpdateProgress()` method. The function returns a boolean. True means to continue processing and False means to stop processing. Input tools should use this function to determine whether the user clicked Cancel and prematurely stop executing.
 
 The `DecryptPassword` function decrypts a password encrypted by the front-end UI.
 
