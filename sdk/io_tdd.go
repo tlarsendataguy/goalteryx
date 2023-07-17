@@ -20,8 +20,9 @@ func (t *testIo) Info(message string) {
 	println(fmt.Sprintf(`INFO: %v`, message))
 }
 
-func (t *testIo) UpdateProgress(progress float64) {
+func (t *testIo) UpdateProgress(progress float64) bool {
 	println(fmt.Sprintf(`Progress: %v`, progress))
+	return true
 }
 
 func (t *testIo) DecryptPassword(value string) string {

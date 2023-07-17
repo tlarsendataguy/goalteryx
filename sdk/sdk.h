@@ -68,7 +68,7 @@ void callPiAddIncomingConnectionNoCache(struct PluginSharedMemory *handle, utf16
 void callPiAddOutgoingConnection(struct PluginSharedMemory *handle, utf16char * name, struct IncomingConnectionInterface *ii);
 void simulateInputLifecycle(struct PluginInterface *pluginInterface);
 void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, utf16char *pMessage);
-void outputToolProgress(struct EngineInterface * engine, int nToolID, double progress);
+long outputToolProgress(struct EngineInterface * engine, int nToolID, double progress);
 void sendProgressToAnchor(struct OutputAnchor *anchor, double progress);
 void* getInitVar(struct EngineInterface * engine, utf16char *pVar);
 void* createTempFile(struct EngineInterface * engine, utf16char *pExt);

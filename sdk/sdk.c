@@ -84,8 +84,8 @@ void sendMessage(struct EngineInterface * engine, int nToolID, int nStatus, utf1
     }
 }
 
-void outputToolProgress(struct EngineInterface * engine, int nToolID, double progress){
-    engine->pOutputToolProgress(engine->handle, nToolID, progress);
+long outputToolProgress(struct EngineInterface * engine, int nToolID, double progress){
+    return engine->pOutputToolProgress(engine->handle, nToolID, progress);
 }
 
 void sendProgressToAnchor(struct OutputAnchor *anchor, double progress) {

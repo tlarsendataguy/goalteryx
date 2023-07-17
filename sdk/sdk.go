@@ -151,8 +151,8 @@ func sendMessageToEngine(data *goPluginSharedMemory, status MessageStatus, messa
 	C.sendMessage((*C.struct_EngineInterface)(data.engine), (C.int)(data.toolId), (C.int)(status), (*C.utf16char)(stringToUtf16Ptr(message)))
 }
 
-func sendToolProgressToEngine(data *goPluginSharedMemory, progress float64) {
-	C.outputToolProgress((*C.struct_EngineInterface)(data.engine), (C.int)(data.toolId), (C.double)(progress))
+func sendToolProgressToEngine(data *goPluginSharedMemory, progress float64) bool {
+	return C.outputToolProgress((*C.struct_EngineInterface)(data.engine), (C.int)(data.toolId), (C.double)(progress)) == 0
 }
 
 func sendProgressToAnchor(anchor *goOutputAnchorData, progress float64) {

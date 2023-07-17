@@ -18,8 +18,8 @@ func (a *ayxIo) Info(message string) {
 	sendMessageToEngine(a.sharedMemory, Info, message)
 }
 
-func (a *ayxIo) UpdateProgress(progress float64) {
-	sendToolProgressToEngine(a.sharedMemory, progress)
+func (a *ayxIo) UpdateProgress(progress float64) bool {
+	return sendToolProgressToEngine(a.sharedMemory, progress)
 }
 
 func (a *ayxIo) DecryptPassword(value string) string {
