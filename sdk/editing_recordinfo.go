@@ -95,6 +95,10 @@ func (i *EditingRecordInfo) AddDateTimeField(name string, source string, options
 	return i.addField(name, `DateTime`, source, 19, 0, options...)
 }
 
+func (i *EditingRecordInfo) AddTimeField(name string, source string, options ...AddFieldOptionSetter) string {
+	return i.addField(name, `Time`, source, 8, 0, options...)
+}
+
 func (i *EditingRecordInfo) addField(name string, typeName string, source string, size int, scale int, options ...AddFieldOptionSetter) string {
 	addFieldOptions := AddFieldOptions{}
 	for _, setter := range options {
@@ -174,6 +178,9 @@ func (i *EditingRecordInfo) GenerateOutgoingRecordInfo() *OutgoingRecordInfo {
 			info.DateTimeFields[field.Name] = outgoing
 		case `DateTime`:
 			outgoing = NewDateTimeField(field.Name, field.Source)()
+			info.DateTimeFields[field.Name] = outgoing
+		case `Time`:
+			outgoing = NewTimeField(field.Name, field.Source)()
 			info.DateTimeFields[field.Name] = outgoing
 		case `String`:
 			outgoing = NewStringField(field.Name, field.Source, field.Size)()

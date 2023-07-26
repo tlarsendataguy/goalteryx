@@ -382,6 +382,8 @@ func goOnInputConnectionOpened(handle unsafe.Pointer) {
 			fixedSize += 11
 		case `DateTime`:
 			fixedSize += 20
+		case `Time`:
+			fixedSize += 9
 		case `String`:
 			fixedSize += uint32(field.Size) + 1
 		case `WString`:

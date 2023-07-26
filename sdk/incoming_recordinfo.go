@@ -9,6 +9,7 @@ import (
 
 const dateFormat = `2006-01-02`
 const dateTimeFormat = `2006-01-02 15:04:05`
+const timeFormat = `15:04:05`
 
 type xmlMetaInfo struct {
 	Connection string        `xml:"connection,attr"`
@@ -110,6 +111,8 @@ func (i IncomingRecordInfo) GetTimeField(name string) (IncomingTimeField, error)
 			return generateTimeField(field, dateFormat, 10), nil
 		case `DateTime`:
 			return generateTimeField(field, dateTimeFormat, 19), nil
+		case `Time`:
+			return generateTimeField(field, timeFormat, 8), nil
 		default:
 			return IncomingTimeField{}, fmt.Errorf(`the '%v' field is not a time field, it is '%v'`, name, field.Type)
 		}
@@ -199,6 +202,9 @@ func incomingRecordInfoFromString(config string) (IncomingRecordInfo, error) {
 		case `DateTime`:
 			field.GetBytes = generateGetFixedBytes(startAt, 20)
 			startAt += 20
+		case `Time`:
+			field.GetBytes = generateGetFixedBytes(startAt, 9)
+			startAt += 9
 		default:
 			return IncomingRecordInfo{}, fmt.Errorf(`field '%v' has invalid field type '%v'`, field.Name, field.Type)
 		}

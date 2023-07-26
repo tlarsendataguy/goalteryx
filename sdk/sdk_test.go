@@ -88,6 +88,7 @@ func (i *TestInputTool) OnComplete() {
 		sdk.NewDateField(`Field14`, source),
 		sdk.NewDateTimeField(`Field15`, source),
 		sdk.NewSpatialObjField(`Field16`, source, 1000000),
+		sdk.NewTimeField(`Field17`, source),
 	})
 	i.OutputConfig = output
 	i.Output.Open(output)
@@ -109,6 +110,7 @@ func (i *TestInputTool) OnComplete() {
 		output.DateTimeFields[`Field14`].SetDateTime(time.Date(2020, 1, index, 0, 0, 0, 0, time.UTC))
 		output.DateTimeFields[`Field15`].SetDateTime(time.Date(2020, 1, index, 0, 0, 0, 0, time.UTC))
 		output.BlobFields[`Field16`].SetBlob([]byte{byte(index)})
+		output.DateTimeFields[`Field17`].SetDateTime(time.Date(0, 0, 0, 12, 31, index, 0, time.UTC))
 		i.Output.Write()
 	}
 	i.Output.UpdateProgress(1)
@@ -329,15 +331,15 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 	if collector.Name != `Output` {
 		t.Fatalf(`expected 'Output' but got '%v'`, collector.Name)
 	}
-	if fields := collector.Config.NumFields(); fields != 16 {
-		t.Fatalf("expected 16 fields but got %v", fields)
+	if fields := collector.Config.NumFields(); fields != 17 {
+		t.Fatalf("expected 17 fields but got %v", fields)
 	}
 	outputConfig := implementation.Output.Metadata()
 	if outputConfig != implementation.OutputConfig {
 		t.Fatalf(`expected same instance but got %v and %v`, outputConfig, implementation.OutputConfig)
 	}
-	if length := len(collector.Data); length != 16 {
-		t.Fatalf(`expected 16 fields but got %v`, length)
+	if length := len(collector.Data); length != 17 {
+		t.Fatalf(`expected 17 fields but got %v`, length)
 	}
 	if length := len(collector.Data[`Field3`]); length != 10 {
 		t.Fatalf(`expected [0 1 2 3 4 5 6 7 8 9] but got %v`, collector.Data[`Field3`])
@@ -390,6 +392,9 @@ func TestOutputRecordsToTestRunner(t *testing.T) {
 		}
 		if !bytes.Equal(collector.Data[`Field16`][i].([]byte), []byte{byte(i)}) {
 			t.Fatalf(`expected [[0] [1] [2] [3] [4] [5] [6] [7] [8] [9]] but got %v`, collector.Data[`Field16`])
+		}
+		if collector.Data[`Field17`][i] != time.Date(0, 1, 1, 12, 31, i, 0, time.UTC) {
+			t.Fatalf(`expected [0000-01-01 12:31:00 +0000 UTC 0000-01-01 12:31:01 +0000 UTC 0000-01-01 12:31:02 +0000 UTC 0000-01-01 12:31:03 +0000 UTC 0000-01-01 12:31:04 +0000 UTC  0000-01-01 12:31:05 +0000 UTC 0000-01-01 12:31:06 +0000 UTC 0000-01-01 12:31:07 +0000 UTC 0000-01-01 12:31:08 +0000 UTC 0000-01-01 12:31:09 +0000 UTC] but got %v`, collector.Data[`Field17`])
 		}
 	}
 	if collector.Progress != 1.0 {
@@ -462,8 +467,8 @@ func TestPassthroughSimulation(t *testing.T) {
 	collector := runner.CaptureOutgoingAnchor(`Output`)
 	runner.ConnectInput(`Input`, `sdk_test_passthrough_simulation.txt`)
 	runner.SimulateLifecycle()
-	if len(collector.Data) != 16 {
-		t.Fatalf(`expected 16 fields but got %v`, len(collector.Data))
+	if len(collector.Data) != 17 {
+		t.Fatalf(`expected 17 fields but got %v`, len(collector.Data))
 	}
 	if recordCount := len(collector.Data[`Field1`]); recordCount != 4 {
 		t.Fatalf(`expected 4 records but got %v`, recordCount)
@@ -515,6 +520,9 @@ func TestPassthroughSimulation(t *testing.T) {
 	}
 	if expectedValues := []interface{}{nil, nil, nil, nil}; !reflect.DeepEqual(expectedValues, collector.Data[`Field16`]) {
 		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field16`])
+	}
+	if expectedValues := []interface{}{time.Date(0, 1, 1, 10, 1, 1, 0, time.UTC), nil, time.Date(0, 1, 1, 17, 2, 1, 0, time.UTC), nil}; !reflect.DeepEqual(expectedValues, collector.Data[`Field17`]) {
+		t.Fatalf(`expected %v but got %v`, expectedValues, collector.Data[`Field17`])
 	}
 }
 

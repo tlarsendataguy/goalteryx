@@ -45,8 +45,8 @@ func TestNoCache(t *testing.T) {
 	if collector.PacketsReceived != 4 {
 		t.Fatalf(`expected 4 packets but got %v`, collector.PacketsReceived)
 	}
-	if fields := len(collector.Data); fields != 16 {
-		t.Fatalf(`expected 16 fields but got %v`, fields)
+	if fields := len(collector.Data); fields != 17 {
+		t.Fatalf(`expected 17 fields but got %v`, fields)
 	}
 	if records := len(collector.Data[`Field1`]); records != 4 {
 		t.Fatalf(`expected 4 records but got %v`, records)

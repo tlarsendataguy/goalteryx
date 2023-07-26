@@ -184,6 +184,23 @@ func NewDateTimeField(name string, source string) NewOutgoingField {
 	}
 }
 
+func NewTimeField(name string, source string) NewOutgoingField {
+	return func() *outgoingField {
+		return &outgoingField{
+			Name:           name,
+			Type:           `Time`,
+			Source:         source,
+			Size:           8,
+			CurrentValue:   make([]byte, 9),
+			nullSetter:     setNormalFieldNull,
+			nullGetter:     getNormalFieldNull,
+			dateTimeSetter: setTime,
+			dateTimeGetter: getTime,
+			isFixedLen:     true,
+		}
+	}
+}
+
 func NewStringField(name string, source string, size int) NewOutgoingField {
 	return func() *outgoingField {
 		return &outgoingField{
@@ -494,6 +511,16 @@ func setDateTime(value time.Time, f *outgoingField) {
 	copy(f.CurrentValue[:19], valueStr)
 }
 
+func getTime(f *outgoingField) time.Time {
+	value, _ := time.Parse(timeFormat, string(f.CurrentValue[:8]))
+	return value
+}
+
+func setTime(value time.Time, f *outgoingField) {
+	valueStr := value.Format(timeFormat)
+	copy(f.CurrentValue[:8], valueStr)
+}
+
 func (f *outgoingField) SetDateTime(value time.Time) {
 	f.dateTimeSetter(value, f)
 	f.nullSetter(0, f)
@@ -679,7 +706,7 @@ func NewOutgoingRecordInfo(fields []NewOutgoingField) (*OutgoingRecordInfo, []st
 			info.IntFields[field.Name] = field
 		case `Float`, `Double`, `FixedDecimal`:
 			info.FloatFields[field.Name] = field
-		case `Date`, `DateTime`:
+		case `Date`, `DateTime`, `Time`:
 			info.DateTimeFields[field.Name] = field
 		case `String`, `WString`, `V_String`, `V_WString`:
 			info.StringFields[field.Name] = field

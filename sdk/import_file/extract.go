@@ -11,6 +11,7 @@ import (
 
 const dateFormat = `2006-01-02`
 const dateTimeFormat = `2006-01-02 15:04:05`
+const timeFormat = `15:04:05`
 
 type Extractor struct {
 	fields []b.FieldBase
@@ -52,7 +53,7 @@ func NewExtractor(fieldNameBytes []byte, fieldTypeBytes []byte) *Extractor {
 			if err != nil {
 				panic(fmt.Sprintf(`error parsing field type %v: %v`, fieldType, err.Error()))
 			}
-		case `Bool`, `Byte`, `Int16`, `Int32`, `Int64`, `Float`, `Double`, `Date`, `DateTime`:
+		case `Bool`, `Byte`, `Int16`, `Int32`, `Int64`, `Float`, `Double`, `Date`, `DateTime`, `Time`:
 			// do nothing
 		default:
 			panic(fmt.Sprintf(`'%v' is not a valid field type`, fieldType[0]))
@@ -153,6 +154,16 @@ func (e *Extractor) Extract(data []byte) FileData {
 				panic(fmt.Sprintf(`'%v' is not a valid date, expecting a format of 'YYYY-mm-dd HH:MM:SS'`, value))
 			}
 			dateTimeFields[field.Name] = dateValue
+		case `Time`:
+			if value == `` {
+				dateTimeFields[field.Name] = nil
+				continue
+			}
+			timeValue, err := time.Parse(timeFormat, value)
+			if err != nil {
+				panic(fmt.Sprintf(`'%v' is not a valid time, expecting a format of 'HH:MM:SS'`, value))
+			}
+			dateTimeFields[field.Name] = timeValue
 		case `Blob`, `SpatialObj`:
 			if value == `` {
 				blobFields[field.Name] = nil

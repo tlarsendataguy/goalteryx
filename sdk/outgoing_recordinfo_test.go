@@ -90,6 +90,7 @@ func TestGetNull(t *testing.T) {
 		sdk.NewDateTimeField(`Field14`, `source`),
 		sdk.NewBlobField(`Field15`, `source`, 1000000),
 		sdk.NewSpatialObjField(`Field16`, `source`, 1000000),
+		sdk.NewTimeField(`Field17`, `source`),
 	})
 
 	for _, field := range info.FloatFields {

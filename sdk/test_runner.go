@@ -120,6 +120,8 @@ func (f *FilePusher) OnComplete() {
 			infoEditor.AddDateField(field.Name, source)
 		case `DateTime`:
 			infoEditor.AddDateTimeField(field.Name, source)
+		case `Time`:
+			infoEditor.AddTimeField(field.Name, source)
 		case `String`:
 			infoEditor.AddStringField(field.Name, source, field.Size)
 		case `WString`:
@@ -229,7 +231,7 @@ func (r *RecordCollector) OnInputConnectionOpened(connection InputConnection) {
 		case `String`, `WString`, `V_String`, `V_WString`:
 			stringField, _ := r.Config.GetStringField(field.Name)
 			r.stringFields[field.Name] = stringField.GetValue
-		case `Date`, `DateTime`:
+		case `Date`, `DateTime`, `Time`:
 			timeField, _ := r.Config.GetTimeField(field.Name)
 			r.timeFields[field.Name] = timeField.GetValue
 		case `Blob`, `SpatialObj`:
